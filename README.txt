@@ -62,4 +62,9 @@ GOOD TO KNOW
   * Roblox's terms of service may not allow macros or automation. Using this
     could put your account at risk - your call.
 
+COMMUNITY & FEEDBACK
+  Discord: https://discord.gg/avBvJjEWbm -- help, bug reports, ideas and
+  rod skins the bot reads badly. In the app: Help > Community & feedback.
+  For a bug, turn on Keep logs, reproduce it, and attach that run's bot.log.
+
 Rod and enchant data: Fischipedia, the official Fisch wiki (fischipedia.org).

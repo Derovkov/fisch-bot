@@ -162,7 +162,9 @@ class Api:
                      for k, v in HELP.items()}
         return {"rods": rods, "enchants": ENCHANTS, "defaults": DEFAULTS,
                 "saved": saved, "help": help_text, "profiles": self._profiles.list(),
-                "hotkeys": keys, "help_base": HELP}
+                "hotkeys": keys, "help_base": HELP,
+                "links": {"discord": DISCORD_URL, "repo": REPO_URL,
+                          "issues": REPO_URL + "/issues", "releases": REPO_URL + "/releases"}}
 
     def save_profile(self, name: str, settings_json: str, profile_id: str = '') -> dict:
         try:
@@ -528,6 +530,27 @@ class Api:
             return {"ok": False, "error": str(exc)}
         return self.get_skins()
 
+    def open_link(self, which: str) -> dict:
+        """Open a community link in the default browser (Help page). Only the
+        known links -- the page can't ask for any other address."""
+        import webbrowser
+        links = {"discord": DISCORD_URL, "repo": REPO_URL, "issues": REPO_URL + "/issues",
+                 "releases": REPO_URL + "/releases"}
+        url = links.get(which)
+        if not url:
+            return {"ok": False, "error": "not available yet"}
+        webbrowser.open(url)
+        return {"ok": True}
+
+    def open_logs(self) -> dict:
+        """Open the saved_logs folder (runs kept with Keep logs) to attach a
+        bot.log to a bug report."""
+        import os
+        d = Path(__file__).with_name("saved_logs")
+        d.mkdir(exist_ok=True)
+        os.startfile(str(d))
+        return {"ok": True}
+
     def get_general(self) -> dict:
         """The general config (fischbot_general.json): settings that are not
         part of any saved setup -- for now the Useables tab."""
@@ -674,6 +697,9 @@ class Api:
                       + (f"; logs kept in {session.kept_to}" if session.kept_to else ""))
 
 
+# Community links (Help page). Only these addresses can be opened from the app.
+DISCORD_URL = "https://discord.gg/avBvJjEWbm"   # the community server (never-expiring invite)
+REPO_URL = "https://github.com/Derovkov/fisch-bot"
 APP_ID = "Derovkov.FischBot"          # Windows taskbar identity (own icon/group)
 APP_TITLE = "Fisch bot"
 ICON_FILE = Path(__file__).with_name("ui") / "icons" / "app" / "fischbot.ico"

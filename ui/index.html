@@ -438,6 +438,15 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
           <p>Unreadable labels cause a logged skip, without guessing a key. Keep the rod visible in the hotbar. Checks and bag actions wait until the rod is reeled in.</p>
           <p>The bot follows the window's position and size between casts. After a resize, it relearns reel geometry. Let a fish finish before resizing, and keep the window steady during bag actions.</p>
         </div>
+        <div class="card"><h3>Community &amp; feedback</h3>
+          <p>Questions, bug reports and ideas are welcome. For a bug, turn on <b>Keep logs</b> (Settings), reproduce it, then attach that run's <code>bot.log</code> -- it holds numbers and small reel-bar crops only, never full screenshots.</p>
+          <div class="row" style="gap:8px;flex-wrap:wrap;border-top:0">
+            <button class="mini-button accent" id="lk-discord" hidden>Join our Discord</button>
+            <button class="mini-button" id="lk-issues">Report a bug on GitHub</button>
+            <button class="mini-button" id="lk-releases">Check for updates</button>
+            <button class="mini-button" id="lk-logs">Open saved logs</button>
+          </div>
+        </div>
       </div>
     </section>
     <section class="view" id="v-settings">
@@ -870,5 +879,17 @@ window.addEventListener("pywebviewready", async () => {
 <script src="useables.js"></script>
 <script src="hotkeys.js"></script>
 <script src="skins.js"></script>
+<script>
+/* Help > Community & feedback: links open in the default browser (Api.open_link). */
+window.addEventListener("pywebviewready", async () => {
+  const meta = META || await pywebview.api.get_meta();
+  const L = (meta && meta.links) || {};
+  $("#lk-discord").hidden = !L.discord;
+  $("#lk-discord").onclick = () => pywebview.api.open_link("discord");
+  $("#lk-issues").onclick = () => pywebview.api.open_link("issues");
+  $("#lk-releases").onclick = () => pywebview.api.open_link("releases");
+  $("#lk-logs").onclick = () => pywebview.api.open_logs();
+});
+</script>
 </body>
 </html>
