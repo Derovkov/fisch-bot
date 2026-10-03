@@ -13,7 +13,7 @@ SETUP (once, and again after updating the bot)
      on your desktop.
 
 EVERY TIME
-  1. Open Roblox, join Fisch, and MAXIMISE the Roblox window.
+  1. Open Roblox, join Fisch.
   2. Open the "Fisch bot" shortcut. Only the app window opens -- no
      terminal. (FischBot.pyw does the same; "Start Fisch bot.bat" still
      works but flashes a terminal for a moment.) Opening it again while
