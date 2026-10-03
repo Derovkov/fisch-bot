@@ -25,3 +25,6 @@ dev_tests/fixtures/
 
 # Shortcuts made by Install.bat (paths on this PC)
 *.lnk
+
+# Notes between assistants (local only)
+HANDOFF_CHATGPT.md
