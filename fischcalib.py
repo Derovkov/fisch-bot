@@ -3,14 +3,15 @@ Per-run calibration. Every run assumes it may be in a new area.
 
 1. precheck(), before the first cast:
      * reset all geometry to the measured defaults (nothing carries over);
-     * check the Roblox client size against the one everything was measured on;
+     * from the Roblox client size, pick the UI scales the reader will try
+       (fischtrack.scale_candidates); the first reel locks one;
      * watch the idle scene for ~1s. If the empty scene already produces bar or
        progress-box readings, the area is "busy" and the bot requires more
        consecutive readings before it believes a reel has started.
 2. GeometryLearner, during the first reel(s):
      * measures the track's actual end columns and the progress box's offset
        below the track from the first good readings, and adopts them only if
-       they are consistent and close to the defaults.
+       they are consistent and close to the defaults at the locked scale.
 
 The reader itself (fischtrack.read_track) already re-derives its slider/track
 split on every frame, so there are no colour thresholds to recalibrate.
@@ -25,11 +26,12 @@ import numpy as np
 
 import fischtrack as ft
 
-MEASURED_CLIENT = (1920, 1009)  # client size all geometry was measured at
+MEASURED_CLIENT = (ft.REF_WIDTH, ft.REF_HEIGHT)  # client size all geometry was measured at
 IDLE_FRAMES = 15
 LEARN_SAMPLES = 15
-MAX_SHIFT_PX = 25               # learned ends must be this close to the defaults
+MAX_SHIFT_PX = 25               # learned ends must be this close to the defaults (at scale 1)
 MAX_MAD_PX = 2.0                # ...and this consistent across samples
+MAX_DY_SHIFT_PX = 10            # learned box offset vs the default (at scale 1)
 
 
 @dataclass
@@ -41,20 +43,19 @@ class PrecheckResult:
 def precheck(grab: Callable[[], np.ndarray], width: int, height: int,
              log: Callable[[str], None]) -> PrecheckResult:
     res = PrecheckResult()
-    ft.reset_geometry()
+    ft.set_client(width, height)
     if (width, height) != MEASURED_CLIENT:
-        msg = (f"window is {width}x{height}; the bar was measured at "
-               f"{MEASURED_CLIENT[0]}x{MEASURED_CLIENT[1]}. Positions scale with "
-               f"width; the first reel will re-measure them.")
-        if width != MEASURED_CLIENT[0]:
-            msg += " If reels are not detected, maximise the Roblox window."
-        res.notes.append(msg)
+        cands = ", ".join(f"{s:.2f}" for s in ft.scales())
+        res.notes.append(
+            f"window is {width}x{height}; the bar was measured at "
+            f"{MEASURED_CLIENT[0]}x{MEASURED_CLIENT[1]}. Trying UI scales {cands}; "
+            f"the first reel picks one and re-measures the bar.")
 
     bar_hits = prog_hits = 0
     for _ in range(IDLE_FRAMES):
         f = grab()
         bar_hits += ft.read_track(f) is not None
-        prog_hits += ft.find_progress(f) is not None
+        prog_hits += any(ft.find_progress(f, scale=s) is not None for s in ft.scales())
         time.sleep(0.05)
     if bar_hits >= 2:
         res.busy_scene = True
@@ -71,11 +72,11 @@ def precheck(grab: Callable[[], np.ndarray], width: int, height: int,
     return res
 
 
-def _edge_col(prof: np.ndarray, guess: int, left: bool) -> Optional[int]:
-    """Column of the track's end nearest `guess`: first track column (left) or
-    last track column (right), by the strongest brightness step."""
+def _edge_col(prof: np.ndarray, guess: int, left: bool, shift: int) -> Optional[int]:
+    """Column of the track's end within `shift` of `guess`: first track column
+    (left) or last track column (right), by the strongest brightness step."""
     best, best_x = 0.0, None
-    for x in range(max(5, guess - MAX_SHIFT_PX), min(len(prof) - 5, guess + MAX_SHIFT_PX + 1)):
+    for x in range(max(5, guess - shift), min(len(prof) - 5, guess + shift + 1)):
         if left:
             step = abs(prof[x - 4:x].mean() - prof[x:x + 4].mean())
         else:
@@ -95,6 +96,7 @@ class GeometryLearner:
         self.dys: list[int] = []
         self.done_x = self.done_dy = False
         self.fed = 0
+        self.scale = 1.0                # scale of the readings fed (the locked one)
 
     @property
     def done(self) -> bool:
@@ -104,13 +106,15 @@ class GeometryLearner:
         if self.done or r is None:
             return
         self.fed += 1
+        self.scale = s = r.scale
         w = img.shape[1]
         if not self.done_x:
-            a, b = r.y0 + 6 - y_off, r.y1 - 5 - y_off
+            a, b = r.y0 + ft.px(6, s) - y_off, r.y1 - ft.px(5, s) - y_off
             if 0 <= a < b <= img.shape[0]:
                 prof = np.median(img[a:b].astype(np.int16).sum(2), axis=0)
-                x0 = _edge_col(prof, r.track_x0, left=True)
-                x1 = _edge_col(prof, r.track_x1, left=False)
+                shift = ft.px(MAX_SHIFT_PX, s)
+                x0 = _edge_col(prof, r.track_x0, left=True, shift=shift)
+                x1 = _edge_col(prof, r.track_x1, left=False, shift=shift)
                 if x0 is not None and x1 is not None:
                     self.x0s.append(x0)
                     self.x1s.append(x1)
@@ -139,9 +143,10 @@ class GeometryLearner:
         stat = self._stat
         x0, mad0 = stat(self.x0s)
         x1, mad1 = stat(self.x1s)
-        d0, d1 = ft.track_x(w)
+        d0, d1 = ft.track_x(w, self.scale)
+        shift = ft.px(MAX_SHIFT_PX, self.scale)
         if mad0 <= MAX_MAD_PX and mad1 <= MAX_MAD_PX and \
-                abs(x0 - d0) <= MAX_SHIFT_PX and abs(x1 - d1) <= MAX_SHIFT_PX:
+                abs(x0 - d0) <= shift and abs(x1 - d1) <= shift:
             ft.set_geometry(track_x_frac=(x0 / w, x1 / w))
             self.log(f"calibration: track ends measured at x{x0}-{x1} "
                      f"(default {d0}-{d1}) -- adopted")
@@ -152,9 +157,10 @@ class GeometryLearner:
     def _adopt_dy(self) -> None:
         self.done_dy = True
         dy, mad = self._stat(self.dys)
-        if mad <= MAX_MAD_PX and abs(dy - ft.DEFAULT_PROG_TOP_DY) <= 10:
+        default = ft.prog_top_dy(self.scale)
+        if mad <= MAX_MAD_PX and abs(dy - default) <= ft.px(MAX_DY_SHIFT_PX, self.scale):
             ft.set_geometry(prog_top_dy=dy)
             self.log(f"calibration: progress box {dy}px below the track -- adopted")
         else:
             self.log(f"calibration: progress box offset {dy}+-{mad:.0f}px "
-                     f"inconsistent -- keeping {ft.DEFAULT_PROG_TOP_DY}")
+                     f"inconsistent -- keeping {default}")

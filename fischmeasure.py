@@ -8,9 +8,10 @@ as plain numbers in measure_logs/measure_<time>.txt:
   * how far fischtrack.read_track got (which stage rejected the frame), and
   * colour samples at the bar's KNOWN screen position: the bar is screen-space UI,
     so its x-range is fixed (571-1348 at 1920 wide on both live spots and the
-    recording). Its rows are found by geometry -- the rows where that x-range is
-    darker than the background just left/right of it -- not by colour
-    thresholds, so this works even where fischtrack's thresholds fail.
+    recording; other client sizes scale it, see fischtrack's UI scale). Its rows
+    are found by geometry -- the rows where that x-range is darker than the
+    background just left/right of it -- not by colour thresholds, so this works
+    even where fischtrack's thresholds fail.
 
 These are the inputs the per-cast calibration needs. Nothing but colour
 statistics is written to disk.
@@ -21,27 +22,29 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 
 import fischtrack as ft
 from fastcap import FastGrabber, find_roblox_window
 
-# Bar geometry as fractions of client width (measured: 571-1348 of 1920).
-TRACK_X_FRAC = (571 / 1920, 1348 / 1920)
-FLANK_W_FRAC = 90 / 1920          # background strips each side of the track
-FLANK_GAP_FRAC = 18 / 1920        # skip the end-cap triangles
-TRACK_ROWS = 31
+# Bar geometry in px at UI scale 1.0 (1920 wide); the track's ends come from
+# fischtrack.track_x.
+FLANK_W = 90                      # background strips each side of the track
+FLANK_GAP = 18                    # skip the end-cap triangles
+TRACK_ROWS = ft.GEO_ROWS
 
 
-def locate_rows(frame: np.ndarray) -> tuple[int, float]:
-    """(y0, score): the TRACK_ROWS-row window where the track's x-range is
-    darkest relative to its flanks. score = flank - inside brightness (0-765)."""
+def locate_rows(frame: np.ndarray, s: Optional[float] = None) -> tuple[int, float]:
+    """(y0, score): the track-height row window with the strongest edges at the
+    track's two ends (fischtrack.edge_scores). `s` defaults to the current scale."""
+    s = ft.current_scale() if s is None else s
     h = frame.shape[0]
-    y_lo = int(h * ft.SEARCH_TOP_FRAC)
-    # Same edge test the bot's reader uses (fischtrack.edge_scores).
-    score = ft.edge_scores(frame, y_lo, h)
-    win = np.convolve(score, np.ones(TRACK_ROWS) / TRACK_ROWS, mode="valid")
+    y_lo = ft.search_top(h, s)
+    rows = ft.px(TRACK_ROWS, s)
+    win = np.convolve(ft.edge_scores(frame, y_lo, h, s), np.ones(rows) / rows,
+                      mode="valid")
     k = int(np.argmax(win))
     return y_lo + k, float(win[k])
 
@@ -50,8 +53,8 @@ def explain(frame: np.ndarray) -> str:
     """Bot reader (geometry) result, plus which stage the OLD colour reader
     (read_track_color) reaches -- kept so logs stay comparable."""
     r = ft.read_track(frame)
-    geo = ("geo=HIT slider=%d-%d fish=%.0f" % (r.slider_x0, r.slider_x1, r.marker_x)
-           if r else "geo=miss")
+    geo = ("geo=HIT scale=%.2f slider=%d-%d fish=%.0f"
+           % (r.scale, r.slider_x0, r.slider_x1, r.marker_x) if r else "geo=miss")
     return geo + " | colour: " + _explain_color(frame)
 
 
@@ -78,12 +81,17 @@ def _explain_color(frame: np.ndarray) -> str:
             f"read={'HIT' if r else 'miss'}")
 
 
-def sample(frame: np.ndarray, y0: int) -> str:
+def sample(frame: np.ndarray, y0: int, s: Optional[float] = None) -> str:
     """Median RGB of the regions that calibration would use."""
+    s = ft.current_scale() if s is None else s
     h, w = frame.shape[:2]
-    x0, x1 = int(w * TRACK_X_FRAC[0]), int(w * TRACK_X_FRAC[1])
-    fw, fg = int(w * FLANK_W_FRAC), int(w * FLANK_GAP_FRAC)
-    ym = slice(y0 + 8, y0 + TRACK_ROWS - 8)          # middle rows of the track
+    x0, x1 = ft.track_x(w, s)
+    fw, fg = ft.px(FLANK_W, s), ft.px(FLANK_GAP, s)
+    rows = ft.px(TRACK_ROWS, s)
+    ym = slice(y0 + ft.px(8, s), y0 + rows - ft.px(8, s))   # middle rows of the track
+
+    def p(n: int) -> int:
+        return ft.px(n, s)
 
     def med(ys, xs) -> str:
         px = frame[ys, xs].reshape(-1, 3)
@@ -94,17 +102,17 @@ def sample(frame: np.ndarray, y0: int) -> str:
     cx = (x0 + x1) // 2
     # The per-row dark/bright levels read_track splits the slider at -- if they
     # are close (bright background through the track) the split fails.
-    s = frame[y0 + TRACK_ROWS // 2, x0:x1 + 1].astype(np.int16).sum(1)
-    lo, hi = (np.percentile(s, [15, 97]) if s.size else (0, 0))
+    sums = frame[min(h - 1, y0 + rows // 2), x0:x1 + 1].astype(np.int16).sum(1)
+    lo, hi = (np.percentile(sums, [15, 97]) if sums.size else (0, 0))
     return f"split=({lo:.0f},{hi:.0f}) " + " ".join([
-        f"trackL={med(ym, slice(x0 + 20, x0 + 220))}",
-        f"trackR={med(ym, slice(x1 - 220, x1 - 20))}",
-        f"flankL={med(ym, slice(x0 - fg - fw, x0 - fg))}",
+        f"trackL={med(ym, slice(x0 + p(20), x0 + p(220)))}",
+        f"trackR={med(ym, slice(x1 - p(220), x1 - p(20)))}",
+        f"flankL={med(ym, slice(max(0, x0 - fg - fw), x0 - fg))}",
         f"flankR={med(ym, slice(x1 + fg, x1 + fg + fw))}",
-        f"above={med(slice(max(0, y0 - 40), max(0, y0 - 25)), slice(x0, x1))}",
-        f"below={med(slice(y0 + TRACK_ROWS + 25, min(h, y0 + TRACK_ROWS + 40)), slice(x0, x1))}",
-        f"centre={med(ym, slice(cx - 110, cx - 15))}",     # slider at reel start
-        f"marker={med(slice(y0 - 12, y0 + TRACK_ROWS + 10), slice(cx - 3, cx + 4))}",
+        f"above={med(slice(max(0, y0 - p(40)), max(0, y0 - p(25))), slice(x0, x1))}",
+        f"below={med(slice(y0 + rows + p(25), min(h, y0 + rows + p(40))), slice(x0, x1))}",
+        f"centre={med(ym, slice(cx - p(110), cx - p(15)))}",     # slider at reel start
+        f"marker={med(slice(max(0, y0 - p(12)), y0 + rows + p(10)), slice(cx - 3, cx + 4))}",
     ])
 
 
@@ -114,11 +122,13 @@ def main() -> None:
     if win is None:
         raise SystemExit("No Roblox window found.")
     _, rect, _ = win
+    ft.set_client(rect.width, rect.height)
     g = FastGrabber(rect)
     out = Path("measure_logs")
     out.mkdir(exist_ok=True)
     path = out / f"measure_{datetime.now():%Y%m%d_%H%M%S}.txt"
-    print(f"measuring {secs:.0f}s ({rect.width}x{rect.height}) -> {path}")
+    print(f"measuring {secs:.0f}s ({rect.width}x{rect.height}, UI scales "
+          f"{', '.join(f'{s:.2f}' for s in ft.scales())}) -> {path}")
     print("no input is sent: cast and reel one fish by hand now.")
     hits = n = 0
     t_end = time.perf_counter() + secs
@@ -128,11 +138,12 @@ def main() -> None:
         while time.perf_counter() < t_end:
             t = time.perf_counter()
             frame = g.grab()
-            y0, score = locate_rows(frame)
+            s = ft.current_scale()
+            y0, score = locate_rows(frame, s)
             ex = explain(frame)
             hits += "geo=HIT" in ex
-            line = (f"t={t - t0:6.2f} rows={y0}-{y0 + TRACK_ROWS - 1} "
-                    f"darkness={score:5.0f} {ex} {sample(frame, y0)}")
+            line = (f"t={t - t0:6.2f} rows={y0}-{y0 + ft.px(TRACK_ROWS, s) - 1} "
+                    f"darkness={score:5.0f} {ex} {sample(frame, y0, s)}")
             f.write(line + "\n")
             n += 1
             time.sleep(max(0.0, 0.1 - (time.perf_counter() - t)))

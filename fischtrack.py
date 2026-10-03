@@ -33,6 +33,10 @@ import numpy as np
 # in from the bottom edge.
 SEARCH_TOP_FRAC = 0.70
 SEARCH_BOTTOM_FRAC = 1.00
+# ...or at least this many px (at UI scale) above the bottom edge, whichever is
+# higher. With fixed-size UI on a short window the bar sits higher than 0.70 of
+# the height. Measured at 1920x1009: track bottom row 132px above the bottom edge.
+SEARCH_MIN_PX = 260
 
 # Track pixel: no channel above TRACK_MAX, and channel-sum at least TRACK_CONTRAST
 # below the mean of the pixels TRACK_PROBE rows above and below (the track is 31px
@@ -71,6 +75,80 @@ MARKER_MIN_HEIGHT = 20          # px of marker-coloured pixels in one column
 MARKER_MAX_WIDTH = 24
 
 
+# ======================================================================================
+# UI scale (2026-10-03)
+# ======================================================================================
+#
+# Every pixel size in this file was measured on a 1920x1009 client (1920 wide,
+# maximised, with the taskbar showing). That is UI scale 1.0. On another client
+# size the bar is drawn bigger or smaller, and how much depends on how Fisch
+# sizes its UI, which has not been measured yet. The three usual Roblox rules
+# each give a candidate:
+#
+#   * sized relative to the screen WIDTH          -> scale = w / 1920
+#   * sized relative to the screen HEIGHT         -> scale = h / 1009
+#   * fixed pixel sizes                           -> scale = 1.0
+#
+# Until the first reel the reader tries every candidate and keeps the reading
+# whose track ends have the strongest edges. Candidates can be close (0.667 vs
+# 0.643 at 1280x649), and the wrong one still "reads" the bar with its ends ~10px
+# off, so the first reading found is not good enough. The first reel's scale is
+# then locked for the rest of the run (lock_scale), and fischcalib.GeometryLearner
+# measures the real ends. At 1920x1009 all three are 1.0, so nothing changes
+# there.
+
+REF_WIDTH = 1920
+REF_HEIGHT = 1009
+
+_scales: list[float] = [1.0]        # candidates for the current client
+_locked: Optional[float] = None     # the one the first reel was read at
+
+
+def px(n: float, s: float) -> int:
+    """A pixel size measured at scale 1.0, at scale s (at least 1px)."""
+    return max(1, int(n * s + 0.5))
+
+
+def scale_candidates(w: int, h: int) -> list[float]:
+    """UI scales to try for a w x h client, most likely first, duplicates dropped."""
+    out: list[float] = []
+    for s in (w / REF_WIDTH, h / REF_HEIGHT, 1.0):
+        if all(abs(s - o) > 0.01 for o in out):
+            out.append(s)
+    return out
+
+
+def set_client(w: int, h: int) -> None:
+    """New run on a w x h client: forget the locked scale and any learned geometry."""
+    global _scales, _locked
+    _scales = scale_candidates(w, h)
+    _locked = None
+    reset_geometry()
+
+
+def lock_scale(s: float) -> None:
+    global _locked
+    _locked = s
+
+
+def locked_scale() -> Optional[float]:
+    return _locked
+
+
+def scales() -> list[float]:
+    """The scales a search without a hint tries: the locked one, else every candidate."""
+    return [_locked] if _locked is not None else list(_scales)
+
+
+def current_scale() -> float:
+    return _locked if _locked is not None else _scales[0]
+
+
+def search_top(h: int, s: float) -> int:
+    """First row a search without a hint looks at."""
+    return max(0, min(int(h * SEARCH_TOP_FRAC), h - px(SEARCH_MIN_PX, s)))
+
+
 @dataclass
 class TrackReading:
     track_x0: int
@@ -80,6 +158,7 @@ class TrackReading:
     slider_x0: Optional[int]
     slider_x1: Optional[int]
     marker_x: Optional[float]
+    scale: float = 1.0              # UI scale the bar was read at
 
     @property
     def slider_centre(self) -> Optional[float]:
@@ -245,11 +324,11 @@ def read_track_color(frame: np.ndarray,
 
 
 def find_marker(frame: np.ndarray, tx0: int, tx1: int, y0: int,
-                y1: int) -> Optional[float]:
+                y1: int, s: float = 1.0) -> Optional[float]:
     """Column-vote for the marker colour in the track band plus its overhang."""
     h = frame.shape[0]
-    top = max(0, y0 - 20)
-    bot = min(h, y1 + 16)
+    top = max(0, y0 - px(20, s))
+    bot = min(h, y1 + px(16, s))
     band = frame[top:bot, tx0:tx1 + 1].astype(np.int16)
     r, g, b = band[..., 0], band[..., 1], band[..., 2]
     m = ((r >= MARKER_R[0]) & (r <= MARKER_R[1]) &
@@ -257,16 +336,16 @@ def find_marker(frame: np.ndarray, tx0: int, tx1: int, y0: int,
          (b >= MARKER_B[0]) & (b <= MARKER_B[1]) &
          (r - g >= MARKER_RG_MIN))
     col = m.sum(0)
-    hit = np.flatnonzero(col >= MARKER_MIN_HEIGHT)
+    hit = np.flatnonzero(col >= px(MARKER_MIN_HEIGHT, s))
     if hit.size == 0:
         return None
     br = np.flatnonzero(np.diff(hit) > 2)
     st = np.concatenate(([0], br + 1))
     en = np.concatenate((br, [hit.size - 1]))
     best = None
-    for s, e in zip(st, en):
-        c0, c1 = hit[s], hit[e]
-        if c1 - c0 + 1 > MARKER_MAX_WIDTH:
+    for a, e in zip(st, en):
+        c0, c1 = hit[a], hit[e]
+        if c1 - c0 + 1 > px(MARKER_MAX_WIDTH, s):
             continue
         mass = int(col[c0:c1 + 1].sum())
         if best is None or mass > best[0]:
@@ -288,33 +367,41 @@ def find_marker(frame: np.ndarray, tx0: int, tx1: int, y0: int,
 # (~(118,99,124) vs ~(85,60,94) around it), so read_track_color's "darker than the
 # rows above and below" test fails there. What IS constant at every spot measured
 # (recording, sandy spot, red spot):
-#   * the bar's x-range: 571-1348 at 1920 wide -- it is screen-space UI;
+#   * the bar's x-range: 571-1348 at 1920 wide -- it is screen-space UI, centred
+#     on the client (571 + 1348 = 1919);
 #   * the marker colour (232,193,209) and the slider being far brighter than the
 #     track. Only the track's own colour depends on the scene.
 # So: rows are found by the brightness EDGES at the track's two fixed ends, and the
 # slider is split from the track per row, relative to that row's own dark and
 # bright levels -- effectively recalibrating on every frame. No stored thresholds.
 
-TRACK_X_FRAC = (571 / 1920, 1348 / 1920)
+TRACK_HALF_W = 388.5            # centre to either end (571-1348 at 1920 wide)
 GEO_ROWS = 31                   # track height in px
 EDGE_MIN = 50                   # recording: bar rows 69-151, no-bar median 17
 SPLIT_MIN = 150                 # min bright-vs-dark gap (channel sum) in a row
 
+# Learned by fischcalib.GeometryLearner on the first reel, at the locked scale.
+_learned_x: Optional[tuple[float, float]] = None    # track ends, fractions of width
+_learned_dy: Optional[int] = None                   # progress box top - track.y1
 
-def track_x(w: int) -> tuple[int, int]:
-    return int(round(w * TRACK_X_FRAC[0])), int(round(w * TRACK_X_FRAC[1]))
+
+def track_x(w: int, s: float = 1.0) -> tuple[int, int]:
+    if _learned_x is not None and s == _locked:
+        return int(round(w * _learned_x[0])), int(round(w * _learned_x[1]))
+    c = (w - 1) / 2
+    return int(round(c - TRACK_HALF_W * s)), int(round(c + TRACK_HALF_W * s))
 
 
-def edge_scores(frame: np.ndarray, y_lo: int, y_hi: int) -> np.ndarray:
+def edge_scores(frame: np.ndarray, y_lo: int, y_hi: int,
+                s: float = 1.0) -> np.ndarray:
     """Per-row min(|edge at left end|, |edge at right end|), channel sums.
 
     The hotbar and scenery have no edge at exactly these two columns; the bar has
     one at both. |edge| so a slider pinned against an end still counts.
     """
-    w = frame.shape[1]
-    x0, x1 = track_x(w)
-    e = max(3, int(w * 7 / 1920))
-    d = max(20, int(w * 25 / 1920))
+    x0, x1 = track_x(frame.shape[1], s)
+    e = max(3, int(7 * s))
+    d = max(20, int(25 * s))
 
     def col(a: int, b: int) -> np.ndarray:
         return np.median(frame[y_lo:y_hi, a:b].astype(np.int16).sum(2), axis=1)
@@ -324,25 +411,46 @@ def edge_scores(frame: np.ndarray, y_lo: int, y_hi: int) -> np.ndarray:
     return np.minimum(left, right)
 
 
-def read_track(frame: np.ndarray,
-               hint: Optional[TrackReading] = None) -> Optional[TrackReading]:
+def read_track(frame: np.ndarray, hint: Optional[TrackReading] = None,
+               scale: Optional[float] = None) -> Optional[TrackReading]:
     """Read the minigame from one RGB frame, or None if it is not on screen.
 
-    `hint` (the previous reading) narrows the row search to around it.
+    `hint` (the previous reading) narrows the row search to around it and fixes
+    the scale to the one it was read at. Without one, `scale` if given, else
+    every scale in scales() is tried and the best-fitting reading is kept.
     """
-    h, w = frame.shape[:2]
-    x0, x1 = track_x(w)
     if hint is not None:
-        y_lo = max(0, hint.y0 - HINT_Y_PAD)
-        y_hi = min(h, hint.y1 + 1 + HINT_Y_PAD)
+        return _read_track_at(frame, hint.scale, hint)[0]
+    best, best_edge = None, -1.0
+    for s in ([scale] if scale is not None else scales()):
+        r, edge = _read_track_at(frame, s, None)
+        if r is not None and edge > best_edge:
+            best, best_edge = r, edge
+    return best
+
+
+def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading]
+                   ) -> tuple[Optional[TrackReading], float]:
+    """(reading or None, edge score of the track's rows) at scale s."""
+    h, w = frame.shape[:2]
+    x0, x1 = track_x(w, s)
+    e = max(3, int(7 * s))          # edge_scores' outer window
+    if x0 - e - 3 < 0 or x1 + e + 3 > w:
+        return None, 0.0            # the bar at this scale does not fit the frame
+    rows_n = px(GEO_ROWS, s)
+    dy = prog_top_dy(s)
+    if hint is not None:
+        y_lo = max(0, hint.y0 - px(HINT_Y_PAD, s))
+        y_hi = min(h, hint.y1 + 1 + px(HINT_Y_PAD, s))
     else:
-        y_lo, y_hi = int(h * SEARCH_TOP_FRAC), int(h * SEARCH_BOTTOM_FRAC)
-    if y_hi - y_lo < GEO_ROWS:
-        return None
-    win = np.convolve(edge_scores(frame, y_lo, y_hi), np.ones(GEO_ROWS) / GEO_ROWS,
+        y_lo, y_hi = search_top(h, s), int(h * SEARCH_BOTTOM_FRAC)
+    if y_hi - y_lo < rows_n:
+        return None, 0.0
+    win = np.convolve(edge_scores(frame, y_lo, y_hi, s), np.ones(rows_n) / rows_n,
                       mode="valid")
     k = int(np.argmax(win))
-    if win[k] >= EDGE_MIN:
+    edge = float(win[k])
+    if edge >= EDGE_MIN:
         y0 = y_lo + k
     else:
         # Fallback anchor: the progress box, which sits exactly PROG_TOP_DY below
@@ -351,47 +459,47 @@ def read_track(frame: np.ndarray,
         # LEFT end with almost no edge (score ~35 at the true rows), so the bar
         # was lost the moment it settled -- while the box was found in every
         # frame. The slider, width and marker checks below still apply.
-        p = find_progress(frame, y_lo + PROG_TOP_DY, y_hi + PROG_TOP_DY + PROG_ROWS)
+        p = find_progress(frame, y_lo + dy, y_hi + dy + px(PROG_ROWS, s), scale=s)
         if p is None:
-            return None
-        y0 = p[1] - PROG_TOP_DY - GEO_ROWS + 1
+            return None, 0.0
+        y0 = p[1] - dy - rows_n + 1
         if y0 < 0:
-            return None
-    y1 = y0 + GEO_ROWS - 1
+            return None, 0.0
+    y1 = y0 + rows_n - 1
 
     # Slider: per row, pixels above the midpoint between that row's dark level
     # (track) and bright level (slider), excluding green rod VFX.
     spans = []
-    rows = range(y0 + 6, y1 - 5)
+    rows = range(y0 + px(6, s), y1 - px(5, s))
     for y in rows:
-        px = frame[y, x0:x1 + 1].astype(np.int16)
-        s = px.sum(1)
-        lo, hi = np.percentile(s, [15, 97])
+        row = frame[y, x0:x1 + 1].astype(np.int16)
+        sums = row.sum(1)
+        lo, hi = np.percentile(sums, [15, 97])
         if hi - lo < SPLIT_MIN:
             continue
-        g = px[:, 1]
-        bright = (s > (lo + hi) / 2) & (g <= np.maximum(px[:, 0], px[:, 2]) + 8)
-        runs = _runs(bright, BAR_MERGE, min_len=60)
+        g = row[:, 1]
+        bright = (sums > (lo + hi) / 2) & (g <= np.maximum(row[:, 0], row[:, 2]) + 8)
+        runs = _runs(bright, px(BAR_MERGE, s), min_len=px(60, s))
         if runs:
             a, b = max(runs, key=lambda r: r[1] - r[0])
             spans.append((x0 + a, x0 + b))
     if len(spans) < len(rows) // 2:
-        return None
-    sx0 = int(np.median([s[0] for s in spans]))
-    sx1 = int(np.median([s[1] for s in spans]))
+        return None, 0.0
+    sx0 = int(np.median([sp[0] for sp in spans]))
+    sx1 = int(np.median([sp[1] for sp in spans]))
     if not (SLIDER_MIN_WIDTH_FRAC * (x1 - x0) <= sx1 - sx0 + 1
             <= SLIDER_MAX_WIDTH_FRAC * (x1 - x0)):
         # Too wide: live (2026-10-02, 17:28) a "slider" of 667-764px was read --
         # most likely a bright background showing through the translucent
         # track, so the whole row split as bright. Widest real one: ~431px.
-        return None
+        return None, 0.0
 
     # The marker is required: its colour is constant at every spot measured, and
     # bar-shaped impostors never carried one.
-    marker = find_marker(frame, x0, x1, y0, y1)
+    marker = find_marker(frame, x0, x1, y0, y1, s)
     if marker is None:
-        return None
-    return TrackReading(x0, x1, y0, y1, sx0, sx1, marker)
+        return None, 0.0
+    return TrackReading(x0, x1, y0, y1, sx0, sx1, marker, scale=s), edge
 
 
 # ======================================================================================
@@ -401,60 +509,81 @@ def read_track(frame: np.ndarray,
 # The box under the minigame bar fills while the fish is inside the slider and
 # drains while it is outside -- the game's own verdict, independent of how well
 # the slider and marker were read. Measured on the recording and on live frames
-# (identical geometry): x750-1169 at 1920 wide, top row 38px below the track's
-# bottom row, 11 rows tall, 1px bright border, opaque pink-white fill
-# ~(246,194,239)..(229,212,241) from the left, translucent dark empty part.
+# (identical geometry): x750-1169 at 1920 wide (centred, like the track), top row
+# 38px below the track's bottom row, 11 rows tall, 1px bright border, opaque
+# pink-white fill ~(246,194,239)..(229,212,241) from the left, translucent dark
+# empty part.
 
-PROG_X_FRAC = (750 / 1920, 1169 / 1920)
+PROG_HALF_W = 209.5             # centre to either end (750-1169 at 1920 wide)
 PROG_TOP_DY = 38                # top row - track.y1
 PROG_ROWS = 11
 PROG_BRIGHT_MIN = 150           # min channel of fill / border pixels
 
 
-def _prog_x(w: int) -> tuple[int, int]:
-    return int(round(w * PROG_X_FRAC[0])), int(round(w * PROG_X_FRAC[1]))
+def prog_top_dy(s: float = 1.0) -> int:
+    """Rows from the track's bottom row to the progress box's top row."""
+    if _learned_dy is not None and s == _locked:
+        return _learned_dy
+    return px(PROG_TOP_DY, s)
 
 
-def _border_rows(frame: np.ndarray, y_lo: int, y_hi: int) -> np.ndarray:
+def _prog_x(w: int, s: float) -> tuple[int, int]:
+    c, half = (w - 1) / 2, PROG_HALF_W * s
+    if _learned_x is not None and s == _locked and s != 1.0:
+        # At scale 1.0 the box was measured directly. Elsewhere it is inferred,
+        # and it scales with the bar: follow the track's measured ends, which
+        # also absorb a true scale slightly off the candidate that was locked.
+        a, b = w * _learned_x[0], w * _learned_x[1]
+        c, half = (a + b) / 2, PROG_HALF_W * (b - a) / (2 * TRACK_HALF_W)
+    return int(round(c - half)), int(round(c + half))
+
+
+def _border_rows(frame: np.ndarray, y_lo: int, y_hi: int, s: float) -> np.ndarray:
     """Bool per row: both of the box's end borders are bright on that row."""
-    w = frame.shape[1]
-    p0, p1 = _prog_x(w)
+    p0, p1 = _prog_x(frame.shape[1], s)
+    o, i = px(5, s), px(3, s)
     band = frame[y_lo:y_hi]
-    left = band[:, p0 - 5:p0 + 3].min(2).max(1) >= PROG_BRIGHT_MIN
-    right = band[:, p1 - 3:p1 + 5].min(2).max(1) >= PROG_BRIGHT_MIN
+    left = band[:, p0 - o:p0 + i].min(2).max(1) >= PROG_BRIGHT_MIN
+    right = band[:, p1 - i:p1 + o].min(2).max(1) >= PROG_BRIGHT_MIN
     return left & right
 
 
 def find_progress(frame: np.ndarray, y_lo: Optional[int] = None,
-                  y_hi: Optional[int] = None) -> Optional[tuple[float, int]]:
+                  y_hi: Optional[int] = None,
+                  scale: Optional[float] = None) -> Optional[tuple[float, int]]:
     """(fill 0..1, top row) of the progress box, or None if it is not on screen.
 
     The box is located by its two bright end borders -- a run of ~PROG_ROWS rows
     where both are bright -- so it does not need a track reading. That matters:
     it is what tells the bot the reel is still on when the bar itself is lost.
+    `scale` defaults to current_scale().
     """
+    s = current_scale() if scale is None else scale
     h, w = frame.shape[:2]
+    rows_n = px(PROG_ROWS, s)
+    tol = px(3, s)
     if y_lo is None:
-        y_lo = int(h * SEARCH_TOP_FRAC)
+        y_lo = search_top(h, s)
     if y_hi is None:
         y_hi = h
     y_lo, y_hi = max(0, y_lo), min(h, y_hi)
-    if y_hi - y_lo < PROG_ROWS:
+    if y_hi - y_lo < rows_n:
         return None
-    rows = np.flatnonzero(_border_rows(frame, y_lo, y_hi))
+    rows = np.flatnonzero(_border_rows(frame, y_lo, y_hi, s))
     if rows.size == 0:
         return None
-    runs = _runs(np.isin(np.arange(y_hi - y_lo), rows), 1, min_len=PROG_ROWS - 3)
-    runs = [r for r in runs if r[1] - r[0] + 1 <= PROG_ROWS + 3]
+    runs = _runs(np.isin(np.arange(y_hi - y_lo), rows), 1, min_len=rows_n - tol)
+    runs = [r for r in runs if r[1] - r[0] + 1 <= rows_n + tol]
     if not runs:
         return None
     a, b = max(runs, key=lambda r: r[1] - r[0])
     top = y_lo + a
-    p0, p1 = _prog_x(w)
-    mid = frame[top + 3:top + b - a - 2, p0 + 3:p1 - 2]
+    p0, p1 = _prog_x(w, s)
+    i0, i1 = px(3, s), px(2, s)
+    mid = frame[top + i0:top + b - a - i1, p0 + i0:p1 - i1]
     if mid.size == 0:
         return None
-    fill = np.median((mid.min(2) >= PROG_BRIGHT_MIN).sum(1)) / (p1 - p0 - 5)
+    fill = np.median((mid.min(2) >= PROG_BRIGHT_MIN).sum(1)) / (p1 - p0 - i0 - i1)
     return float(min(1.0, fill)), top
 
 
@@ -462,21 +591,20 @@ def find_progress(frame: np.ndarray, y_lo: Optional[int] = None,
 # Run-time geometry (fischcalib sets this per run)
 # ======================================================================================
 
-DEFAULT_TRACK_X_FRAC = TRACK_X_FRAC
-DEFAULT_PROG_TOP_DY = PROG_TOP_DY
-
 
 def set_geometry(track_x_frac: Optional[tuple[float, float]] = None,
                  prog_top_dy: Optional[int] = None) -> None:
     """Override the bar's x-range (fractions of width) and the progress box's
-    offset below the track. fischcalib calls this after measuring a reel."""
-    global TRACK_X_FRAC, PROG_TOP_DY
+    offset below the track, at the locked scale. fischcalib calls this after
+    measuring a reel."""
+    global _learned_x, _learned_dy
     if track_x_frac is not None:
-        TRACK_X_FRAC = track_x_frac
+        _learned_x = track_x_frac
     if prog_top_dy is not None:
-        PROG_TOP_DY = prog_top_dy
+        _learned_dy = prog_top_dy
 
 
 def reset_geometry() -> None:
     """Back to the measured defaults -- every run starts from these."""
-    set_geometry(DEFAULT_TRACK_X_FRAC, DEFAULT_PROG_TOP_DY)
+    global _learned_x, _learned_dy
+    _learned_x = _learned_dy = None

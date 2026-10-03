@@ -71,8 +71,9 @@ from fischcontrol import ControlConfig, ReelController
 from fischrods import (DEFAULT_ROD, ENCHANTS, RodContext, RodProfile, get_rod,
                        reel_enchants)
 from fischsession import Session
-from fischtrack import (HINT_Y_PAD, PROG_ROWS, TRACK_PROBE, TrackReading,
-                        find_progress, read_track)
+from fischtrack import (GEO_ROWS, HINT_Y_PAD, PROG_ROWS, TRACK_PROBE, TrackReading,
+                        current_scale, find_progress, lock_scale, locked_scale, px,
+                        read_track, scales, set_client)
 
 user32 = ctypes.windll.user32
 user32.SetProcessDPIAware()
@@ -98,6 +99,7 @@ START_CONFIRM_BUSY = 5
 
 # Progress box search: +-rows around where it was last seen. A full-frame search
 # also matched other UI between reels on the recording, so it is never used.
+# Pixel sizes here are at UI scale 1.0 (fischtrack.px scales them).
 PROG_SEARCH_PAD = 15
 # Bar reading says "inside" while progress falls for this long -> re-acquire.
 REACQUIRE_AFTER_S = 0.2
@@ -346,22 +348,29 @@ class FischBot:
             return
         self._trace_last = now
         frame = self.grabber.grab()
-        y0, score = fischmeasure.locate_rows(frame)
+        s = current_scale()
+        y0, score = fischmeasure.locate_rows(frame, s)
         r = read_track(frame)
         geo = (f"geo=HIT slider={r.slider_x0}-{r.slider_x1} fish={r.marker_x:.0f}"
                if r else "geo=miss")
         p = None
         if self.last_prog_top is not None:
-            p = find_progress(frame, self.last_prog_top - PROG_SEARCH_PAD,
-                              self.last_prog_top + PROG_ROWS + PROG_SEARCH_PAD)
+            p = find_progress(frame, *self._prog_window(self.last_prog_top, s), scale=s)
         if p is None:
-            p = find_progress(frame, y0 + 20, y0 + 100)
+            p = find_progress(frame, y0 + px(20, s), y0 + px(100, s), scale=s)
         prog = f"prog={p[0]:.3f}@{p[1]}" if p else "prog=none"
         self.trace_file.write(
-            f"t={now - self._trace_t0:7.2f} {tag} rows={y0}-{y0 + 30} "
+            f"t={now - self._trace_t0:7.2f} {tag} scale={s:.2f} "
+            f"rows={y0}-{y0 + px(GEO_ROWS, s) - 1} "
             f"edge={score:5.0f} {geo} {prog} held={self.mouse.down} "
-            f"{fischmeasure.sample(frame, y0)}\n")
+            f"{fischmeasure.sample(frame, y0, s)}\n")
         self.trace_file.flush()
+
+    @staticmethod
+    def _prog_window(top: int, s: float) -> tuple[int, int]:
+        """Rows to search for the progress box around where it was last seen."""
+        pad = px(PROG_SEARCH_PAD, s)
+        return top - pad, top + px(PROG_ROWS, s) + pad
 
     def _minigame_on_screen(self) -> bool:
         frame = self.grabber.grab()
@@ -369,7 +378,7 @@ class FischBot:
             return True
         top = self.last_prog_top
         return top is not None and find_progress(
-            frame, top - PROG_SEARCH_PAD, top + PROG_ROWS + PROG_SEARCH_PAD) is not None
+            frame, *self._prog_window(top, current_scale())) is not None
 
     def lure(self) -> None:
         """Shake to speed the bite. The wiki notes each click relocates the Shake
@@ -462,15 +471,15 @@ class FischBot:
 
             # --- progress box: the game's own inside/outside verdict ----------
             p = None
+            scale = r.scale if r is not None else current_scale()
             if r is not None:
-                p_lo, p_hi = r.y1 + 20, r.y1 + 70
+                p_lo, p_hi = r.y1 + px(20, scale), r.y1 + px(70, scale)
             elif self.last_prog_top is not None and in_phase:
-                p_lo = self.last_prog_top - PROG_SEARCH_PAD
-                p_hi = self.last_prog_top + PROG_ROWS + PROG_SEARCH_PAD
+                p_lo, p_hi = self._prog_window(self.last_prog_top, scale)
             else:
                 p_lo = None
             if p_lo is not None:
-                p = find_progress(img, p_lo - y_off, p_hi - y_off)
+                p = find_progress(img, p_lo - y_off, p_hi - y_off, scale=scale)
                 if p is not None:
                     self.last_prog_top = p[1] + y_off
                     last_prog = now
@@ -510,6 +519,11 @@ class FischBot:
                         first_seen = now
                     if streak >= self.start_confirm:
                         in_phase = True
+                        if locked_scale() is None:
+                            # The first reel decides the UI scale for the run.
+                            lock_scale(r.scale)
+                            self.log(f"UI scale {r.scale:.2f} locked for this run "
+                                     f"({self.rect.width}x{self.rect.height} client)")
                         # Timed from the FIRST sighting, not the confirmation:
                         # live reels with boosts last only ~1.5-2s.
                         self.ctl.begin(first_seen)
@@ -592,7 +606,7 @@ class FischBot:
         if hint is None or h is None or not hasattr(self.grabber, "grab_rows"):
             frame = self.grabber.grab()
             return read_track(frame, hint=hint), time.perf_counter(), frame, 0
-        pad = HINT_Y_PAD + TRACK_PROBE + 20       # covers the progress box too
+        pad = px(HINT_Y_PAD + TRACK_PROBE + 20, hint.scale)   # covers the progress box too
         y_a = max(0, hint.y0 - pad)
         y_b = min(h, hint.y1 + pad)
         band = self.grabber.grab_rows(y_a, y_b)
@@ -673,6 +687,9 @@ class FischBot:
         hand, then Ctrl+C. Optionally saves annotated frames with --debug.
         """
         self.log("DIAGNOSE: watching only, no input sent. Do a cast + reel.")
+        set_client(self.rect.width, self.rect.height)
+        self.log(f"client {self.rect.width}x{self.rect.height}: trying UI scales "
+                 f"{', '.join(f'{s:.2f}' for s in scales())}")
         self.log("Ctrl+C when finished.")
         seen = grabs = 0
         hint = None
@@ -689,7 +706,8 @@ class FischBot:
                     seen += 1
                     print(f"  frame {frame.shape[1]}x{frame.shape[0]} track "
                           f"{r.track_x0}-{r.track_x1} y{r.y0}-{r.y1} slider "
-                          f"{r.slider_x0}-{r.slider_x1} (w={r.slider_width}) fish "
+                          f"{r.slider_x0}-{r.slider_x1} (w={r.slider_width}) "
+                          f"scale {r.scale:.2f} fish "
                           f"{r.marker_x:.0f} err {r.error:+.0f} "
                           f"{'IN' if r.fish_inside else 'OUT'}", flush=True)
                     if self.cfg.debug and seen % 30 == 1:

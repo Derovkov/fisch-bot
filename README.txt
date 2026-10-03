@@ -19,7 +19,10 @@ EVERY TIME
 
 GOOD TO KNOW
   * Screen size: it was measured on a 1920-pixel-wide screen with Roblox
-    maximised. Other resolutions may not be detected yet.
+    maximised. Other window sizes are worked out on the first fish of each
+    run (the log says "UI scale ... locked"). This is new and not yet
+    tested in the game at other sizes, so maximised 1920 wide is still the
+    safest setup.
   * "Keep Roblox in front" means you can't use the PC while it runs: your
     clicks and keys would go to Roblox.
   * Every setting has a (?) - hover it for what it does.
