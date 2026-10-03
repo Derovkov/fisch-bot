@@ -3,7 +3,7 @@
  * the hot-swap setups. Live status comes from get_state().useables.
  * Uses $ and esc from index.html. */
 (function () {
-  let U = null, TOTEMS = [], BAITS = [], live = null, saveTimer = null;
+  let U = null, TOTEMS = [], BAITS = [], live = null, weather = null, saveTimer = null;
   const WHEN = [["start", "At start"], ["every", "Every"], ["quest", "For quests"]];
   const TOTEM_DEFAULT = {on: true, when: "every", every_min: 15, max_uses: 0, keep: 0};
   const BAIT_DEFAULT = {on: true, max_uses: 0, keep: 0};
@@ -99,6 +99,9 @@
   }
 
   function paintNow() {
+    const conditions = $("#u-weather-now");
+    conditions.textContent = weather ? "Weather: " + (weather.names?.join(" · ") || "unreadable")
+      + (weather.complete ? "" : " · incomplete; totems deferred") : "Weather: read between casts.";
     const el = $("#u-bait-now");
     if (!live || !live.current_bait) { el.textContent = U.bait.manage ? "Current bait: read during a run." : ""; return; }
     el.innerHTML = `Current bait: <b>${esc(live.current_bait)}</b>${live.bait_count != null ? ` · ${live.bait_count} left` : ""}`
@@ -145,9 +148,10 @@
   wire("#u-totems", () => U.totems, paintTotems);
   wire("#u-baits", () => U.bait.list, paintBaits);
 
-  window.paintUseablesLive = v => {
-    const changed = JSON.stringify(v) !== JSON.stringify(live);
+  window.paintUseablesLive = (v, w) => {
+    const changed = JSON.stringify(v) !== JSON.stringify(live) || JSON.stringify(w) !== JSON.stringify(weather);
     live = v;
+    weather = w;
     if (changed && U && document.querySelector("#v-use.on") && !document.activeElement?.closest?.("#v-use input")) paint();
   };
   document.querySelector('[data-view="use"]').addEventListener("click", () => U ? paint() : init());

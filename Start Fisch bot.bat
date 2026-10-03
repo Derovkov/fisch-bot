@@ -1,19 +1,18 @@
 @echo off
-rem Double-click to open the Fisch bot window. Run Install.bat once first.
+rem Opens the Fisch bot window without a terminal (the "Fisch bot" shortcut that
+rem Install.bat makes does the same without this brief flash). Run Install.bat once first.
 cd /d "%~dp0"
 call :findpy
 if not defined PY (
-  echo Python was not found. Install Python 3.13 from https://www.python.org/downloads/
-  echo ^(tick "Add python.exe to PATH"^), then run Install.bat.
+  echo Python was not found. Run Install.bat first.
   pause
   exit /b 1
 )
-%PY% fischui.py
-if errorlevel 1 (
-  echo.
-  echo The Fisch bot closed with an error - see the message above.
-  echo If it says a module is missing, run Install.bat first.
-  pause
+for /f "delims=" %%i in ('%PY% -c "import sys, os; print(os.path.join(os.path.dirname(sys.executable), 'pythonw.exe'))"') do set "PYW=%%i"
+if exist "%PYW%" (
+  start "" "%PYW%" "%~dp0FischBot.pyw"
+) else (
+  %PY% fischui.py
 )
 exit /b 0
 

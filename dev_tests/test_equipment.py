@@ -96,6 +96,40 @@ def menu_for(game):
 
 
 class EquipmentMenuTests(unittest.TestCase):
+    def test_cancel_mid_typing_stops_name_and_cleans_search(self):
+        g = FakeGame({"Duskwire": []})
+        stopped, typed = [False], []
+        type_text = g.type_text
+        def type_one(text):
+            typed.append(text)
+            type_text(text)
+            stopped[0] = True
+        g.type_text = type_one
+        m = fe.EquipmentMenu(lambda: None, SimpleNamespace(left=0, top=0), lambda _: None,
+                             inp=g, reader=g.screen, cancelled=lambda: stopped[0])
+        with m:
+            found = m.scan_by_search(["Duskwire", "Crew Rod"])
+        self.assertEqual(typed, ["D"])
+        self.assertEqual(found, {})
+        self.assertFalse(g.open); self.assertFalse(g.focused)
+        self.assertEqual(g.query, "")
+
+    def test_cancel_during_open_still_closes_bag(self):
+        g = FakeGame({"Duskwire": []})
+        stopped = [False]
+        tap = g.tap
+        def tap_stop(vk, mods=()):
+            tap(vk, mods)
+            if vk == fe.VK_N:
+                stopped[0] = True
+        g.tap = tap_stop
+        m = fe.EquipmentMenu(lambda: None, SimpleNamespace(left=0, top=0), lambda _: None,
+                             inp=g, reader=g.screen, cancelled=lambda: stopped[0])
+        with self.assertRaises(fe.MenuCancelled):
+            with m:
+                self.fail("cancelled open must not start a search")
+        self.assertFalse(g.open)
+
     def setUp(self):
         for name in ("OPEN_WAIT_S", "CLOSE_WAIT_S"):
             p = patch.object(fe, name, 0.05)

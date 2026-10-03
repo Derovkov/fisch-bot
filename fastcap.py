@@ -70,6 +70,16 @@ def _is_game_window(title: str) -> bool:
     return any(h in low for h in GAME_TITLE_HINTS)
 
 
+def client_rect(hwnd: int) -> Optional[WinRect]:
+    """Current client bounds of this window; never move/resize it."""
+    r, pt = wintypes.RECT(), wintypes.POINT(0, 0)
+    if (user32.IsIconic(hwnd) or not user32.GetClientRect(hwnd, ctypes.byref(r))
+            or not user32.ClientToScreen(hwnd, ctypes.byref(pt))):
+        return None
+    rect = WinRect(pt.x, pt.y, pt.x + r.right, pt.y + r.bottom)
+    return rect if rect.width > 200 and rect.height > 200 else None
+
+
 def find_roblox_window() -> Optional[tuple[int, WinRect, str]]:
     """Return (hwnd, client rect in screen coords, title) for the Roblox client."""
     found: list[tuple[int, WinRect, str]] = []
@@ -112,6 +122,12 @@ class FastGrabber:
             "height": rect.height,
         }
         self.grabs = 0
+
+    def reframe(self, rect: WinRect) -> None:
+        """Update capture bounds on this capture thread after a window change."""
+        self.rect = rect
+        self.monitor = {"left": rect.left, "top": rect.top,
+                        "width": rect.width, "height": rect.height}
 
     def grab(self) -> np.ndarray:
         shot = self._mss.grab(self.monitor)

@@ -19,6 +19,7 @@ function initConfigurations(rows) {
   $('#config-save-new').onclick = ()=>openConfiguration();
   $('#config-list').onclick = async e=> {
     const use = e.target.closest('[data-config-use]'), edit = e.target.closest('[data-config-edit]');
+    if (e.target.closest('[data-config-new]')) return openConfiguration();
     if (use) await useConfiguration(use.dataset.configUse);
     if (edit) openConfiguration(edit.dataset.configEdit);
   };
@@ -70,7 +71,7 @@ function paintConfigurations(state) {
   const dirty = active && !sameConfig(active.settings,S);
   $('#config-apply').textContent = running ? (dirty ? 'Apply changes' : 'Up to date') : 'Edit setup';
   $('#config-apply').disabled = running && (!dirty || configBusy);
-  $('#config-hint').textContent = dirty ? 'Edited setup · apply after this cast' : running ? 'F6 · next setup for this rod' : 'Saved locally · ready for next Start';
+  $('#config-hint').textContent = dirty ? 'Edited setup · apply after this cast' : running ? `${window.hotkeyLabel?.('switch') || 'F6'} · next saved setup` : 'Saved locally · ready for next Start';
   const key = JSON.stringify([profiles, S.active_profile, active, pending, running, configBusy]);
   if (key===configListKey) return;
   configListKey=key;
@@ -79,7 +80,8 @@ function paintConfigurations(state) {
     const queued = pending?.id===p.id;
     const ench = p.settings.rod_enchants?.[p.settings.rod] || [];
     return `<div class="config-row${current?' active':''}${queued?' pending':''}"><div class="details"><b>${esc(p.name)}</b><small>${esc(p.settings.rod)}${ench.length?' · '+ench.length+' enchant'+(ench.length===1?'':'s'):''}</small></div><button class="mini-button" data-config-use="${esc(p.id)}" ${configBusy || queued || (current && (!pending || !running))?'disabled':''}>${queued?'Queued':current?'Active':running?'Switch':'Use'}</button><button class="edit" data-config-edit="${esc(p.id)}" aria-label="Edit ${esc(p.name)}" title="Rename, update or delete">⋯</button></div>`;
-  }).join('') : '<div class="config-empty">Keep your favourite setups here.<br>Save your current rod and settings to get started.</div>';
+  }).join('') + '<button class="config-new" data-config-new>+ New setup from current settings</button>'
+    : '<div class="config-empty">Keep your favourite setups here.<br>Save your current rod and settings to get started.<br><button class="mini-button accent" data-config-new style="margin-top:10px">+ New setup</button></div>';
 }
 async function useConfiguration(id) {
   if (configBusy) return;
@@ -107,9 +109,9 @@ async function applyDraft() {
 function openConfiguration(id='') {
   editingConfig=profiles.find(p=>p.id===id) || null;
   editingSnapshot=editingConfig && editingConfig.id!==S.active_profile ? configSnapshot(editingConfig.settings) : configSnapshot(S);
-  $('#config-modal-title').textContent=editingConfig ? 'Edit configuration' : 'Save configuration';
+  $('#config-modal-title').textContent=editingConfig ? 'Edit setup' : 'New setup';
   $('#config-input').value=editingConfig?.name || '';
-  $('#config-save').textContent=editingConfig ? 'Update setup' : 'Save setup';
+  $('#config-save').textContent=editingConfig ? 'Update setup' : 'Create setup';
   $('#config-delete').hidden=!editingConfig; $('#config-save-copy').hidden=!editingConfig;
   $('#config-delete').textContent='Delete'; $('#config-delete').dataset.confirm='';
   const s=editingSnapshot, ench=s.rod_enchants[s.rod];

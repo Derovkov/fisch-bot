@@ -1,7 +1,8 @@
 """
 Drive the in-game Equipment Bag (hotkey N): equip a rod, or list every rod the
 player owns. Everything is found by READING the screen (Windows OCR,
-fischocr.py), never by fixed positions, so it works at any window size:
+fischocr.py), using client-relative positions and a closer OCR pass when
+small button text is missed:
 
     * the menu is open when rod cards ("[Rod Name]") or the search box are read;
     * the search box is the line reading "Search..." (remembered once typed in);
@@ -124,6 +125,12 @@ class WinInput:
                 continue
             self.tap(vk, mods)
 
+    def move(self, x: int, y: int) -> None:
+        """Hover at screen coordinates without pressing any button."""
+        user32.SetCursorPos(int(x), int(y))
+        user32.mouse_event(MOUSEEVENTF_MOVE, 1, 0, 0, None)
+        user32.mouse_event(MOUSEEVENTF_MOVE, 0xFFFFFFFF, 0, 0, None)
+
     def click(self, x: int, y: int) -> None:
         """Screen coordinates. Moves first and nudges, so Roblox registers the
         hover before the press."""
@@ -172,14 +179,24 @@ class Screen:
         x0, _, x1, name_bottom = card["box"]
         best = None
         for text, b in self.lines:
-            t = _norm(text)
-            kind = ("equipped" if t.startswith("equipped") else
-                    "equip" if t == "equip" or t.startswith("equip ") else None)
+            kind = button_kind(text)
             cx = (b[0] + b[2]) / 2
-            if kind and x0 <= cx <= x1 and b[1] >= name_bottom - 2:
+            if (kind and x0 <= cx <= x1 and b[1] >= name_bottom - 2
+                    and b[1] < card.get("bottom", float("inf"))):
                 if best is None or b[1] < best[1][1]:
                     best = (kind, b)
         return best
+
+
+def button_kind(text: str) -> Optional[str]:
+    """Short button labels only, including common small-font OCR slips.
+    Do not treat 'Equipment Bag' or instructions as an Equip button."""
+    label = _norm(text).replace(" ", "")
+    if 7 <= len(label) <= 9 and _ratio(label, "equipped") >= .80:
+        return "equipped"
+    if 4 <= len(label) <= 6 and _ratio(label, "equip") >= .80:
+        return "equip"
+    return None
 
 
 # The bag's side panel (Baits / Bobbers / Lanterns tabs) has its own search box,
@@ -263,6 +280,10 @@ class MenuError(RuntimeError):
     pass
 
 
+class MenuCancelled(MenuError):
+    pass
+
+
 class EquipmentMenu:
     """One use of the Equipment Bag: open it, do things, close it (always).
 
@@ -284,10 +305,17 @@ class EquipmentMenu:
         self.typed = False              # the search box holds our text ...
         self._last_len = 0              # ... this many characters of it
         self.opened_by_us = False
+        self._closing = False
 
     # -- context ------------------------------------------------------------------
     def __enter__(self) -> "EquipmentMenu":
-        self.open()
+        try:
+            self.open()
+        except MenuCancelled:
+            # __exit__ isn't called if cancellation interrupts __enter__.
+            if self.opened_by_us or self.typed:
+                self.__exit__()
+            raise
         return self
 
     def __exit__(self, *exc) -> None:
@@ -297,8 +325,22 @@ class EquipmentMenu:
             self.log(f"  equipment bag: could not confirm it closed ({e})")
 
     # -- primitives -----------------------------------------------------------------
+    def _check(self):
+        if not self._closing and self.cancelled():
+            raise MenuCancelled("cancelled")
+
+    def _pause(self, seconds):
+        self._check()
+        while seconds > 0:
+            step = min(seconds, .05)
+            time.sleep(step)
+            seconds -= step
+            self._check()
+
     def read(self) -> Screen:
+        self._check()
         s = self.reader(self.grab())
+        self._check()
         box = s.search if self.kind == "rods" else find_search(s.lines, (), self.kind)
         if box is not None:
             self.search_box = box
@@ -308,6 +350,7 @@ class EquipmentMenu:
         return self.rect.left + x, self.rect.top + y
 
     def click(self, b: Box) -> None:
+        self._check()
         self.inp.click(*self._abs(*centre(b)))
 
     def _wait(self, want_open: bool, limit: float) -> Optional[Screen]:
@@ -318,12 +361,14 @@ class EquipmentMenu:
                 return s
             if time.perf_counter() > t_end:
                 return None
-            time.sleep(0.15)
+            self._pause(0.15)
 
     def open(self) -> Screen:
         s = self.read()
         if s.open:
             return s
+        self._check()
+        self.opened_by_us = True
         self.inp.tap(VK_N)
         s = self._wait(True, OPEN_WAIT_S)
         if s is None:
@@ -333,6 +378,13 @@ class EquipmentMenu:
         return s
 
     def close(self) -> None:
+        self._closing = True
+        try:
+            self._close()
+        finally:
+            self._closing = False
+
+    def _close(self) -> None:
         if self.typed:
             self.clear_search()
         for attempt in range(2):
@@ -347,19 +399,29 @@ class EquipmentMenu:
         if self.search_box is None:
             raise MenuError("no search box was read on the rod screen")
         self.click(self.search_box)
-        time.sleep(0.08)
+        # Mark the focused search immediately so Stop can clear/release it
+        # even if it interrupts typing halfway through a name.
+        self.typed = True
+        self._pause(0.08)
+        self._check()
         self.inp.tap(VK_A, (VK_CONTROL,))
         # Ctrl+A then one Backspace clears anything; in case the box does not
         # support Ctrl+A, also delete what we typed last time.
         for _ in range(1 + (self._last_len + 2 if self.typed else 0)):
+            self._check()
             self.inp.tap(VK_BACK)
         if text:
-            self.inp.type_text(text)
+            self._last_len = 0
+            for ch in text:
+                self._check()
+                self.inp.type_text(ch)
+                self._last_len += 1
         # Enter releases the box, so the next N closes the menu instead of
         # typing an "n" into the search.
+        self._check()
         self.inp.tap(VK_RETURN)
         self.typed, self._last_len = bool(text), len(text)
-        time.sleep(SEARCH_SETTLE_S)
+        self._pause(SEARCH_SETTLE_S)
         return self.read()
 
     def clear_search(self) -> None:
@@ -376,19 +438,48 @@ class EquipmentMenu:
         if card is None:
             raise MenuError(f"no [{rod}] card was read on the rod screen"
                             + ("" if self.search_box else " (and no search box)"))
-        btn = s.button(card)
+        btn = self._button(s, card)
         if card["equipped"] or (btn and btn[0] == "equipped"):
             return "already"
         if btn is None:
             raise MenuError(f"found [{rod}] but no Equip button under it")
         self.click(btn[1])
-        time.sleep(EQUIP_SETTLE_S)
+        self._pause(EQUIP_SETTLE_S)
         after = self.read()
         card2 = after.card(rod)
-        btn2 = after.button(card2) if card2 else None
+        btn2 = self._button(after, card2) if card2 else None
         if card2 is not None and (card2["equipped"] or (btn2 and btn2[0] == "equipped")):
             return "equipped"
         raise MenuError(f"clicked Equip on [{rod}] but it does not read Equipped")
+
+    def _button(self, screen: Screen, card: dict):
+        btn = screen.button(card)
+        if btn is not None:
+            return btn
+        # Whole-client OCR misses tiny Equip text in narrow/tall windows.
+        # OCR just the card footer at higher magnification, preserving client
+        # coordinates. Never guess a click when no button text is read.
+        if self.cancelled():
+            raise MenuError("cancelled")
+        frame = self.grab()
+        if frame is None:  # injected, text-only test readers
+            return None
+        x0, _, x1, bottom = card["box"]
+        x0, x1 = max(0, x0), min(frame.shape[1], x1)
+        y0 = max(0, bottom - 3)
+        crop = frame[y0:card.get("bottom", frame.shape[0]), x0:x1]
+        if not crop.size:
+            return None
+        for factor in (4., 6.):
+            scale = min(factor, 4000 / max(crop.shape[:2]))
+            lines = [(t, (b[0] + x0, b[1] + y0, b[2] + x0, b[3] + y0))
+                     for t, b in ocr_lines(crop, scale=scale)]
+            btn = Screen(lines).button(card)
+            if btn:
+                self.log(f"  equipment: {btn[0]} button read in card footer at "
+                         f"{centre(btn[1])} (client pixels)")
+                return btn
+        return None
 
     def equip_bait(self, bait: str, keep: int = 0) -> tuple[str, Optional[int]]:
         """Equip `bait` from the side panel's Baits tab. Returns (result,
@@ -438,7 +529,10 @@ class EquipmentMenu:
         for i, rod in enumerate(rods):
             if self.cancelled():
                 break
-            s = self.set_search(rod)
+            try:
+                s = self.set_search(rod)
+            except MenuCancelled:
+                break
             merge_scan(found, [c for c in s.cards if c["rod"] == rod])
             progress(i + 1, len(rods), len(found))
         return found
@@ -464,7 +558,10 @@ class EquipmentMenu:
         for _ in range(SCROLL_MAX_STEPS):
             if self.cancelled():
                 break
-            s2 = self._scroll(s, -SCROLL_TOP_NOTCHES)
+            try:
+                s2 = self._scroll(s, -SCROLL_TOP_NOTCHES)
+            except MenuCancelled:
+                return {}
             if not _moved(s, s2):
                 break
             s = s2
@@ -474,7 +571,10 @@ class EquipmentMenu:
         for step in range(SCROLL_MAX_STEPS):
             if self.cancelled():
                 break
-            s2 = self._scroll(s, SCROLL_NOTCHES)
+            try:
+                s2 = self._scroll(s, SCROLL_NOTCHES)
+            except MenuCancelled:
+                break
             merge_scan(found, s2.cards)
             progress(step + 2, 0, len(found))
             if _moved(s, s2):
@@ -492,8 +592,9 @@ class EquipmentMenu:
             spots.append(((b[0] + b[2]) // 2, b[3]))
         s2 = s
         for x, y in dict.fromkeys(spots):
+            self._check()
             self.inp.wheel(*self._abs(x, y), notches)
-            time.sleep(SCROLL_SETTLE_S)
+            self._pause(SCROLL_SETTLE_S)
             s2 = self.read()
             if _moved(s, s2):
                 break
@@ -587,14 +688,19 @@ def fit_hotbar(words, width: int) -> Optional[tuple[np.ndarray, float]]:
         return None
     best = None
     lo, hi = HOTBAR_PITCH_FRAC
-    for p in np.arange(lo * width, hi * width, 0.5):
+    # Roblox's backpack can retain ~69px slots in a narrow, tall client;
+    # its scale need not follow the Fisch reel's width scale.
+    for p in np.arange(max(12, lo * width), max(80, hi * width), 0.5):
         for n in range(1, 11):
+            if (n - 1) * p + p > width:
+                continue
             cs = width / 2 + p * (np.arange(1, n + 1) - (n + 1) / 2)
             d = np.abs(xs[:, None] - cs[None, :])
             near = d.min(1) <= 0.25 * p
             score = int(near.sum()) - (n - len(set(d.argmin(1)[near])))
-            if best is None or score > best[0]:
-                best = (score, cs, p)
+            quality = (score, -float(d.min(1).mean()))
+            if best is None or quality > best[0]:
+                best = (quality, cs, p)
     return best[1], best[2]
 
 
@@ -722,6 +828,41 @@ def select_hotbar_rod(grab: Callable[[], np.ndarray], rod: str, others: list[str
     inp.tap(0x30 + (slot % 10))                    # slot 10 is the 0 key
     log(f"  hotbar: {what} -- pressed {slot % 10}")
     return True
+
+
+def ensure_rod_held(grab, rod, others, enchants, inp, ready, log):
+    """Verify the named rod AND held frame before using its number key.
+    Returns held/restored/unknown/failed/cancelled. Unknown sends no input.
+    The UI check never opens a bag or toggles an already-held rod."""
+    from fischuse import read_hotbar
+
+    if not ready():
+        return "cancelled"
+    frame = grab()
+    hb = read_hotbar(frame)
+    slot, what = find_hotbar_slot(hb.reads, frame.shape[1], rod, others, enchants)
+    if slot is None:
+        log(f"rod check: cannot verify {rod} ({what}); no key pressed")
+        return "unknown"
+    if hb.held == slot:
+        log(f"rod check: {rod} is in hand (slot {slot})")
+        return "held"
+    if not ready():
+        return "cancelled"
+    inp.tap(0x30 + slot % 10)
+    end = time.monotonic() + .4
+    while time.monotonic() < end:
+        if not ready():
+            return "cancelled"
+        time.sleep(.025)
+    frame = grab()
+    after = read_hotbar(frame)
+    after_slot, _ = find_hotbar_slot(after.reads, frame.shape[1], rod, others, enchants)
+    if after_slot == slot and after.held == slot:
+        log(f"rod check: restored {rod} to hand (slot {slot})")
+        return "restored"
+    log(f"rod check: {rod} did not return to hand; delaying the next cast")
+    return "failed"
 
 
 def _card_pos(c: dict) -> tuple[float, float]:

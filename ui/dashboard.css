@@ -40,6 +40,8 @@
 .config-row small{display:block;color:var(--muted);font-size:11px;margin-top:4px;overflow-wrap:anywhere}
 .config-row .edit{background:none;border:0;color:var(--muted);font:inherit;cursor:pointer;padding:5px}
 .config-row .edit:hover{color:var(--text)}
+.config-new{font:inherit;font-size:12px;color:#c6bcff;background:none;border:1px dashed rgba(139,123,255,.45);border-radius:12px;padding:9px 11px;cursor:pointer;text-align:left}
+.config-new:hover{background:rgba(139,123,255,.08);border-color:rgba(139,123,255,.7)}
 .config-empty{padding:16px;text-align:center;border:1px dashed var(--line2);border-radius:12px;color:var(--muted);font-size:12px;line-height:1.6}
 .config-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}.config-footer .subtle{font-size:11px}
 .pending-note{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:rgba(255,181,71,.09);color:var(--amber);font-size:12px;margin-top:10px}

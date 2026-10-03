@@ -75,6 +75,14 @@ def _bot(log):
                         rect=SimpleNamespace(left=0, top=0, width=1920, height=1009),
                         recentre=lambda: None, log=log)
     b.stop = lambda: setattr(b, "stopped", True)
+    b.focus = SimpleNamespace(ready=lambda: True)
+    b.mouse = SimpleNamespace(dry_run=False)
+    # Scheduler tests start with a freshly verified, ordinary weather HUD.
+    from fischweather import WeatherReader, WeatherState
+    b.weather = WeatherReader(clock=lambda: 1000.0)
+    b.weather.state = WeatherState(("Rain", "Day", "Spring"), True, 1000.0)
+    b.weather.refresh = lambda bot, confirm=False: setattr(
+        b.weather, "state", WeatherState(("Rain", "Day", "Spring"), True, 1000.0))
     return b
 
 

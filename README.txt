@@ -4,34 +4,56 @@ FISCH BOT
 Casts, lures and reels in the Roblox game Fisch. It watches the screen and
 clicks for you; it does not modify the game.
 
-SETUP (once)
-  1. Install Python 3.13 from https://www.python.org/downloads/
-     During setup, tick "Add python.exe to PATH".
-  2. Double-click Install.bat and wait for "Done".
+SETUP (once, and again after updating the bot)
+  1. Double-click Install.bat. If Python isn't installed it offers to
+     install Python 3.13 for you (winget); otherwise get it from
+     https://www.python.org/downloads/ and tick "Add python.exe to PATH".
+  2. It installs what the bot needs and makes "Fisch bot" shortcuts with
+     the bot's icon: in this folder, in the Start menu and (if you say yes)
+     on your desktop.
 
 EVERY TIME
   1. Open Roblox, join Fisch, and MAXIMISE the Roblox window.
-  2. Double-click "Start Fisch bot.bat".
+  2. Open the "Fisch bot" shortcut. Only the app window opens -- no
+     terminal. (FischBot.pyw does the same; "Start Fisch bot.bat" still
+     works but flashes a terminal for a moment.) Opening it again while
+     it runs just brings the window to the front. If it can't start, a
+     message says why; details are in tmp/startup.log.
   3. Rods page: equip your rod and set its enchants. Either open your
      Equipment Bag -> Fishing Rods in Roblox and press "Scan from game",
      or use the check (owned) and pencil (enchants) buttons on each rod card.
-  4. Dashboard: press Start. F9 stops it from any window.
+  4. Dashboard: press Start, or F7 with the app open. F9 stops it from any window.
 
 GOOD TO KNOW
+  * Settings > Hotkeys: change Start (F7), Stop/cancel searches (F9), and Next
+    saved setup (F6). Save hotkeys applies them immediately. Type a key name
+    or combination, such as ctrl+alt+r; use different keys for each action.
+    These are stored in the general config, not individual rod setups.
+    Stop cancels rod scans and quest reads too. An OCR read already in progress
+    finishes before cleanup, but its cancelled quest results are discarded.
+  * Help in the sidebar explains startup, shortcuts, rod checks and window sizes.
+  * At start and every two minutes at the next cast boundary, the bot checks
+    your named rod's held frame in the hotbar. It restores a readable unheld
+    rod with its slot key, then verifies it. Unreadable labels are logged;
+    the bot does not guess which item to take out.
   * Dashboard > Quick switch: Save setup keeps a named rod/enchant/control
     configuration. Use loads it while idle; Switch queues it after this cast.
-    F6 cycles saved setups for the current rod while Roblox stays in front.
-    Configurations do not equip rods in the game. Equip the matching rod yourself.
+    F6 cycles saved setups while Roblox stays in front. With "Equip rod in
+    game" enabled, the bot switches rods through the Equipment Bag.
     The cast limit applies to the total casts in the current run.
   * Saved configurations are kept in fischbot_profiles.json. They contain
     settings only; run data and screenshots still follow the cleanup setting.
   * Reel activity shows the latest 24 reels. Expand its details for recent
     catch confirmations, or hover individual reels.
-  * Screen size: it was measured on a 1920-pixel-wide screen with Roblox
-    maximised. Other window sizes are worked out on the first fish of each
-    run (the log says "UI scale ... locked"). This is new and not yet
-    tested in the game at other sizes, so maximised 1920 wide is still the
-    safest setup.
+  * Useables > Totems shows the weather read between casts. The bot hovers
+    new icons for their names and defers totems for active effects, protected
+    weather groups or unreadable icons. Local events whose rules are not
+    verified are deferred too. Limits and reserves still apply.
+  * Screen size: the first fish learns the reel scale ("UI scale ... locked").
+    The bot follows window movement/resize between casts and relearns reel
+    geometry after a resize. Finish the current fish before changing size,
+    and keep the window steady during Equipment Bag actions. Small Equip
+    labels get an additional OCR pass; the new fallback still needs live tests.
   * "Keep Roblox in front" means you can't use the PC while it runs: your
     clicks and keys would go to Roblox.
   * Every setting has a (?) - hover it for what it does.

@@ -116,6 +116,11 @@ class DefaultFontAndChatTests(unittest.TestCase):
         frame[15:15 + open_icon.shape[0], 120:120 + open_icon.shape[1]] = 28
         frame[15:15 + closed_icon.shape[0], 120:120 + closed_icon.shape[1]] = closed_icon
         self.assertIsNone(fq.find_open_chat(frame))
+        # the closed outline must lose to itself even if the open bubble
+        # half-matches it: no click (a false "open" click OPENS the chat)
+        from unittest.mock import patch
+        with patch.object(fq, "CHAT_MATCH_MIN", 0.6):
+            self.assertIsNone(fq.find_open_chat(frame))
         # bigger UI (Roblox scales its topbar with display scaling)
         big = cv2.resize(open_icon, None, fx=1.4, fy=1.4)
         frame2 = np.full((1080, 1920, 3), 28, np.uint8)

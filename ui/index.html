@@ -219,6 +219,7 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
 <link rel="stylesheet" href="dashboard.css">
 <link rel="stylesheet" href="extras.css">
 <link rel="stylesheet" href="useables.css">
+<link rel="stylesheet" href="skins.css">
 </head>
 <body>
 <div class="app" id="app">
@@ -234,6 +235,7 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
       <button data-view="use"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M8 7h8l-1 5H9z"/><path d="M9 12v6a3 3 0 0 0 6 0v-6"/></svg>Useables</button>
       <button data-view="index"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/><path d="M8 11h6M11 8v6"/></svg>Index</button>
       <button data-view="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Log</button>
+      <button data-view="help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4M12 16v1"/></svg>Help</button>
     </nav>
     <div class="sec">Runs this session</div>
     <div class="runs" id="runs"><div class="empty">No runs yet — press Start.</div></div>
@@ -254,8 +256,8 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
           </div>
         </div>
         <div class="actions">
-          <button class="btn go" id="start">▶&nbsp; Start</button>
-          <button class="btn halt" id="stop" disabled>■&nbsp; Stop <small style="opacity:.6;font-weight:500">F9</small></button>
+          <button class="btn go" id="start">▶&nbsp; Start <small style="opacity:.6;font-weight:500" data-shortcut="start">F7</small></button>
+          <button class="btn halt" id="stop" disabled>■&nbsp; Stop <small style="opacity:.6;font-weight:500" data-shortcut="stop">F9</small></button>
         </div>
       </div>
       <div class="err" id="err"></div>
@@ -300,7 +302,7 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
         <details class="recent-details"><summary id="recent-summary">Latest reel details</summary><div class="recent-reels" id="recent-reels"><div class="subtle" style="padding-top:12px">Your latest three reels will appear here.</div></div></details>
       </div>
       <div class="card configuration-card">
-        <div class="section-title"><h3>Quick switch <span class="help" data-help="profiles" tabindex="0" aria-label="About configurations">?</span></h3><button class="mini-button accent" id="config-save-new">+ Save setup</button></div>
+        <div class="section-title"><h3>Quick switch <span class="help" data-help="profiles" tabindex="0" aria-label="About configurations">?</span></h3><button class="mini-button accent" id="config-save-new" title="Save your current rod and settings as a new setup">+ New setup</button></div>
         <div class="current-config"><span class="eyebrow" id="config-status">Selected setup</span><strong id="config-name">Custom setup</strong><div class="subtle" id="config-detail"></div></div>
         <div class="config-list" id="config-list"></div>
         <div class="pending-note" id="config-pending" hidden><span></span><button class="mini-button" id="config-cancel">Cancel</button></div>
@@ -336,7 +338,7 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
     <div class="modal-bg" id="scan-choose">
       <div class="modal">
         <h2>Scan your rods <span class="help" data-help="scan" tabindex="0">?</span></h2>
-        <div class="sub">The bot opens the Equipment Bag (N) in Roblox, reads your rods, and closes it again. Stand still with the rod reeled in, and don't touch the mouse or keyboard until it finishes. Stop or F9 cancels.</div>
+        <div class="sub">The bot opens the Equipment Bag (N) in Roblox, reads your rods, and closes it again. Stand still with the rod reeled in, and don't touch the mouse or keyboard until it finishes. Stop or <span data-shortcut="stop">F9</span> cancels.</div>
         <div class="elist">
           <div class="eitem on" data-mode="search" style="cursor:pointer"><b>Search each rod</b><span>Slower (a few minutes) · finds every rod you own</span></div>
           <div class="eitem" data-mode="scroll" style="cursor:pointer"><b>Scroll through</b><span>Fast (under a minute) · a rod half off-screen can be missed</span></div>
@@ -367,7 +369,7 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
     <section class="view" id="v-quests">
       <div class="head"><div><h1>Quests <span class="help" data-help="track_quests" tabindex="0">?</span></h1>
         <div class="sub" id="q-sub">Read from the quest tracker on the left of your Roblox screen. During a run the bot re-reads it after every cast.</div></div>
-        <span class="grow"></span><button class="btn go" id="q-read" style="padding:8px 16px;font-size:13px">⟳&nbsp; Read now</button></div>
+        <span class="grow"></span><button class="btn" id="q-cancel" hidden>Cancel · <span data-shortcut="stop">F9</span></button><button class="btn go" id="q-read" style="padding:8px 16px;font-size:13px">⟳&nbsp; Read now</button></div>
       <div class="xgrid">
         <div class="card"><div class="section-title"><h3>Tracked quests</h3><span class="subtle" id="q-count"></span></div><div id="q-list"><div class="subtle">Nothing read yet. Open Roblox with your quests tracked, then press Read now.</div></div></div>
         <div class="card"><div class="section-title"><h3>Plan</h3><span class="subtle">for objectives that need a mutation</span></div><div id="q-plan" class="subtle">–</div>
@@ -378,13 +380,14 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
     <!-- useables -->
     <section class="view" id="v-use">
       <div class="head"><div><h1>Useables <span class="help" data-help="useables" tabindex="0">?</span></h1>
-        <div class="sub">Totems and baits the bot uses for you between casts. Separate from your saved setups -- F6 never changes these.</div></div>
+        <div class="sub">Totems and baits the bot uses for you between casts. Separate from your saved setups -- <span data-shortcut="switch">F6</span> never changes these.</div></div>
         <span class="grow"></span><label class="u-master">Let the bot use items <label class="sw"><input type="checkbox" id="u-enabled"><span></span></label></label></div>
       <div class="u-grid">
         <div class="card">
           <div class="section-title"><h3>Totems <span class="help" data-help="useables_totems" tabindex="0">?</span></h3>
             <div class="u-add"><select id="u-totem-add"></select><button class="mini-button accent" id="u-totem-addbtn">+ Add</button></div></div>
           <div id="u-totems"></div>
+          <div class="u-now" id="u-weather-now" aria-live="polite">Weather: read between casts.</div>
         </div>
         <div class="card">
           <div class="section-title"><h3>Baits <span class="help" data-help="useables_baits" tabindex="0">?</span></h3>
@@ -417,9 +420,37 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
     </section>
 
     <!-- settings -->
+    <section class="view" id="v-help">
+      <div class="head"><div><h1>Help</h1><div class="sub">Getting started, shortcuts and keeping the bot in sync with your game.</div></div></div>
+      <div class="form">
+        <div class="card"><h3>Start fishing</h3>
+          <p>Join Fisch, choose your rod and enchants on the Rods page, then press Start or <b data-shortcut="start">F7</b>. The shortcut uses your latest saved settings.</p>
+          <p>Press Stop or <b data-shortcut="stop">F9</b> to end a run or cancel a rod or quest search. Temporary run data is removed unless Keep logs is on.</p>
+          <p>Every run calibrates for your current window and area. Hover any (?) for details about a setting.</p>
+        </div>
+        <div class="card"><h3>Saved setups &amp; shortcuts</h3>
+          <p>Create setups on the Dashboard with <b>+ New setup</b> (Quick switch card). Press <b data-shortcut="switch">F6</b> to cycle through them while fishing; a switch waits for the current cast to finish.</p>
+          <p>Enable Equip rod in game to switch the rod through the Equipment Bag. Totem and bait settings stay separate from rod setups.</p>
+          <p>Change shortcuts in Settings. Use a key name or combination, such as <code>f7</code> or <code>ctrl+alt+r</code>. Each action needs a different shortcut.</p>
+        </div>
+        <div class="card"><h3>Rod checks &amp; window sizes</h3>
+          <p>At start, then every two minutes at the next cast boundary, the bot checks the rod name and held frame in your hotbar. If it can identify the rod but it is not held, it presses that slot once and verifies the result.</p>
+          <p>Unreadable labels cause a logged skip, without guessing a key. Keep the rod visible in the hotbar. Checks and bag actions wait until the rod is reeled in.</p>
+          <p>The bot follows the window's position and size between casts. After a resize, it relearns reel geometry. Let a fish finish before resizing, and keep the window steady during bag actions.</p>
+        </div>
+      </div>
+    </section>
     <section class="view" id="v-settings">
       <div class="head"><div><h1>Settings</h1><div class="sub">Use Quick switch to apply changes after the current cast, or on your next Start.</div></div></div>
       <div class="form">
+        <div class="card"><h3>Hotkeys <span class="help" data-help="hotkeys" tabindex="0">?</span></h3>
+          <div class="row"><label for="hk-start">Start</label><input type="text" id="hk-start" maxlength="48" autocomplete="off" value="f7" style="width:165px"></div>
+          <div class="row"><label for="hk-stop">Stop / cancel searches</label><input type="text" id="hk-stop" maxlength="48" autocomplete="off" value="f9" style="width:165px"></div>
+          <div class="row"><label for="hk-switch">Next saved setup</label><input type="text" id="hk-switch" maxlength="48" autocomplete="off" value="f6" style="width:165px"></div>
+          <div class="note-line">Type a key name or combination, e.g. f7 or ctrl+alt+r. These apply to all rod setups.</div>
+          <div class="row"><button class="mini-button accent" id="hk-save">Save hotkeys</button><button class="mini-button" id="hk-defaults">Defaults</button></div>
+          <div class="note-line" id="hk-status" role="status"></div>
+        </div>
         <div class="card">
           <h3>Fishing</h3>
           <div class="row"><label>Rod <span class="help" data-help="rod">?</span></label>
@@ -445,14 +476,18 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
           <div class="row"><label>Bite timeout (s) <span class="help" data-help="bite">?</span></label><input type="number" id="s-bite" min="5" max="120" step="5"></div>
           <div class="note-line"><a href="#" id="reset" style="color:var(--cyan);text-decoration:none">Reset to defaults</a></div>
         </div>
+        <div class="card sk-card">
+          <h3>Reel skins <span class="help" data-help="skins" tabindex="0">?</span></h3>
+          <div id="sk-list" class="subtle">No skins saved yet -- they're learned as you fish.</div>
+        </div>
       </div>
     </section>
   </main>
 </div>
 <div class="modal-bg" id="config-modal">
   <div class="modal config-modal" role="dialog" aria-modal="true" aria-labelledby="config-modal-title">
-    <h2 id="config-modal-title">Save configuration</h2>
-    <div class="sub">Keep a named setup you can switch to in one click.</div>
+    <h2 id="config-modal-title">New setup</h2>
+    <div class="sub">Saves your current rod, enchants and settings under a name you can switch to in one click. To make a different one, change the rod (Rods) or settings first, then press + New setup again.</div>
     <label for="config-input">Configuration name</label><input id="config-input" type="text" maxlength="50" autocomplete="off" placeholder="e.g. Duskwire · steady reel">
     <div class="config-preview" id="config-preview"></div>
     <div class="err" id="config-error" role="status"></div>
@@ -737,10 +772,12 @@ async function poll(){
 function paint(st){
   running = st.running;
   if (window.paintExtrasLive) paintExtrasLive(st);
-  if (window.paintUseablesLive) paintUseablesLive(st.useables);
+  if (window.paintUseablesLive) paintUseablesLive(st.useables, st.weather);
   paintConfigurations(st);
   $("#app").classList.toggle("running", running);
-  $("#start").disabled = running; $("#stop").disabled = !running;
+  const searching = !!st.search?.busy || scanBusy || !!window.questReading;
+  $("#start").disabled = running || searching;
+  $("#stop").disabled = !running && !searching;
 
   const [label, col] = STATE[st.state] || [st.state, "var(--blue)"];
   $("#chip-state span").textContent = label; $("#chip-state i").style.background = col;
@@ -831,5 +868,7 @@ window.addEventListener("pywebviewready", async () => {
 <script src="configurations.js"></script>
 <script src="extras.js"></script>
 <script src="useables.js"></script>
+<script src="hotkeys.js"></script>
+<script src="skins.js"></script>
 </body>
 </html>

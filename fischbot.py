@@ -118,6 +118,7 @@ TRACE_CROP_MISS_S, TRACE_CROP_MISS_MAX = 0.5, 60
 TRACE_CROP_HIT_S, TRACE_CROP_HIT_MAX = 3.0, 10
 # Recent slider widths whose median steadies the colour-agnostic slider reading.
 SLIDER_W_WINDOW = 15
+SLIDER_LEARN_FILL = 0.95   # a reel this clean teaches the rod's slider width (fischbot.slider_w)
 # Progress peak that counts as a landed fish (box fill quantised to ~1/415).
 CAUGHT_PEAK = 0.95
 
@@ -317,7 +318,10 @@ class FischBot:
         self.focus = focus
         self.ctl = ReelController(ccfg)
         self.running = False
-        self.slider_w: Optional[int] = None
+        # This rod's slider width (px), learned from this run's clean reels:
+        # steers the skin tracker's start, where symmetric skin decorations
+        # (Fabulous Rod's green claws, live 2026-10-03) can pass for its edges.
+        self.slider_w: Optional[float] = None
         self.cycles = 0
         self.caught = 0
         self.lost = 0
@@ -330,9 +334,16 @@ class FischBot:
         self.on_cycle_boundary: Optional[Callable[[], None]] = None
         # Useables tab (fischuse.Useables): set by the UI before run()
         self.useables = None
+        # Reel-bar skins (fischskins.SkinBook): set by the UI before run()
+        self.skins = None
+        from fischweather import WeatherReader
+        self.weather = WeatherReader()
+        self._weather_logged = None
         # The rod in the player's hands, as far as this run knows: the one picked
         # for Start, then whatever equip_rod takes out of the hotbar.
         self._held_rod = self.rod.name
+        self._next_rod_check = 0.0
+        self._rod_check_failed = False
         # Everything log() says also goes to the session folder (kept with the
         # other logs when Keep logs is on): the switch / equip messages were
         # only on screen, so a failed switch could not be looked at afterwards.
@@ -473,12 +484,29 @@ class FischBot:
         # box says so -- it fills only while the fish is inside, so no sample
         # of it falling. None when the box was not read.
         perfect = (bool(caught) and s.game_in == s.game_n) if s.game_n else None
+        # A clean reel (the game's box filled nearly all the time and our own
+        # reading agreed) teaches the rod's slider width for later reels.
+        if (caught and s.game_n and s.game_in >= SLIDER_LEARN_FILL * s.game_n
+                and s.inside_frac >= SLIDER_LEARN_FILL and len(self._slider_widths) >= 10):
+            w = float(np.median(self._slider_widths))
+            if getattr(self, "slider_w", None) is None or abs(w - self.slider_w) > 2:
+                self.log(f"  slider width {w:.0f}px learned for {self.rod.name} "
+                         f"(steers the next reels' start)")
+            self.slider_w = w
         what = ""
         if notice is not None and notice.fish:
             what = " ".join([*notice.attributes, notice.mutation or "", notice.fish]).split()
             what = " | " + " ".join(what) + (f" {notice.kg:g}kg" if notice.kg else "")
             if notice.mutation:
                 self.mutations[notice.mutation] = self.mutations.get(notice.mutation, 0) + 1
+        if getattr(self, "skins", None) is not None:
+            readable = bool(s.game_n >= 20 and s.inside_frac >= 0.8
+                            and s.game_in >= 0.6 * s.game_n)
+            pol = self.progress_polarity
+            progress = ("step" if pol.step else {True: "bright", False: "dark"}.get(pol.bright_fill))
+            self.skins.end(self.rod.name, self.enchants, readable, bool(caught), perfect,
+                           progress, float(np.median(self._slider_widths))
+                           if self._slider_widths else None)
         self.reel_logs.append(s.summary() + rate + fill + result + what
                               + (" | PERFECT" if perfect else ""))
         self.log(self.reel_logs[-1])
@@ -771,7 +799,8 @@ class FischBot:
                 if in_phase and tracker is None and r.method == "geo":
                     # Re-found mid-reel (tracker gave up or was dropped): the
                     # slider is wherever this reading says, not centred.
-                    tracker = SkinTracker(img, r, y_off, now=now, centred=False)
+                    tracker = SkinTracker(img, r, y_off, now=now, centred=False,
+                                          expect_w=self.slider_w)
                     tracker_ok = now
                 if in_phase:
                     self.learner.feed(img, y_off, r,
@@ -792,10 +821,14 @@ class FischBot:
                         self.ctl.begin(first_seen)
                         self.log(f"minigame started: track {r.track_x0}-{r.track_x1} "
                                  f"y{r.y0}-{r.y1}, slider {r.slider_width}px")
+                        if getattr(self, "skins", None) is not None:
+                            from fischskins import fingerprint
+                            self.skins.begin(fingerprint(img, r, y_off), self.rod.name)
                         if r.method == "geo":
                             # Every reel starts with slider + fish centred; the
                             # tracker takes it from there.
-                            tracker = SkinTracker(img, r, y_off, now=now)
+                            tracker = SkinTracker(img, r, y_off, now=now,
+                                                  expect_w=self.slider_w)
                             tracker_ok = now
                             r = tracker.reading()
                             self.log(f"  following this rod's bar with the skin "
@@ -959,31 +992,41 @@ class FischBot:
         Worker thread, between casts only: the rod is reeled in after a reel, and
         N does not open while it is cast. The menu is always closed again.
         False (and logged) if it could not be done."""
-        from fischequip import VK_T, EquipmentMenu, MenuError, WinInput
+        from fischequip import VK_T, EquipmentMenu, MenuError, WinInput, ensure_rod_held
 
-        if not self.focus.ready():
+        if not self.running or not self.focus.ready() or not self._refresh_window():
             self.log(f"equip {name}: Roblox is not in front -- skipped")
             return False
         self.mouse.release()
         prev_state, self.state = self.state, "equipping rod"
         self.log(f"equipping {name} (Equipment Bag)")
+        self._next_rod_check = 0.0
         try:
             with EquipmentMenu(self.grabber.grab, self.rect, self.log,
                                cancelled=lambda: not self.running) as menu:
                 result = menu.equip(name)
             self.log(f"  {name}: " + ("already equipped in the bag"
                                       if result == "already" else "equipped in the bag"))
-            # The bag only puts it in the hotbar; it must still be taken in hand
-            # (live 2026-10-03: the cast after a switch did nothing). Fisch's T
-            # key takes the equipped rod out -- the user's find; it replaced
-            # reading the hotbar for the rod's slot. Like a hotbar key it would
-            # put AWAY a rod already in hand, so skip it when this run last took
-            # exactly this rod out.
-            if result == "equipped" or self._held_rod != name:
-                time.sleep(0.3)                  # the bag's close animation
+            # Check the held frame first so an already-held rod isn't toggled
+            # away. T remains a fallback only after a verified bag equip when
+            # the hotbar's tiny rod name cannot be read.
+            time.sleep(0.3)                      # the bag's close animation
+            outcome = ensure_rod_held(self.grabber.grab, name, [], self.enchants,
+                                     WinInput(), self._input_ready, self.log)
+            if result == "equipped" and outcome == "unknown":
+                if not self.running or not self.focus.ready():
+                    return False
                 WinInput().tap(VK_T)
-                self._held_rod = name
-                self.log(f"  {name}: taken in hand (T)")
+                self.log(f"  {name}: T pressed after verified bag equip (hotbar label unreadable)")
+                time.sleep(.4)
+                outcome = ensure_rod_held(self.grabber.grab, name, [], self.enchants,
+                                         WinInput(), self._input_ready, self.log)
+            if outcome in ("failed", "cancelled"):
+                return False
+            self._held_rod = name if outcome in ("held", "restored") else None
+            if outcome in ("held", "restored"):
+                self._rod_check_failed = False
+            self._next_rod_check = time.monotonic() + (5 if self._rod_check_failed else 120)
             return True
         except MenuError as exc:
             self.log(f"  could not equip {name}: {exc}")
@@ -993,8 +1036,70 @@ class FischBot:
             return False
         finally:
             self.state = prev_state
+            # Failed switches retain the immediate-check deadline, since
+            # opening/closing the bag can leave the previous rod out of hand.
             self.recentre()
             time.sleep(0.2)
+
+    def _input_ready(self) -> bool:
+        return self.running and not self.mouse.dry_run and self.focus.ready()
+
+    def _refresh_window(self) -> bool:
+        """At a cast boundary/before bag actions, adopt current client bounds."""
+        from fastcap import client_rect
+        rect = client_rect(self.hwnd)
+        if rect is None:
+            return False
+        if rect == self.rect:
+            return True
+        old = self.rect
+        self.grabber.reframe(rect)
+        self.rect = rect
+        if (old.width, old.height) != (rect.width, rect.height):
+            set_client(rect.width, rect.height)
+            self.learner = GeometryLearner(self.log)
+            self.pending_hint, self.last_prog_top, self.slider_w = None, None, None
+            self._slider_widths = []
+            self.progress_polarity = ProgressPolarity()
+            self.ctl.reset_motion()
+            self.log(f"window changed: {rect.width}x{rect.height}; relearning reel geometry")
+        self.recentre()
+        return True
+
+    def _check_rod(self) -> bool:
+        """Every 120s, at the next cast boundary. No mid-reel bag/key activity."""
+        from fischequip import WinInput, ensure_rod_held
+        now = time.monotonic()
+        if now < self._next_rod_check:
+            return not self._rod_check_failed
+        if not self._input_ready():
+            return True if self.mouse.dry_run else False
+        self.mouse.release()
+        try:
+            outcome = ensure_rod_held(self.grabber.grab, self.rod.name,
+                                     self.owned_rods, self.enchants, WinInput(),
+                                     self._input_ready, self.log)
+        except Exception as exc:
+            self.log(f"rod check: unreadable ({exc!r}); no further input")
+            outcome = "unknown"
+        self._rod_check_failed = outcome in ("failed", "cancelled") or (
+            self._rod_check_failed and outcome == "unknown")
+        self._next_rod_check = now + (5 if self._rod_check_failed else 120)
+        if outcome in ("held", "restored"):
+            self._held_rod = self.rod.name
+        return not self._rod_check_failed
+
+    def _prime_skin(self) -> None:
+        """The rod's last skin primes the track search and the slider width."""
+        if self.skins is None:
+            return
+        try:
+            w = self.skins.prime(self.rod.name, self.enchants)
+        except Exception as exc:
+            self.log(f"skin: could not use the saved skins ({exc!r})")
+            return
+        if w and self.slider_w is None:
+            self.slider_w = w
 
     def recentre(self) -> None:
         """Cursor back over the game's middle, where casting clicks belong."""
@@ -1006,14 +1111,26 @@ class FischBot:
         """Useables tab (fischuse.py): totems and baits, between casts only.
         Never lets a problem there end the run."""
         u = self.useables
-        if u is None or not u.active or not self.running:
+        if not self.running:
             return
         if not self.focus.ready():
             return
         self.mouse.release()
         prev, self.state = self.state, "using items"
         try:
-            u.between_casts(self)
+            # This method is called only at start/after a reel. Weather work
+            # never enters the reel loop, including hovering for tooltips.
+            # A due totem may already be blocked by an active effect. Do not
+            # force tooltip hovers each cast just because it remains due.
+            # Useables confirms again only immediately before an eligible use.
+            weather = self.weather.refresh(self)
+            key = weather.names, weather.complete
+            if key != self._weather_logged:
+                self.log("weather: " + (", ".join(weather.names) or "unreadable")
+                         + ("" if weather.complete else " -- incomplete; totems deferred"))
+                self._weather_logged = key
+            if u is not None and u.active and self.running and self.focus.ready():
+                u.between_casts(self)
         except Exception as exc:
             self.log(f"useables: skipped this time ({exc!r})")
         finally:
@@ -1032,7 +1149,13 @@ class FischBot:
             self.trace_file = None
         self.cfg, self.ccfg, self.ctl.cfg = cfg, ccfg, ccfg
         self.focus.mode = cfg.focus_mode
+        old = getattr(self, "rod", None)
+        changed = old is None or rod.name != old.name or list(enchants) != getattr(self, "enchants", None)
+        if changed:
+            self.slider_w = None             # another rod/enchants: relearn its width
         self.rod, self.enchants = rod, list(enchants)
+        if changed and getattr(self, "skins", None) is not None:
+            self._prime_skin()
         self.catch_watch.rod = rod.name
         self.session.keep_logs = keep
         self.last_prog_top = None
@@ -1055,6 +1178,7 @@ class FischBot:
             self.start_confirm = START_CONFIRM_BUSY
         self.log(f"rod: {self.rod.name}"
                  + (f" | enchants: {', '.join(self.enchants)}" if self.enchants else ""))
+        self._prime_skin()
         for e in reel_enchants(self.enchants):
             # Informational for now: the servo already adapts to slider width
             # (Control) and fish speed; slashes/stuns just pause the fish.
@@ -1069,6 +1193,9 @@ class FischBot:
 
         try:
             while self.running:
+                if not self.focus.ready() or not self._refresh_window():
+                    time.sleep(.4)
+                    continue
                 if self.on_cycle_boundary is not None:
                     self.on_cycle_boundary()
                 if self.cfg.max_fish and self.cycles >= self.cfg.max_fish:
@@ -1076,6 +1203,10 @@ class FischBot:
                     break
                 if not self.focus.ready():
                     time.sleep(0.4)
+                    continue
+
+                if not self._check_rod():
+                    time.sleep(.25)
                     continue
 
                 if not self.cast():

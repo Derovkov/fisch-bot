@@ -63,12 +63,20 @@
 
   $("#q-read").onclick = async () => {
     const b = $("#q-read"); b.disabled = true; b.textContent = "Reading…";
+    window.questReading = true;
+    $("#q-cancel").hidden = false;
     try {
       const r = await pywebview.api.read_quests();
+      if (r.cancelled) { $("#q-count").textContent = "Quest search cancelled"; return; }
       if (!r.ok) { $("#q-list").innerHTML = `<div class="subtle" style="color:var(--red)">${esc(r.error)}</div>`; return; }
       paintQuests(r);
-    } finally { b.disabled = false; b.innerHTML = "⟳&nbsp; Read now"; }
+    } finally {
+      window.questReading = false;
+      $("#q-cancel").hidden = true;
+      b.disabled = false; b.innerHTML = "⟳&nbsp; Read now";
+    }
   };
+  $("#q-cancel").onclick = () => pywebview.api.stop();
 
   /* ---------- Index ---------- */
   const DATA = {};

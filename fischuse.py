@@ -30,8 +30,8 @@ What it reads (the user's screenshot, dev_tests/fixtures/hotbar_default_font.png
 Using a totem: press its slot's number (it is now in hand -- checked by the
 frame), click, then T takes the rod back (checked too).
 
-Not yet: reading the weather, so a totem whose weather is already on (or is
-blocked by the current weather) can still be used -- the gap guards that.
+Weather is read by fischweather between casts. Active/protected conditions
+and unreadable HUDs defer totems without using their count or start trigger.
 """
 from __future__ import annotations
 
@@ -383,6 +383,8 @@ class Useables:
         if self.cfg["bait"]["manage"] and self.cfg["bait"]["list"]:
             self._baits(bot)
         for t in self._totems():
+            if not bot.running:
+                break
             why_not = None
             s = self.st(t["name"])
             due = self.totem_due(t, getattr(bot, "quests", []), now)
@@ -390,14 +392,33 @@ class Useables:
                 if not s.status or s.status.startswith("next"):
                     s.status = self._next_text(t, now)
                 continue
-            why_not = self.limited(t)
+            reader = getattr(bot, "weather", None)
+            why_not = self.limited(t) or (
+                reader.block_reason(self._totem_info.get(t["name"], {})) if reader
+                else "waiting for a complete weather reading")
+            if why_not:
+                if s.status != why_not:
+                    self.log(f"useables: {t['name']} not used -- {why_not}")
+                s.status = why_not
+                continue
+            # Reconfirm only when this item can actually be used, rather than
+            # repeatedly hovering while an active/protected effect blocks it.
+            reader.refresh(bot, confirm=True)
+            if not bot.running:
+                break
+            why_not = reader.block_reason(self._totem_info.get(t["name"], {}))
             if why_not:
                 if s.status != why_not:
                     self.log(f"useables: {t['name']} not used -- {why_not}")
                 s.status = why_not
                 continue
             self.log(f"useables: using {t['name']} ({due})")
-            self.use_totem(bot, t)
+            if self.use_totem(bot, t) and reader is not None and bot.running:
+                # The first totem can change which subsequent ones are legal.
+                # Invalidate before reading, even if capture/OCR raises.
+                from fischweather import WeatherState
+                reader.state = WeatherState(reason="weather changed; rechecking")
+                reader.refresh(bot, confirm=True)
 
     def _next_text(self, t: dict, now: float) -> str:
         s = self.st(t["name"])
@@ -494,9 +515,18 @@ class Useables:
                 self.log(f"  {name}: {before} left, keeping {t['keep']} -- not used")
                 return False
         rod_slot = hb.held
+        if not bot.running or not bot.focus.ready() or bot.mouse.dry_run:
+            s.status = "paused or Roblox not focused"
+            return False
         inp.tap(0x30 + slot % 10)
         time.sleep(0.45)
+        if not bot.running or not bot.focus.ready():
+            s.status = "paused or Roblox not focused"
+            return False
         hb2 = read_hotbar(bot.grabber.grab())
+        if not bot.running or not bot.focus.ready():
+            s.status = "paused or Roblox not focused"
+            return False
         if hb2.held != slot:
             # Not in hand (or the frame was not seen): clicking would cast the rod.
             s.status, s.retry_at = "could not take it in hand", self.clock() + RETRY_S
@@ -509,6 +539,9 @@ class Useables:
         s.uses += 1
         s.last_used = self.clock()
         time.sleep(1.2)                                  # the totem's animation
+        if not bot.running or not bot.focus.ready():
+            s.status = "used; amount not confirmed (paused)"
+            return True
         after = read_hotbar(bot.grabber.grab())
         left = after.counts.get(slot)
         if left is not None:
@@ -525,9 +558,15 @@ class Useables:
         """T takes the rod in hand; check the frame moved back to its slot."""
         from fischequip import VK_T
 
+        if not bot.running or not bot.focus.ready() or bot.mouse.dry_run:
+            return
         inp.tap(VK_T)
         time.sleep(0.4)
+        if not bot.running or not bot.focus.ready():
+            return
         hb = read_hotbar(bot.grabber.grab())
+        if not bot.running or not bot.focus.ready():
+            return
         if rod_slot is not None and hb.held is not None and hb.held != rod_slot:
             self.log(f"  rod: slot {hb.held} in hand, the rod was in {rod_slot} -- pressing T again")
             inp.tap(VK_T)

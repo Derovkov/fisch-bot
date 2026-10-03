@@ -9,8 +9,7 @@ and calls start()/stop(). Each Start is a fresh run: it re-calibrates for the
 current area (fischcalib.py) and writes only to its own temporary folder, which is
 deleted when the run stops (fischsession.py) unless "Keep logs" is on.
 
-F9 stops the bot; F6 cycles saved setups for the current rod without taking
-Roblox focus (needs the `keyboard` package).
+Configurable global shortcuts: F7 Start, F9 Stop, F6 next setup by default.
 """
 from __future__ import annotations
 
@@ -28,6 +27,8 @@ from fischconfig import ConfigurationStore, configuration
 from fischrods import DEFAULT_ROD, ENCHANTS, ROD_DATA, SPECIAL, get_rod
 from fischsession import Session
 from fischuse import Useables, load_general, save_general
+from fischskins import SkinBook, clean_skins
+from fischkeys import Hotkeys, saved_hotkeys, clean_hotkeys
 
 UI_FILE = Path(__file__).with_name("ui") / "index.html"
 SETTINGS_FILE = Path(__file__).with_name("fischbot_settings.json")
@@ -35,6 +36,12 @@ PROFILES_FILE = Path(__file__).with_name("fischbot_profiles.json")
 MAX_LOG_LINES = 1000
 
 HELP = {
+    "hotkeys": "Global shortcuts while the app is open. Type a key name or a "
+               "combination such as ctrl+alt+r, then Save hotkeys to apply it "
+               "immediately. Each action needs a different shortcut. Start uses "
+               "your latest saved settings; Stop also cancels a rod scan; Next "
+               "saved setup waits until the current cast finishes. These keys "
+               "are kept in the general config, separate from rod setups.",
     "profiles": "Save named setups for rods, enchants, run goals, control and logging. "
                 "Switch while fishing to apply after the current cast finishes. "
                 "Press F6 in Roblox to cycle through all your setups without "
@@ -79,6 +86,12 @@ HELP = {
     "deadband": "How far the fish may drift from the slider's centre, as a fraction "
                 "of the slider's width, before the bot reacts. Higher means fewer "
                 "clicks but looser tracking. Default 0.06.",
+    "skins": "Rod skins change how the reel bar looks -- even the track's length and "
+             "how the progress bar fills. The bot fingerprints each reel's bar and "
+             "saves every skin it reads well, with what it learned (slider width per "
+             "rod, track length). Next time it recognises the skin and starts from "
+             "that. Rename skins so the log is easy to read; Forget makes the bot "
+             "learn it again.",
     "useables": "Totems and baits the bot may use for you, between casts. Kept apart "
                 "from your saved setups: switching setups (F6) never changes it. "
                 "Per item: 'Max per run' caps how many the bot uses in one run (0 = no "
@@ -88,8 +101,10 @@ HELP = {
                        "minutes. For quests -- when a tracked quest needs a mutation the "
                        "totem's weather gives (the Mutation Totem: any mutation), at most "
                        "every N minutes. The bot presses the totem's hotbar number, checks "
-                       "it is in hand, clicks, and takes the rod back with T. It can't read "
-                       "the weather yet, so set the minutes to about the weather's length.",
+                       "it is in hand, clicks, and takes the rod back with T. Between casts "
+                       "it reads the weather icons and hovers for tooltip names. Active "
+                       "effects, protected weather groups and incomplete readings defer "
+                       "totems. Local event/location rules that are not verified also defer.",
     "useables_baits": "Your bait order. The bot keeps the first bait that is on and within "
                       "its limits equipped (reading 'Current Bait: ... [xN]' above the "
                       "hotbar) and switches to the next one in the Equipment Bag's Baits tab "
@@ -105,6 +120,10 @@ DEFAULTS = {"rod": DEFAULT_ROD, "max_fish": 20, "focus": "pin",
             # buttons on each rod card.
             "rod_enchants": {}, "owned": [], "favs": [], "rod_layout": "carousel",
             "active_profile": "", "auto_equip": True, "track_quests": True}
+
+
+class SearchCancelled(RuntimeError):
+    pass
 
 
 class Api:
@@ -125,6 +144,10 @@ class Api:
         self._active_config = None
         self._stop_requested = threading.Event()
         self._scan: dict = {"busy": False}       # rod scan progress (scan_rods)
+        self._search: dict = {"busy": False}
+        self._start_lock = threading.Lock()
+        self._hotkeys = None
+        self._hotkey_error = ""
 
     # --- page -> python ----------------------------------------------------------
     def get_meta(self) -> dict:
@@ -134,8 +157,12 @@ class Api:
             saved = {}
         rods = [dict(r, extra=r["name"] in SPECIAL and SPECIAL[r["name"]].has_extra)
                 for r in ROD_DATA]
+        keys = saved_hotkeys(load_general())
+        help_text = {k: v.replace("F6", keys["switch"].upper()).replace("F9", keys["stop"].upper())
+                     for k, v in HELP.items()}
         return {"rods": rods, "enchants": ENCHANTS, "defaults": DEFAULTS,
-                "saved": saved, "help": HELP, "profiles": self._profiles.list()}
+                "saved": saved, "help": help_text, "profiles": self._profiles.list(),
+                "hotkeys": keys, "help_base": HELP}
 
     def save_profile(self, name: str, settings_json: str, profile_id: str = '') -> dict:
         try:
@@ -194,14 +221,14 @@ class Api:
         with self._lock:
             active, pending = self._active_config, self._pending_config
         if not (active and self._worker and self._worker.is_alive()):
-            self._log("F6: start the bot first -- F6 switches setups during a run")
+            self._log("Switch shortcut: start the bot first to switch setups during a run")
             return
         rows = self._profiles.list()
         if not rows:
-            self._log("F6: no saved setups yet -- save one on the dashboard")
+            self._log("Switch shortcut: no saved setups yet -- save one on the dashboard")
             return
         if len(rows) == 1 and rows[0]['id'] == active['id'] and not pending:
-            self._note(f"F6: only one saved setup ({rows[0]['name']}) -- save another "
+            self._note(f"Switch shortcut: only one saved setup ({rows[0]['name']}) -- save another "
                       f"to switch")
             return
         current_id = pending['id'] if pending else active['id']
@@ -253,10 +280,26 @@ class Api:
             pass
 
     def start(self, settings_json: str) -> dict:
+        with self._start_lock:
+            return self._start(settings_json)
+
+    def start_saved(self) -> None:
+        """Global Start uses the most recently saved UI settings."""
+        try:
+            saved = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            saved = {}
+        result = self.start(json.dumps(dict(DEFAULTS, **(saved if isinstance(saved, dict) else {}))))
+        if not result["ok"]:
+            self._log("Start shortcut: " + result["error"])
+
+    def _start(self, settings_json: str) -> dict:
         # Sent as a JSON string: a JS object passed straight through pywebview
         # arrived without its keys ("invalid setting: 'max_fish'").
         if self._worker and self._worker.is_alive():
             return {"ok": False, "error": "already running"}
+        if self._scan.get("busy") or self._search.get("busy"):
+            return {"ok": False, "error": "finish or cancel the rod scan / quest read first"}
         try:
             request = self._config_request(json.loads(settings_json))
             s = request['settings']
@@ -284,7 +327,37 @@ class Api:
         self._worker.start()
         return {"ok": True}
 
+    def _begin_search(self, kind):
+        with self._start_lock:
+            if self._worker and self._worker.is_alive():
+                return {"ok": False, "error": "stop the bot before searching"}
+            if self._search.get("busy") or self._scan.get("busy"):
+                return {"ok": False, "error": "finish or cancel the current search first"}
+            self._stop_requested.clear()
+            self._search = {"busy": True, "kind": kind, "cancelling": False}
+        return None
+
+    def _search_check(self, wait=0):
+        if self._stop_requested.wait(wait):
+            raise SearchCancelled()
+
+    def _end_search(self):
+        with self._start_lock:
+            self._search = {"busy": False}
+
     def scan_rods(self, mode: str = "scroll") -> dict:
+        error = self._begin_search("rods")
+        if error:
+            return error
+        try:
+            return self._scan_rods(mode)
+        except SearchCancelled:
+            return {"ok": False, "cancelled": True, "error": "Rod search cancelled."}
+        finally:
+            self._scan = {"busy": False}
+            self._end_search()
+
+    def _scan_rods(self, mode: str) -> dict:
         """Find the player's rods and enchants in Roblox's Equipment Bag. Opens
         it with N, reads it, closes it again (fischequip.py).
 
@@ -309,10 +382,10 @@ class Api:
         if win is None:
             return {"ok": False, "error": "No Roblox window found."}
         hwnd = win[0]
-        self._stop_requested.clear()
         self._scan = {"busy": True, "mode": mode, "done": 0, "total": 0, "found": 0}
+        self._search_check()
         focus_window(hwnd)
-        time.sleep(0.6)                          # let Roblox redraw in front
+        self._search_check(0.6)                  # let Roblox redraw in front
         win = find_roblox_window() or win
         g = FastGrabber(win[1])
         t0 = time.time()
@@ -328,7 +401,8 @@ class Api:
                 else:
                     found = menu.scan_by_scroll(progress)
         except MenuError as exc:
-            return {"ok": False, "error": f"Rod scan stopped: {exc}."}
+            return {"ok": False, "cancelled": self._stop_requested.is_set(),
+                    "error": f"Rod scan stopped: {exc}."}
         except Exception as exc:
             return {"ok": False, "error": f"Rod scan failed: {exc!r}"}
         finally:
@@ -338,7 +412,7 @@ class Api:
         self._log(f"[{datetime.now():%H:%M:%S}] rod scan ({mode}): {len(found)} rod(s) "
                   f"read in {time.time() - t0:.0f}s" + (" -- cancelled" if cancelled else ""))
         if not found:
-            return {"ok": False, "error": "No rods were read." + (
+            return {"ok": False, "cancelled": cancelled, "error": "No rods were read." + (
                 " Scan cancelled." if cancelled else "")}
         cards = [{"rod": r, "enchants": v["enchants"], "equipped": v["equipped"]}
                  for r, v in found.items()]
@@ -355,6 +429,17 @@ class Api:
             return {"ok": True, **view} if view else {
                 "ok": False, "error": "The bot reads quests at the start of the run and "
                                       "after every cast -- none read yet."}
+        error = self._begin_search("quests")
+        if error:
+            return error
+        try:
+            return self._read_quests()
+        except SearchCancelled:
+            return {"ok": False, "cancelled": True, "error": "Quest search cancelled."}
+        finally:
+            self._end_search()
+
+    def _read_quests(self) -> dict:
         try:
             from fastcap import FastGrabber, find_roblox_window, focus_window
             from fischequip import WinInput
@@ -364,19 +449,26 @@ class Api:
         win = find_roblox_window()
         if win is None:
             return {"ok": False, "error": "No Roblox window found."}
+        self._search_check()
         focus_window(win[0])
-        time.sleep(0.5)
+        self._search_check(0.5)
         win = find_roblox_window() or win
         rect = win[1]
         g = FastGrabber(rect)
         try:
             frame = g.grab()
+            self._search_check()
             chat = find_open_chat(frame)
+            self._search_check()
             if chat is not None:
                 WinInput().click(rect.left + chat[0], rect.top + chat[1])
-                time.sleep(0.35)
+                self._search_check(0.35)
                 frame = g.grab()
+            self._search_check()
             quests = read_tracker(frame)
+            self._search_check()                 # discard cancelled OCR results
+        except SearchCancelled:
+            raise
         except Exception as exc:
             return {"ok": False, "error": f"could not read the quest tracker: {exc!r}"}
         finally:
@@ -404,10 +496,64 @@ class Api:
             return {"ok": False, "error": f"{files[kind]} missing -- run fischwiki.py ({exc})"}
         return {"ok": True, "data": data}
 
+    # --- reel-bar skins (Settings > Reel skins) ---------------------------------
+    def get_skins(self) -> dict:
+        b = self._bot
+        live = b.skins if b is not None and b.skins is not None and self._worker             and self._worker.is_alive() else None
+        skins = live.skins if live is not None else clean_skins(load_general().get("skins"))
+        return {"ok": True, "skins": skins,
+                "current": live.current["id"] if live is not None and live.current else None}
+
+    def edit_skin(self, skin_id: str, name: str = "", forget: bool = False) -> dict:
+        """Rename (name) or forget a saved skin. During a run the bot's own
+        list is edited too, so its next save keeps the change."""
+        b = self._bot
+        live = b.skins if b is not None and b.skins is not None and self._worker             and self._worker.is_alive() else None
+        skins = live.skins if live is not None else clean_skins(load_general().get("skins"))
+        hit = next((s for s in skins if s["id"] == skin_id), None)
+        if hit is None:
+            return {"ok": False, "error": "no such skin"}
+        if forget:
+            skins.remove(hit)
+            if live is not None and live.current is hit:
+                live.current = None
+        else:
+            name = (name or "").strip()[:40]
+            if not name:
+                return {"ok": False, "error": "enter a name"}
+            hit["name"] = name
+        try:
+            save_general({"skins": skins})
+        except OSError as exc:
+            return {"ok": False, "error": str(exc)}
+        return self.get_skins()
+
     def get_general(self) -> dict:
         """The general config (fischbot_general.json): settings that are not
         part of any saved setup -- for now the Useables tab."""
         return {"ok": True, "general": load_general()}
+
+    def get_hotkeys(self) -> dict:
+        return {"ok": True, "hotkeys": saved_hotkeys(load_general()),
+                "available": self._hotkeys is not None and bool(self._hotkeys.handles),
+                "error": self._hotkey_error}
+
+    def save_hotkeys(self, data_json: str) -> dict:
+        old = saved_hotkeys(load_general())
+        try:
+            bindings = clean_hotkeys(json.loads(data_json))
+            if self._hotkeys is not None:
+                self._hotkeys.replace(bindings)
+                self._hotkey_error = ""
+            try:
+                save_general({"hotkeys": bindings})
+            except OSError:
+                if self._hotkeys is not None:
+                    self._hotkeys.replace(old)
+                raise
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}
+        return self.get_hotkeys()
 
     def save_general(self, data_json: str) -> dict:
         try:
@@ -423,7 +569,14 @@ class Api:
         return dict(self._scan)
 
     def stop(self) -> None:
+        with self._start_lock:
+            self._stop()
+
+    def _stop(self) -> None:
         self._stop_requested.set()
+        if self._search.get("busy"):
+            self._search["cancelling"] = True
+            self._log("cancelling " + self._search["kind"] + " search...")
         self.cancel_configuration()
         if self._bot is not None and self._bot.running:
             self._log("stopping...")
@@ -440,6 +593,7 @@ class Api:
             self._run.update(caught=b.caught, lost=b.lost, casts=b.cycles)
         return {
             "running": running,
+            "search": dict(self._search),
             "active_config": active,
             "pending_config": pending,
             "state": (b.state if b is not None and running
@@ -452,6 +606,9 @@ class Api:
             "quests": b.quest_view if b is not None else None,
             "mutations": dict(b.mutations) if b is not None else {},
             "useables": b.useables.view() if b is not None and b.useables is not None else None,
+            "skin": (b.skins.current["name"] if b is not None and b.skins is not None
+                     and b.skins.current else None),
+            "weather": b.weather.state.view() if b is not None else None,
             "max_fish": self._run["max_fish"] if self._run else 0,
             "started": self._run["started"] if self._run else None,
             "calibrated": self._calibrated,
@@ -491,7 +648,10 @@ class Api:
             self._bot.track_quests = extras.get("track_quests", True)
             self._bot.owned_rods = extras.get("owned", [])
             # Useables come from the general config, never from the setup
-            self._bot.useables = Useables(load_general()["useables"], self._bot.log)
+            general = load_general()
+            self._bot.useables = Useables(general["useables"], self._bot.log)
+            self._bot.skins = SkinBook(general.get("skins", []), self._bot.log,
+                                       save=lambda sk: save_general({"skins": sk}))
             if self._stop_requested.is_set():
                 return
             self._bot.run()
@@ -514,24 +674,67 @@ class Api:
                       + (f"; logs kept in {session.kept_to}" if session.kept_to else ""))
 
 
+APP_ID = "Derovkov.FischBot"          # Windows taskbar identity (own icon/group)
+APP_TITLE = "Fisch bot"
+ICON_FILE = Path(__file__).with_name("ui") / "icons" / "app" / "fischbot.ico"
+
+
+def set_app_identity() -> None:
+    """Group the window under its own taskbar entry instead of python's, so
+    it shows the app icon (Windows uses the window's icon for an explicit ID)."""
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
+    except Exception:
+        pass
+
+
+def apply_window_icon(title: str = APP_TITLE) -> bool:
+    """Put ui/icons/app/fischbot.ico on the app window (title bar, taskbar,
+    Alt+Tab). pywebview's own icon option is GTK/Qt only."""
+    try:
+        import ctypes
+        u = ctypes.windll.user32
+        u.FindWindowW.restype = ctypes.c_void_p
+        u.LoadImageW.restype = ctypes.c_void_p
+        u.SendMessageW.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_void_p, ctypes.c_void_p]
+        hwnd = u.FindWindowW(None, title)
+        if not hwnd or not ICON_FILE.exists():
+            return False
+        WM_SETICON, IMAGE_ICON, LR_LOADFROMFILE = 0x0080, 1, 0x0010
+        for which, size in ((0, u.GetSystemMetrics(49)), (1, u.GetSystemMetrics(11))):  # small, big
+            h = u.LoadImageW(None, str(ICON_FILE), IMAGE_ICON, size, size, LR_LOADFROMFILE)
+            if h:
+                u.SendMessageW(hwnd, WM_SETICON, which, h)
+        return True
+    except Exception:
+        return False
+
+
 def main() -> None:
+    set_app_identity()
     api = Api()
     try:
         import keyboard
-        keyboard.add_hotkey("f9", api.stop)
-        keyboard.add_hotkey("f6", api.cycle_configuration)
+        api._hotkeys = Hotkeys(keyboard, {"start": api.start_saved, "stop": api.stop,
+                                         "switch": api.cycle_configuration}, on_error=api._log)
+        api._hotkeys.replace(saved_hotkeys(load_general()))
     except Exception as exc:
+        api._hotkey_error = str(exc)
         api._log(f"could not register all global hotkeys ({exc}); use the UI")
-    win = webview.create_window("Fisch bot", url=str(UI_FILE), js_api=api,
+    win = webview.create_window(APP_TITLE, url=str(UI_FILE), js_api=api,
                                 width=1280, height=840, min_size=(1080, 720),
                                 background_color="#0c0d10")
 
     def on_closing():
         api.stop()
+        if api._hotkeys is not None:
+            api._hotkeys.close()
         if api._worker and api._worker.is_alive():
             api._worker.join(timeout=5)
 
     win.events.closing += on_closing
+    win.events.shown += lambda: apply_window_icon()
     webview.start()
 
 

@@ -289,33 +289,32 @@ def read_tracker(frame: np.ndarray, ocr=None) -> list[Quest]:
 # "is chat open" = is the solid bubble there; the bot clicks it to close.
 
 CHAT_MATCH_MIN = 0.8
-_chat_tpl = None
+# Open must also beat the closed outline by this much. A threshold on the open
+# bubble alone could be passed by a closed button (live 2026-10-03: "closed it
+# (still open?)" at the start, then a second close a cast later) -- and every
+# false "open" click OPENS the chat. Test frames: open 1.00 vs 0.55, closed
+# 1.00 vs 0.63.
+CHAT_OPEN_MARGIN = 0.1
+_chat_tpls: dict = {}
 
 
-def _chat_template() -> Optional[np.ndarray]:
-    global _chat_tpl
-    if _chat_tpl is None:
+def _chat_template(name: str = "chat_open.png") -> Optional[np.ndarray]:
+    if name not in _chat_tpls:
         import cv2
-        im = cv2.imread(str(UI / "icons" / "roblox" / "chat_open.png"), cv2.IMREAD_UNCHANGED)
+        im = cv2.imread(str(UI / "icons" / "roblox" / name), cv2.IMREAD_UNCHANGED)
         if im is None:
+            _chat_tpls[name] = None
             return None
         g = cv2.cvtColor(im[..., :3], cv2.COLOR_BGR2GRAY)
         ys, xs = np.nonzero(g > 200)
         pad = 3                                  # some dark margin around the bubble
-        _chat_tpl = g[max(0, ys.min() - pad):ys.max() + pad + 1,
-                      max(0, xs.min() - pad):xs.max() + pad + 1]
-    return _chat_tpl
+        _chat_tpls[name] = g[max(0, ys.min() - pad):ys.max() + pad + 1,
+                             max(0, xs.min() - pad):xs.max() + pad + 1]
+    return _chat_tpls[name]
 
 
-def find_open_chat(frame: np.ndarray) -> Optional[tuple[int, int]]:
-    """Centre (client px) of the chat button if chat is OPEN, else None."""
+def _chat_match(region: np.ndarray, tpl: np.ndarray) -> tuple[float, Optional[tuple[int, int]]]:
     import cv2
-    tpl = _chat_template()
-    if tpl is None:
-        return None
-    h, w = frame.shape[:2]
-    region = cv2.cvtColor(np.ascontiguousarray(frame[:min(h, 120), :min(w, 460)]),
-                          cv2.COLOR_RGB2GRAY)
     best = (0.0, None)
     for s in np.arange(0.6, 1.65, 0.1):
         t = cv2.resize(tpl, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
@@ -325,7 +324,25 @@ def find_open_chat(frame: np.ndarray) -> Optional[tuple[int, int]]:
         _, v, _, loc = cv2.minMaxLoc(r)
         if v > best[0]:
             best = (v, (loc[0] + t.shape[1] // 2, loc[1] + t.shape[0] // 2))
-    return best[1] if best[0] >= CHAT_MATCH_MIN else None
+    return best
+
+
+def find_open_chat(frame: np.ndarray) -> Optional[tuple[int, int]]:
+    """Centre (client px) of the chat button if chat is OPEN, else None:
+    the solid bubble must match well AND clearly better than the outline."""
+    import cv2
+    tpl = _chat_template("chat_open.png")
+    if tpl is None:
+        return None
+    h, w = frame.shape[:2]
+    region = cv2.cvtColor(np.ascontiguousarray(frame[:min(h, 120), :min(w, 460)]),
+                          cv2.COLOR_RGB2GRAY)
+    v_open, pos = _chat_match(region, tpl)
+    if v_open < CHAT_MATCH_MIN:
+        return None
+    closed = _chat_template("chat_closed.png")
+    v_closed = _chat_match(region, closed)[0] if closed is not None else 0.0
+    return pos if v_open >= v_closed + CHAT_OPEN_MARGIN else None
 
 
 def quests_view(quests: list[Quest], owned_rods: list[str]) -> dict:

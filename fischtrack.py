@@ -381,6 +381,8 @@ TRACK_HALF_W = 388.5            # centre to either end (571-1348 at 1920 wide)
 GEO_ROWS = 31                   # track height in px
 EDGE_MIN = 50                   # recording: bar rows 69-151, no-bar median 17
 SPLIT_MIN = 150                 # min bright-vs-dark gap (channel sum) in a row
+TAIL_MAX_W = 22                 # _trim_tails: a bright piece this thin at a run's end ...
+TAIL_GAP = 12                   # ... behind a dark gap this wide is not slider
 
 # Learned by fischcalib.GeometryLearner on the first reel, at the locked scale.
 _learned_x: Optional[tuple[float, float]] = None    # track ends, fractions of width
@@ -395,13 +397,14 @@ def track_x(w: int, s: float = 1.0) -> tuple[int, int]:
 
 
 def edge_scores(frame: np.ndarray, y_lo: int, y_hi: int,
-                s: float = 1.0) -> np.ndarray:
+                s: float = 1.0, ends: Optional[tuple[int, int]] = None) -> np.ndarray:
     """Per-row min(|edge at left end|, |edge at right end|), channel sums.
 
     The hotbar and scenery have no edge at exactly these two columns; the bar has
     one at both. |edge| so a slider pinned against an end still counts.
+    `ends`: the track's end columns if not the default ones (a skin's).
     """
-    x0, x1 = track_x(frame.shape[1], s)
+    x0, x1 = ends if ends is not None else track_x(frame.shape[1], s)
     e = max(3, int(7 * s))
     d = max(20, int(25 * s))
 
@@ -411,6 +414,101 @@ def edge_scores(frame: np.ndarray, y_lo: int, y_hi: int,
     left = np.abs(col(x0 - e - 3, x0 - 3) - col(x0 + 3, x0 + d))
     right = np.abs(col(x1 + 3, x1 + e + 3) - col(x1 - d, x1 - 3))
     return np.minimum(left, right)
+
+
+# Track length. Rod skins change it: the user's pastel Fabulous Rod skin
+# (2026-10-03, saved_logs/20261003_174120) has its track at x 601-1324 at
+# 1920 wide -- 93% of the default 571-1348 -- under a bright banner of skin art.
+# Looking for the ends only at the default columns found the banner (rows
+# 809-839, slider "364-469px", no progress box). So without a hint the search
+# also tries shorter/longer tracks, centred, and keeps a non-default length
+# only when its ends are clearly stronger (TRACK_K_GAIN).
+TRACK_K = tuple(round(k, 3) for k in np.arange(0.84, 1.0601, 0.005))
+TRACK_K_GAIN = 1.3
+FLAT_SPREAD = 60        # a column's top-to-bottom spread (channel sum) to count as even
+FLAT_GOOD = 0.5         # bands at least this flat are weighed at their full edge
+_skin_k: Optional[float] = None     # a known skin's track length (fischskins), tried first
+
+
+def set_skin_track_k(k: Optional[float]) -> None:
+    """A recognised skin's track length relative to the default (None: default)."""
+    global _skin_k
+    _skin_k = k
+
+
+def skin_track_k() -> Optional[float]:
+    return _skin_k
+
+
+def track_ends_k(w: int, s: float, k: float) -> tuple[int, int]:
+    c = (w - 1) / 2
+    return int(round(c - TRACK_HALF_W * s * k)), int(round(c + TRACK_HALF_W * s * k))
+
+
+def _flatness(frame: np.ndarray, x0: int, x1: int, y0: int, s: float) -> float:
+    """Share of the band's columns that are vertically even. A track and its
+    slider are flat top to bottom (real bars 0.55-1.0 on the saved crops);
+    scenery and skin art that happen to have edges at the end columns are not
+    (the pastel skin's banner: <= 0.16)."""
+    band = frame[y0 + px(6, s):y0 + px(GEO_ROWS - 5, s), x0:x1 + 1].astype(np.int16).sum(2)
+    if band.shape[0] < 2:
+        return 0.0
+    return float(((band.max(0) - band.min(0)) < FLAT_SPREAD).mean())
+
+
+def _band_score(edge: float, flat: float) -> float:
+    return edge * min(1.0, max(0.1, flat / FLAT_GOOD))
+
+
+def _best_band(frame: np.ndarray, y_lo: int, y_hi: int, s: float,
+               rows_n: int) -> tuple[float, int, tuple[int, int], float]:
+    """(edge, first row, (x0, x1), k) of the track over the lengths in
+    TRACK_K. The default (or a recognised skin's) length is kept when its rows
+    are a flat bar with clear ends; otherwise every length is tried, its best
+    rows weighed by flatness, and another length wins only when clearly
+    better (TRACK_K_GAIN)."""
+    w = frame.shape[1]
+    e = max(3, int(7 * s))
+
+    def at(ends, top=1):
+        if ends[0] - e - 3 < 0 or ends[1] + e + 3 > w:
+            return []
+        win = np.convolve(edge_scores(frame, y_lo, y_hi, s, ends), np.ones(rows_n) / rows_n,
+                          mode="valid")
+        out = []
+        for _ in range(top):
+            k = int(np.argmax(win))
+            if win[k] <= 0:
+                break
+            out.append((float(win[k]), k))
+            win[max(0, k - rows_n):k + rows_n] = 0      # next candidate: other rows
+        return out
+
+    def scored(ends, top=1):
+        return [(_band_score(ed, _flatness(frame, ends[0], ends[1], y_lo + r, s)), ed, r)
+                for ed, r in at(ends, top)]
+
+    base_k = _skin_k if _skin_k is not None else 1.0
+    base_ends = track_x(w, s) if _skin_k is None else track_ends_k(w, s, _skin_k)
+    base = max(scored(base_ends, 2), default=(0.0, 0.0, 0))
+    if base[1] >= 2 * EDGE_MIN and base[0] >= base[1] * 0.99:
+        return base[1], base[2], base_ends, base_k   # a flat bar with clear ends: done
+    best = (base[0], base[1], base[2], base_ends, base_k)
+    coarse = [k for k in TRACK_K if abs(k - base_k) >= 0.004 and round(k * 1000) % 10 == 0]
+    for k in coarse:
+        ends = track_ends_k(w, s, k)
+        for sc, ed, r in scored(ends, 2):
+            if sc > best[0]:
+                best = (sc, ed, r, ends, k)
+    if best[4] != base_k:                            # refine the length found
+        for k in (best[4] - 0.005, best[4] + 0.005):
+            ends = track_ends_k(w, s, k)
+            for sc, ed, r in scored(ends, 1):
+                if sc > best[0]:
+                    best = (sc, ed, r, ends, round(k, 3))
+        if best[0] < max(EDGE_MIN, TRACK_K_GAIN * base[0]):
+            return base[1], base[2], base_ends, base_k
+    return best[1], best[2], best[3], best[4]
 
 
 def read_track(frame: np.ndarray, hint: Optional[TrackReading] = None,
@@ -438,7 +536,8 @@ def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading],
                    ) -> tuple[Optional[TrackReading], float]:
     """(reading or None, edge score of the track's rows) at scale s."""
     h, w = frame.shape[:2]
-    x0, x1 = track_x(w, s)
+    # A hint carries the track ends it was read with (a skin's may differ).
+    x0, x1 = (hint.track_x0, hint.track_x1) if hint is not None else track_x(w, s)
     e = max(3, int(7 * s))          # edge_scores' outer window
     if x0 - e - 3 < 0 or x1 + e + 3 > w:
         return None, 0.0            # the bar at this scale does not fit the frame
@@ -451,10 +550,13 @@ def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading],
         y_lo, y_hi = search_top(h, s), int(h * SEARCH_BOTTOM_FRAC)
     if y_hi - y_lo < rows_n:
         return None, 0.0
-    win = np.convolve(edge_scores(frame, y_lo, y_hi, s), np.ones(rows_n) / rows_n,
-                      mode="valid")
-    k = int(np.argmax(win))
-    edge = float(win[k])
+    if hint is not None:
+        win = np.convolve(edge_scores(frame, y_lo, y_hi, s, (x0, x1)),
+                          np.ones(rows_n) / rows_n, mode="valid")
+        k = int(np.argmax(win))
+        edge = float(win[k])
+    else:
+        edge, k, (x0, x1), _ = _best_band(frame, y_lo, y_hi, s, rows_n)
     anchored = edge < EDGE_MIN          # rows from the progress box, not the edges
     if not anchored:
         y0 = y_lo + k
@@ -510,7 +612,7 @@ def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading],
         # recording, 106-241 for Duskwire / Crew Rod live).
         if anchored:
             return None, 0.0
-        if _track_unevenness(frame, x0, x1, y0, y1, s, slider) > GEO_TRACK_MAX_UNEVEN:
+        if _track_unevenness(frame, x0, x1, y0, y1, s, slider, marker) > GEO_TRACK_MAX_UNEVEN:
             return None, 0.0
         # expect_top: on a light floor the box's end borders do not stand out
         # (saved_logs/20261003_115038: a whole Duskwire reel went unread, 4s,
@@ -520,6 +622,22 @@ def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading],
             return None, 0.0
     return TrackReading(x0, x1, y0, y1, slider[0], slider[1], marker, scale=s,
                         method=method, slider_rgb=slider_rgb), edge
+
+
+def _trim_tails(bright: np.ndarray, a: int, b: int, s: float) -> tuple[int, int]:
+    """Drop a thin bright piece off either end of a merged slider run when a
+    clear dark gap separates it: the fish's line just outside the slider. The
+    pastel skin (2026-10-03): slider ends at 920, the bright-outlined marker at
+    952-966 -- a 26px gap, inside BAR_MERGE, read as one 664-967 "slider". A
+    marker INSIDE the slider leaves a gap narrower than TAIL_GAP and stays."""
+    fine = _runs(bright[a:b + 1], 3, min_len=1)
+    fine = [(a + p, a + q) for p, q in fine]
+    tail, gap = px(TAIL_MAX_W, s), px(TAIL_GAP, s)
+    while len(fine) >= 2 and fine[-1][1] - fine[-1][0] + 1 <= tail             and fine[-1][0] - fine[-2][1] - 1 >= gap:
+        fine.pop()
+    while len(fine) >= 2 and fine[0][1] - fine[0][0] + 1 <= tail             and fine[1][0] - fine[0][1] - 1 >= gap:
+        fine.pop(0)
+    return (fine[0][0], fine[-1][1]) if fine else (a, b)
 
 
 def _slider_colour(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int,
@@ -539,7 +657,7 @@ def _slider_colour(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int,
         bright = (sums > (lo + hi) / 2) & (g <= np.maximum(row[:, 0], row[:, 2]) + 8)
         runs = _runs(bright, px(BAR_MERGE, s), min_len=px(60, s))
         if runs:
-            a, b = max(runs, key=lambda r: r[1] - r[0])
+            a, b = _trim_tails(bright, *max(runs, key=lambda r: r[1] - r[0]), s)
             spans.append((x0 + a, x0 + b))
     if len(spans) < len(rows) // 2:
         return None
@@ -580,17 +698,26 @@ GEO_TRACK_MAX_UNEVEN = 45       # see _track_unevenness / the "geo" checks
 
 
 def _track_unevenness(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int,
-                      s: float, slider: tuple[int, int]) -> float:
+                      s: float, slider: tuple[int, int],
+                      marker: Optional[float] = None) -> float:
     """Mean distance (channel sum) of the track's columns OUTSIDE the slider from
     their median colour. A real track is one translucent colour even over busy
-    scenery; text and scenery that only look bar-shaped are not."""
+    scenery; text and scenery that only look bar-shaped are not. The fish's
+    line (`marker`) is left out too: outside the slider it is part of the bar
+    (the pastel skin's bright-outlined line read 50 with it, the track alone
+    is even)."""
     band = frame[y0 + px(6, s):y1 - px(5, s) + 1, x0:x1 + 1].astype(np.int16)
     if band.shape[0] < 1:
         return 1e9
     P = np.median(band, axis=0)
     m = max(2, px(4, s))
     a, b = slider[0] - x0, slider[1] - x0 + 1
-    outside = np.vstack([P[:max(0, a - m)], P[min(len(P), b + m):]])
+    keep = np.ones(len(P), bool)
+    keep[max(0, a - m):min(len(P), b + m)] = False
+    if marker is not None:
+        mx, mr = int(round(marker - x0)), px(12, s)
+        keep[max(0, mx - mr):max(0, min(len(P), mx + mr + 1))] = False
+    outside = P[keep]
     if len(outside) < 0.1 * len(P):
         return 1e9
     return float(np.abs(outside - np.median(outside, 0)).sum(1).mean())
@@ -782,6 +909,7 @@ TRK_FISH_SPEED = 0.8        # ... for the fish (recording: max 0.31, 244px/s)
 TRK_START_PAIR_FRAC = 0.2 # start width: widest symmetric step pair >= this x the best
 TRK_WIDTH_WINDOW = 9       # recent edge-to-edge slider widths kept ...
 TRK_WIDTH_MIN_N = 3         # ... and needed before the width is corrected
+TRK_EXPECT_W_TOL = 0.12     # start width this close to the run's learned width
 
 
 class SkinTracker:
@@ -791,7 +919,8 @@ class SkinTracker:
     rest of the reel. Frames may be row bands: pass the band's y offset."""
 
     def __init__(self, frame: np.ndarray, r: TrackReading, y_off: int = 0,
-                 now: float = 0.0, centred: bool = True):
+                 now: float = 0.0, centred: bool = True,
+                 expect_w: Optional[float] = None):
         self.s = s = r.scale
         self.x0, self.x1 = r.track_x0, r.track_x1
         self.W = self.x1 - self.x0 + 1
@@ -803,13 +932,23 @@ class SkinTracker:
         # The one-frame reading only has to cover the centre: it read Duskwire's
         # slider as just its dark half (centre ~30px off) at reel start.
         tc = (self.x0 + self.x1) / 2
+        # expect_w: this rod's width from earlier clean reels of the run. Live
+        # (2026-10-03, Fabulous Rod): green claw decorations either side of the
+        # slider made a stronger symmetric pair than its edges, 76px read for a
+        # 116px slider, and the reel was followed at 66% inside.
+        ew = expect_w if expect_w and expect_w > 0 else None
         if centred and r.slider_x0 is not None \
                 and r.slider_x0 - px(10, s) <= tc <= r.slider_x1 + px(10, s):
-            a, b = self._centred_slider(P)
+            a, b = self._centred_slider(P, ew)
         else:
             a, b = r.slider_x0 - self.x0, r.slider_x1 - self.x0 + 1
+            if ew is not None and abs((b - a) - ew) > TRK_EXPECT_W_TOL * ew:
+                c0 = (a + b) / 2               # trust its centre, not its width
+                a, b = int(round(c0 - ew / 2)), int(round(c0 + ew / 2))
         self.w = b - a
-        self.base_w = self.w  # boosts can shrink back here, never to an icon's width
+        # boosts can shrink back here, never to an icon's width
+        self.base_w = self.w if ew is None else max(
+            self.w, int(round(ew * (1 - TRK_EXPECT_W_TOL))))
         self.c = (a + b) / 2
         self.widths: list[int] = []
         m = self._find_marker(frame, y_off, near=(a + b) / 2, reach=px(30, s),
@@ -852,7 +991,7 @@ class SkinTracker:
             return D
         return np.maximum.reduce([np.roll(D, i) for i in range(-spread, spread + 1)])
 
-    def _centred_slider(self, P: np.ndarray) -> tuple[int, int]:
+    def _centred_slider(self, P: np.ndarray, expect_w: Optional[float] = None) -> tuple[int, int]:
         """The slider at reel start: centred on the track, its half-width the one
         with the strongest PAIR of colour steps at centre +- h (Duskwire's grey
         -> black gradient read as only its dark half by the one-frame reader).
@@ -862,6 +1001,19 @@ class SkinTracker:
         W = self.W
         Dm = self._steps(P)
         c = W / 2
+        if expect_w is not None:
+            # Known width: the strongest pair close to it; the width itself if
+            # no edge pair shows there (edges hidden under decorations).
+            near = []
+            for h in range(int(expect_w / 2 * (1 - TRK_EXPECT_W_TOL)),
+                           int(expect_w / 2 * (1 + TRK_EXPECT_W_TOL)) + 1):
+                lo, hi = int(round(c - h)), int(round(c + h))
+                if 0 <= lo and hi <= W:
+                    near.append((min(Dm[lo], Dm[hi]), h))
+            sc, bh = max(near) if near else (0.0, expect_w / 2)
+            if sc < GEO_EDGE_MIN:
+                bh = expect_w / 2
+            return int(round(c - bh)), int(round(c + bh))
         pairs = []
         for h in range(int(GEO_SLIDER_MIN_FRAC / 2 * W), int(SLIDER_MAX_WIDTH_FRAC / 2 * W)):
             lo, hi = int(round(c - h)), int(round(c + h))
@@ -1128,6 +1280,10 @@ PROG_HALF_W = 209.5             # centre to either end (750-1169 at 1920 wide)
 PROG_TOP_DY = 38                # top row - track.y1
 PROG_ROWS = 11
 PROG_BRIGHT_MIN = 150           # min channel of fill / border pixels
+STEP_MIN = 60                   # ProgressPolarity step mode: a fill end this sharp ...
+STEP_DECIDE_N = 3               # ... in this many undecided frames in a row
+STEP_SAME = 45                  # a column this close to its known colour matches it
+STEP_MARGIN = 4                 # columns either side of the fill end not learned from
 
 
 class ProgressPolarity:
@@ -1136,12 +1292,26 @@ class ProgressPolarity:
     Duskwire fills black over a pale empty area; counting bright pixels reports
     remaining progress backwards. A partial box identifies its colours from
     the two ends. Keep that choice when the box becomes completely full/empty.
+
+    Skins whose fill AND empty part are both bright (the user's pastel Fabulous
+    Rod skin, 2026-10-03: a pink-white-yellow fill over a muted pink empty part;
+    every reel of saved_logs/20261003_174120 ended "no progress verdict") switch
+    to `step` mode: the fill ends at a sharp colour step. Each column's fill and
+    empty colours are learned (both are fixed gradients across the box), and the
+    fill is the split that best separates columns nearer the fill colour from
+    columns nearer the empty colour.
     """
 
     def __init__(self):
         self.bright_fill: Optional[bool] = None
+        self.step = False
+        self._undecided = 0
+        self._F: Optional[np.ndarray] = None   # per-column fill colour (NaN unknown)
+        self._E: Optional[np.ndarray] = None   # per-column empty colour
 
-    def fill(self, bright: np.ndarray) -> Optional[float]:
+    def fill(self, bright: np.ndarray, mid: Optional[np.ndarray] = None) -> Optional[float]:
+        if self.step and mid is not None:
+            return self._step_fill(mid)
         if self.bright_fill is None:
             n = max(1, min(5, bright.shape[1] // 40))
             left, right = float(bright[:, :n].mean()), float(bright[:, -n:].mean())
@@ -1150,10 +1320,62 @@ class ProgressPolarity:
             elif left <= 0.2 and right >= 0.8:
                 self.bright_fill = False
             else:
-                # A uniform entrance frame does not reveal which colour fills.
+                # A uniform entrance frame does not reveal which colour fills --
+                # unless both ends stay alike while a sharp step shows inside.
+                if mid is not None and ((left >= 0.8 and right >= 0.8)
+                                        or (left <= 0.2 and right <= 0.2)):
+                    self._undecided += 1
+                    if self._undecided >= STEP_DECIDE_N and self._strongest_step(mid)[1] >= STEP_MIN:
+                        self.step = True
+                        return self._step_fill(mid)
                 return None
         amount = float(np.median(bright.mean(1)))
         return amount if self.bright_fill else 1.0 - amount
+
+    # -- step mode ---------------------------------------------------------------------
+    @staticmethod
+    def _profile(mid: np.ndarray) -> np.ndarray:
+        return np.median(mid.astype(np.float32), axis=0)
+
+    @staticmethod
+    def _steps(P: np.ndarray, k: int = 4) -> np.ndarray:
+        pc = np.vstack([np.zeros((1, 3), np.float32), np.cumsum(P, axis=0)])
+        D = np.zeros(len(P) + 1, np.float32)
+        xs = np.arange(k, len(P) - k + 1)
+        D[xs] = np.abs((pc[xs] - pc[xs - k]) / k - (pc[xs + k] - pc[xs]) / k).sum(1)
+        return D
+
+    def _strongest_step(self, mid: np.ndarray) -> tuple[int, float]:
+        D = self._steps(self._profile(mid))
+        x = int(np.argmax(D))
+        return x, float(D[x])
+
+    def _step_fill(self, mid: np.ndarray) -> Optional[float]:
+        P = self._profile(mid)
+        W = len(P)
+        if self._F is None or len(self._F) != W:
+            x, sc = self._strongest_step(mid)
+            if sc < STEP_MIN:
+                return None
+            self._F = np.full((W, 3), np.nan, np.float32)
+            self._E = np.full((W, 3), np.nan, np.float32)
+            b = x
+        else:
+            dF = np.abs(P - self._F).sum(1)
+            dE = np.abs(P - self._E).sum(1)
+            knownF, knownE = ~np.isnan(dF), ~np.isnan(dE)
+            is_fill = np.where(knownF & knownE, dF < dE,
+                               np.where(knownF, dF < STEP_SAME, np.where(knownE, dE >= STEP_SAME, False)))
+            # Best split: fill columns left of it, empty columns right of it.
+            left_fill = np.r_[0, np.cumsum(is_fill)]
+            right_empty = np.r_[np.cumsum((~is_fill)[::-1])[::-1], 0]
+            b = int(np.argmax(left_fill + right_empty))
+        m = STEP_MARGIN
+        for sl, ref in ((slice(0, max(0, b - m)), "_F"), (slice(min(W, b + m), W), "_E")):
+            cur = getattr(self, ref)
+            seg, new = cur[sl], P[sl]
+            cur[sl] = np.where(np.isnan(seg), new, 0.8 * seg + 0.2 * new)
+        return b / W
 
 
 def prog_top_dy(s: float = 1.0) -> int:
@@ -1270,7 +1492,7 @@ def find_progress(frame: np.ndarray, y_lo: Optional[int] = None,
         return None
     bright = mid.min(2) >= PROG_BRIGHT_MIN
     if polarity is not None:
-        fill = polarity.fill(bright)
+        fill = polarity.fill(bright, mid)
         return (fill, top) if fill is not None else None
     # Callers that only test the box's presence need no per-reel state. Preserve
     # the legacy bright fraction for those calls; the driver supplies polarity.

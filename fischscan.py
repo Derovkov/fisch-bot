@@ -88,7 +88,10 @@ def parse_rod_screen(rgb: np.ndarray, lines=None) -> list[dict]:
         return []
     anchors.sort(key=lambda a: (a[1][0] + a[1][2]) / 2)
     centres = [(b[0] + b[2]) / 2 for _, b in anchors]
+    # A grid may have several names in the same column. Zero/tiny gaps are
+    # not card widths, particularly when the bag reflows in a narrow window.
     gaps = np.diff(centres)
+    gaps = gaps[gaps > max(8, np.median([b[3] - b[1] for _, b in anchors]) * 2)]
     card_w = float(np.median(gaps)) if len(gaps) else rgb.shape[1] * 0.3
 
     cards = []
@@ -107,9 +110,13 @@ def parse_rod_screen(rgb: np.ndarray, lines=None) -> list[dict]:
             for e in _enchants_in(t):
                 if e not in enchants:
                     enchants.append(e)
-        equipped = any("equipped" in _norm(t) and b[1] > rbox[3] for t, b in mine)
+        bottom = min((b[1] for _, b in anchors if b[1] > rbox[3]
+                      and abs((b[0] + b[2]) / 2 - cx) < card_w * .48), default=rgb.shape[0])
+        equipped = any("equipped" in _norm(t) and rbox[3] < b[1] < bottom for t, b in mine)
         cards.append({"rod": rod, "enchants": enchants, "equipped": equipped,
-                      "box": (int(x0), 0, int(x1), int(rbox[3]))})
+                      "box": (int(x0), 0, int(x1), int(rbox[3])),
+                      "name_box": rbox,
+                      "bottom": bottom})
     return cards
 
 
