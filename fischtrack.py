@@ -512,8 +512,11 @@ def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading],
             return None, 0.0
         if _track_unevenness(frame, x0, x1, y0, y1, s, slider) > GEO_TRACK_MAX_UNEVEN:
             return None, 0.0
+        # expect_top: on a light floor the box's end borders do not stand out
+        # (saved_logs/20261003_115038: a whole Duskwire reel went unread, 4s,
+        # because of this check alone -- fish, slider and track all passed).
         if find_progress(frame, y1 + dy - px(6, s), y1 + dy + px(PROG_ROWS + 6, s),
-                         scale=s) is None:
+                         scale=s, expect_top=y1 + dy) is None:
             return None, 0.0
     return TrackReading(x0, x1, y0, y1, slider[0], slider[1], marker, scale=s,
                         method=method, slider_rgb=slider_rgb), edge
@@ -756,34 +759,27 @@ def find_slider_geo(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int, s: fl
 # star effect crossed the bar and was taken for the fish. Every reel was lost or
 # barely won.
 #
-# What a single frame cannot know, a reel can: the scene behind the bar barely
-# changes while reeling. So the tracker learns the track's own colour, column by
-# column (from the columns the slider is not on), and the slider is the
-# slider-wide window that differs most from it -- with the slider's two edges as
-# extra evidence (rod VFX next to the slider raised the "differs" score of a
-# shifted window on Duskwire). The fish is the thin VERTICAL mark above, on and
-# below the track at one x, in the colour it had at reel start (the white star
-# lines are diagonal and white; the Crew Rod's fish is dark grey). Every reel
-# starts with the slider and fish centred, which gives the start state.
-#
-# On the user's 33 bar crops (Duskwire x2, Crew Rod x2) this read every
-# readable frame's slider to within ~5px and fish to ~1px, including the
-# translucent slider and the star VFX frames the old reader got wrong.
+# Live traces showed that learning the track from guessed slider positions
+# gradually learned the slider itself as background: Crew Rod's width shrank
+# from 174px to 69px and its reported position could be ~250px wrong. The tracker
+# now reads the slider's full-height rectangle independently each frame, using
+# its matching upper/lower rims outside the shorter track. It retains the start
+# width when effects obscure those rims; only a clearly bounded rectangle can
+# change it. The fish is the straight vertical mark above, on and below the
+# track, with both overhangs matching the colour learned at this reel's start.
+# Every reel starts with slider and fish centred, which gives the initial state.
 
-TRK_DIFF_OK = 40            # channel-sum distance: column still the learned track
-TRK_LEARN_FAST = 0.3        # background update where the column matches it
-TRK_LEARN_SLOW = 0.03       # ... and where it does not (VFX passing or a slow change)
-TRK_EDGE_WEIGHT = 0.5       # slider-edge evidence vs the "differs from track" score
-TRK_JUMP_RATIO = 1.5        # a far window must beat the near one by this to win
+TRK_RIM_MIN = 35           # paired horizontal edges, after vertical-colour mismatch
+TRK_RIM_COVERAGE = 0.50    # minimum slider fraction with visible top AND bottom rims
+TRK_RIM_WIDTH_COVERAGE = 0.82  # stronger evidence needed to change the learned width
+TRK_RIM_Y_PAD = 5          # end-edge row estimate may be a few pixels off
 TRK_MARKER_MIN = 30         # vertical-mark score (after the colour penalty)
 TRK_MARKER_RGB_PENALTY = 0.5
+TRK_MARKER_RGB_MAX = 80    # each overhang must match the learned fish (channel sum)
 TRK_MARKER_RGB_SAMPLES = 5  # fish readings (bar settled) its colour is learned from
 TRK_SLIDER_SPEED = 1.2      # track widths / s searched (recording: p99 0.54, i.e. 420px/s)
 TRK_FISH_SPEED = 0.8        # ... for the fish (recording: max 0.31, 244px/s)
-TRK_REBASE_DY = 3           # rows moved (px at scale 1) before the background is re-learned
 TRK_START_PAIR_FRAC = 0.2 # start width: widest symmetric step pair >= this x the best
-TRK_RELEARN_AFTER_S = 0.25 # track looked different this long (edges still there): re-learn
-TRK_RELEARN_EDGE = 30       # end-edge score needed to re-learn (no bar: ~5-17)
 TRK_WIDTH_WINDOW = 9       # recent edge-to-edge slider widths kept ...
 TRK_WIDTH_MIN_N = 3         # ... and needed before the width is corrected
 
@@ -803,8 +799,6 @@ class SkinTracker:
         self.t = now
         self.why = ""                   # why the last read() returned None
         self.edge = float(EDGE_MIN)     # end-edge score at the current rows
-        self._changed_since: Optional[float] = None
-        self.relearned = 0
         P = self._profile(frame, y_off)
         # The one-frame reading only has to cover the centre: it read Duskwire's
         # slider as just its dark half (centre ~30px off) at reel start.
@@ -815,9 +809,9 @@ class SkinTracker:
         else:
             a, b = r.slider_x0 - self.x0, r.slider_x1 - self.x0 + 1
         self.w = b - a
+        self.base_w = self.w  # boosts can shrink back here, never to an icon's width
         self.c = (a + b) / 2
         self.widths: list[int] = []
-        self._rebase(P, a, b)
         m = self._find_marker(frame, y_off, near=(a + b) / 2, reach=px(30, s),
                               use_rgb=False) if centred else None
         self.m = m if m is not None else (r.marker_x - self.x0
@@ -845,24 +839,6 @@ class SkinTracker:
         r0, r1 = self._rows(y_off)
         return np.median(frame[r0:r1, self.x0:self.x1 + 1].astype(np.int16), axis=0)
 
-    def _rebase(self, P: np.ndarray, a: int, b: int) -> None:
-        """Learn the track from P except under the slider (+ margin), which is
-        filled in from its neighbours until the slider moves off it."""
-        self.B = P.astype(np.float64).copy()
-        self.known = np.ones(self.W, bool)
-        mg = px(8, self.s)              # a start estimate 2px narrow left white
-        self.known[max(0, a - mg):b + mg] = False     # edge columns in the fill
-        self.base_y0 = self.y0
-        self._fill_unknown()
-
-    def _fill_unknown(self) -> None:
-        k = self.known
-        if k.all() or not k.any():
-            return
-        idx = np.arange(self.W)
-        for ch in range(3):
-            self.B[~k, ch] = np.interp(idx[~k], idx[k], self.B[k, ch])
-
     def _steps(self, P: np.ndarray, spread: int = 2, k: Optional[int] = None) -> np.ndarray:
         """Colour-step strength (mean of k columns either side) at each column
         boundary (0..W), max over +-spread."""
@@ -875,47 +851,6 @@ class SkinTracker:
         if not spread:
             return D
         return np.maximum.reduce([np.roll(D, i) for i in range(-spread, spread + 1)])
-
-    def _measure_width(self, P: np.ndarray, diff: np.ndarray, sa: int, sb: int) -> None:
-        """Measure the slider's real width: the run of columns that differ from
-        the track like the window's do, each end snapped to the strongest colour
-        step. The start estimate can be a few px off (Crew Rod: 170 vs 176), and
-        a progress boost widens the slider (recording: 252 -> ~357px). Adopted
-        as the median of recent measurements once it clearly differs. Only when
-        neither end is against the track's own."""
-        s, W = self.s, self.W
-        r, gap = px(4, s), px(4, s)
-        thr = 0.4 * float(np.median(diff[sa:sb]))
-        if thr < TRK_DIFF_OK / 2:
-            return
-        hi_w = int(SLIDER_MAX_WIDTH_FRAC * W)
-
-        def extend(x: int, step: int) -> int:
-            """Last slider-like column going `step`-wards from x; gaps up to
-            `gap` px are bridged (the fish's line inside is no end)."""
-            last = x
-            while 0 <= x + step < W and abs(x + step - last) <= gap + 1:
-                x += step
-                if diff[x] > thr:
-                    last = x
-            return last
-        # From the window's centre outwards, so it can shrink too (the boost
-        # wears off: 405 -> 339px over ~0.4s on the recording).
-        mid = (sa + sb) // 2
-        a = extend(mid, -1)
-        b = extend(mid, 1) + 1
-        if a <= r or b >= W - r or not (GEO_SLIDER_MIN_FRAC * W <= b - a <= hi_w):
-            return
-        D = self._steps(P, spread=0)
-        a = a - r + int(np.argmax(D[a - r:a + r + 1]))
-        b = b - r + int(np.argmax(D[b - r:b + r + 1]))
-        if min(D[a], D[b]) < GEO_EDGE_MIN:
-            return
-        self.widths = (self.widths + [b - a])[-TRK_WIDTH_WINDOW:]
-        if len(self.widths) >= TRK_WIDTH_MIN_N:
-            med = float(np.median(self.widths))
-            if abs(med - self.w) >= px(3, s):
-                self.w = int(round(med))
 
     def _centred_slider(self, P: np.ndarray) -> tuple[int, int]:
         """The slider at reel start: centred on the track, its half-width the one
@@ -948,6 +883,115 @@ class SkinTracker:
         px_ = np.vstack([above.reshape(-1, 3), below.reshape(-1, 3)])
         return np.median(px_, 0) if len(px_) else np.zeros(3)
 
+    def _find_slider(self, frame: np.ndarray, y_off: int, dt: float):
+        """Locate the rectangle by its paired horizontal rims and vertical ends.
+
+        The slider protrudes ~4px beyond the 31px track. Its upper/lower rims
+        match its middle columns (including gradient and translucent skins),
+        and differ from the scene just outside. The track itself stops sooner;
+        diagonal stars seldom satisfy both rims across a slider-sized window.
+        No pixels from a guessed slider position are learned as background.
+        Returns track-relative [a,b), client y0 and visible-rim coverage.
+        """
+        s, W = self.s, self.W
+        h = frame.shape[0]
+        nrows = self.y1 - self.y0 + 1
+        best = None
+        margin = max(px(5, s), 0.04 * self.w)
+        flank_n = px(12, s)
+        # This central band stays inside the track throughout the small rim-row
+        # search. Reuse its profile/texture instead of taking eleven medians.
+        r0, r1 = self._rows(y_off)
+        body = frame[r0:r1, self.x0:self.x1 + 1].astype(np.int16)
+        if not len(body):
+            return None
+        P = np.median(body, axis=0)
+        texture = np.median(np.abs(body - P).sum(2), axis=0)
+        body_steps = self._steps(P, spread=0)
+        pad = px(TRK_RIM_Y_PAD, s)
+        offsets = [0] + [dy for k in range(1, pad + 1) for dy in (-k, k)]
+        for dy in offsets:
+            y = self.y0 + dy - y_off
+            end = y + nrows - 1
+            if y - px(8, s) < 0 or end + px(10, s) > h:
+                continue
+
+            def med(a, b):
+                # At small UI scales the rim is just one pixel tall.
+                return np.median(frame[a:max(a + 1, b), self.x0:self.x1 + 1]
+                                 .astype(np.int16), axis=0)
+
+            top = med(y - px(3, s), y)
+            bottom = med(end + px(2, s), end + px(5, s))
+            above = med(y - px(8, s), y - px(5, s))
+            below = med(end + px(7, s), end + px(10, s))
+            contrast = np.minimum(np.abs(top - above).sum(1),
+                                  np.abs(bottom - below).sum(1))
+            mismatch = np.maximum(np.abs(top - P).sum(1),
+                                  np.abs(bottom - P).sum(1))
+            good = contrast - mismatch > TRK_RIM_MIN
+            # A translucent brown slider over reddish scenery can have weaker
+            # outer edges than its own tint across the track. Its body is still
+            # vertically flat, and agrees with both protruding rims; scenery
+            # through the shorter track does not have that full-height shape.
+            good |= (mismatch < 60) & (contrast > 10) & (texture < 5)
+            if good.sum() < GEO_SLIDER_MIN_FRAC * W * TRK_RIM_COVERAGE:
+                continue
+            E = np.maximum(body_steps,
+                           self._steps((top + bottom) / 2, spread=0))
+            vertical = np.minimum(self._steps(top), self._steps(bottom))
+            peaks = np.flatnonzero((E[1:-1] >= E[:-2]) & (E[1:-1] >= E[2:])
+                                   & (E[1:-1] >= GEO_EDGE_MIN)) + 1
+            # Gradients/overlaid icons move a step's peak a couple of pixels.
+            # Rim transitions add the physical ends even in those frames.
+            rims = np.flatnonzero(np.diff(good.astype(np.int8))) + 1
+            bounds = np.unique(np.r_[0, W, peaks, rims])
+            E = np.maximum.reduce([np.roll(E, k) for k in (-2, -1, 0, 1, 2)])
+            ii, jj = np.triu_indices(len(bounds), 1)
+            a, b = bounds[ii], bounds[jj]
+            width = b - a
+            plausible = ((width >= max(GEO_SLIDER_MIN_FRAC * W, 0.9 * self.base_w))
+                         & (width <= SLIDER_MAX_WIDTH_FRAC * W))
+            a, b, width = a[plausible], b[plausible], width[plausible]
+            if not len(a):
+                continue
+            cs = np.r_[0, np.cumsum(good)]
+            coverage = (cs[b] - cs[a]) / width
+            left = (cs[a] - cs[np.maximum(0, a - flank_n)]) / np.maximum(1, np.minimum(a, flank_n))
+            right = (cs[np.minimum(W, b + flank_n)] - cs[b]) / np.maximum(1, np.minimum(W - b, flank_n))
+            flank = np.maximum(left, right)
+            edge = np.minimum(np.where(a == 0, E[b], E[a]),
+                              np.where(b == W, E[a], E[b]))
+            close_width = np.abs(width - self.w) <= margin
+            # A boost may widen AND later shrink the bar. Permit that only when
+            # the whole rectangle is independently visible with clean flanks.
+            vertical_edge = np.minimum(np.where(a == 0, vertical[b], vertical[a]),
+                                       np.where(b == W, vertical[a], vertical[b]))
+            clear_of_fish = (np.abs(a - self.m) > px(10, s)) & (np.abs(b - self.m) > px(10, s))
+            new_width = ((coverage >= TRK_RIM_WIDTH_COVERAGE) & (flank <= 0.15)
+                         & (vertical_edge >= GEO_EDGE_MIN) & clear_of_fish
+                         & (a > 0) & (b < W))
+            valid = (coverage >= TRK_RIM_COVERAGE) & (edge >= GEO_EDGE_MIN) & (close_width | new_width)
+            valid &= (coverage >= 0.65) | (vertical_edge >= GEO_EDGE_MIN)
+            score = 100 * coverage - 60 * flank + 0.3 * np.minimum(40, edge)
+            score -= np.where(close_width, 0.8 * np.abs(width - self.w), 0.0)
+            # Continuity breaks ambiguous ties; a clearly visible rectangle can
+            # still recover anywhere after a dropout or a bad one-frame hint.
+            reach = px(40, s) + TRK_SLIDER_SPEED * W * dt
+            score -= np.minimum(12, np.maximum(0, np.abs((a + b) / 2 - self.c) - reach) / max(1, px(4, s)))
+            score -= 0.1 * abs(dy)
+            score = np.where(valid, score, -1e9)
+            i = int(np.argmax(score))
+            if score[i] < 55:
+                continue
+            result = (float(score[i]), int(a[i]), int(b[i]), y + y_off, float(coverage[i]))
+            if score[i] >= 100 and coverage[i] >= TRK_RIM_WIDTH_COVERAGE:
+                # Settled unobscured rows need no eleven-position rescan.
+                return result[1:]
+            if best is None or result[0] > best[0]:
+                best = result
+        return best[1:] if best is not None else None
+
     # -- per frame ----------------------------------------------------------------------
     def read(self, frame: np.ndarray, y_off: int = 0,
              now: Optional[float] = None) -> Optional[TrackReading]:
@@ -955,90 +999,26 @@ class SkinTracker:
         dt = 0.05 if now is None else max(0.0, now - self.t)
         y_before = self.y0
         self._follow_rows(frame, y_off)
-        P = self._profile(frame, y_off)
-        if self.y0 - self.base_y0 and abs(self.y0 - self.base_y0) >= px(TRK_REBASE_DY, s):
-            # The bar moved (its entrance slide): the scene behind it changed.
-            a = int(round(self.c - self.w / 2))
-            self._rebase(P, max(0, a), min(W, a + self.w))
-        diff = np.abs(P - self.B).sum(1)
-
-        # Slider: the w-wide window that differs most from the learned track,
-        # minus its stronger flank, plus the weaker of its two edge steps.
-        w = int(round(self.w))
-        cs = np.concatenate([[0.0], np.cumsum(diff)])
-        a = np.arange(0, W - w + 1)
-        inside = (cs[a + w] - cs[a]) / w
-        f = px(12, s)
-        lf = np.where(a >= f, (cs[a] - cs[np.maximum(0, a - f)]) / f, 0.0)
-        rf = np.where(a + w + f <= W, (cs[np.minimum(W, a + w + f)] - cs[a + w]) / f, 0.0)
-        Dm = self._steps(P)
-        el, er = Dm[a], Dm[a + w]
-        el = np.where(a == 0, er, el)           # pinned against an end: that end
-        er = np.where(a + w >= W, el, er)       # is the track's, not the slider's
-        score = inside - np.maximum(lf, rf) + TRK_EDGE_WEIGHT * np.minimum(el, er)
-        near = np.abs(a + w / 2 - self.c) <= px(40, s) + TRK_SLIDER_SPEED * W * dt
-        i_all = int(np.argmax(score))
-        i = int(np.argmax(np.where(near, score, -1e9))) if near.any() else i_all
-        if score[i_all] > TRK_JUMP_RATIO * max(score[i], 1.0):
-            i = i_all
-        if inside[i] < TRK_DIFF_OK:
-            self.why = f"no slider (best differs {inside[i]:.0f})"
+        slider = self._find_slider(frame, y_off, dt)
+        if slider is None:
+            self.why = "slider edges obscured"
             return None
-        sa, sb = int(a[i]), int(a[i]) + w
-
+        sa, sb, y0, coverage = slider
+        self.y1 += y0 - self.y0
+        self.y0 = y0
         mk = self._find_marker(frame, y_off, near=self.m,
                                reach=px(40, s) + TRK_FISH_SPEED * W * dt)
         if mk is None:
             self.why = "no fish"
             return None
-
-        # Still the bar: the track outside the slider and fish must look like
-        # the learned one (the bar fading out, or a catch message over it, does not).
-        out = np.ones(W, bool)
-        mg = px(6, s)
-        out[max(0, sa - mg):sb + mg] = False
-        out[max(0, int(mk) - mg):int(mk) + mg] = False
-        if out.sum() >= 0.15 * W and float(np.median(diff[out])) > TRK_DIFF_OK:
-            self.why = f"track changed (median {np.median(diff[out]):.0f})"
-            # A progress boost recolours the whole track (recording: the reel
-            # went unread from the boost on). If it STAYS changed while the
-            # track's end edges are still there, re-learn it, the slider placed
-            # by the one-frame reader near where it was. The bar gone (edges
-            # ~5-17) or a catch message over it never re-learns.
-            t_now = self.t + dt
-            if self._changed_since is None:
-                self._changed_since = t_now
-            elif t_now - self._changed_since >= TRK_RELEARN_AFTER_S \
-                    and self.edge >= TRK_RELEARN_EDGE:
-                # No width prior: the boost that recoloured the track also
-                # widened the slider (recording: 252 -> ~400px).
-                sg = find_slider_geo(frame, self.x0, self.x1, self.y0 - y_off,
-                                     self.y1 - y_off, s, marker_x=self.x0 + self.m,
-                                     expect_c=self.x0 + self.c)
-                a0 = int(round(self.c - self.w / 2))
-                b0 = a0 + self.w
-                if sg is not None:
-                    a0, b0 = sg[0] - self.x0, sg[1] - self.x0 + 1
-                self._rebase(P, max(0, a0), min(W, b0))
-                self.c, self.w = (a0 + b0) / 2, b0 - a0
-                self.widths = []
-                self._changed_since = None
-                self.relearned += 1
-                self.why += " -- re-learned the track"
-            return None
-        self._changed_since = None
+        # Only an independently visible rectangle can recalibrate width. Icons,
+        # shadows and VFX used to shrink it from 174px to 69px by being learned
+        # as track background. There is no background learning in this reader.
+        if coverage >= TRK_RIM_WIDTH_COVERAGE and sa > 0 and sb < W:
+            self.widths = (self.widths + [sb - sa])[-TRK_WIDTH_WINDOW:]
+            if len(self.widths) >= TRK_WIDTH_MIN_N:
+                self.w = int(round(float(np.median(self.widths))))
         self.why = ""
-
-        upd = out & self.known & (diff < TRK_DIFF_OK)
-        slow = out & self.known & (diff >= TRK_DIFF_OK)
-        new = out & ~self.known
-        self.B[upd] += TRK_LEARN_FAST * (P[upd] - self.B[upd])
-        self.B[slow] += TRK_LEARN_SLOW * (P[slow] - self.B[slow])
-        self.B[new] = P[new]
-        if new.any():
-            self.known |= new
-            self._fill_unknown()
-        self._measure_width(P, diff, sa, sb)
         if self.mrgb is None and self.y0 == y_before:
             self._mrgb_samples.append(self._marker_rgb(frame, y_off, mk))
             if len(self._mrgb_samples) >= TRK_MARKER_RGB_SAMPLES:
@@ -1098,14 +1078,34 @@ class SkinTracker:
             return None
         sc = np.minimum.reduce([cA, cB, np.maximum(cT1, cT2)])
         if use_rgb and self.mrgb is not None:
-            sc = sc - TRK_MARKER_RGB_PENALTY * np.abs((A + B) / 2 - self.mrgb).sum(1)
+            distance = np.maximum(np.abs(A - self.mrgb).sum(1),
+                                  np.abs(B - self.mrgb).sum(1))
+            # A bright diagonal star can have enough contrast to beat the grey
+            # capsule even after the old soft colour penalty. Both overhangs
+            # must actually match the fish colour learned at this reel's start.
+            sc = np.where(distance <= TRK_MARKER_RGB_MAX,
+                          np.maximum(0, sc - TRK_MARKER_RGB_PENALTY * distance), 0)
         k = max(1, px(3, s))
+        raw_score = sc
         sc = np.convolve(sc, np.ones(k) / k, mode="same")
         idx = np.arange(lo, hi)
         ok = np.abs(idx - near) <= reach
         i = int(np.argmax(np.where(ok, sc, -1e9)))
         if sc[i] < TRK_MARKER_MIN:
-            return None
+            if not use_rgb or self.mrgb is None:
+                return None
+            # A thin white effect can cover the capsule's centre but leave its
+            # two grey sides visible. Smoothing three columns diluted both
+            # narrow matches below threshold (104218, 7.10s). Require at least
+            # two independently colour-matched columns in one marker-width
+            # neighbourhood before using their unsmoothed evidence.
+            i = int(np.argmax(np.where(ok, raw_score, -1e9)))
+            lo_hit, hi_hit = max(0, i - px(12, s)), min(len(sc), i + px(12, s) + 1)
+            if raw_score[i] < TRK_MARKER_MIN or np.count_nonzero(
+                    (raw_score[lo_hit:hi_hit] >= 0.5 * raw_score[i])
+                    & ok[lo_hit:hi_hit]) < 2:
+                return None
+            sc = raw_score
         a, b = max(0, i - px(12, s)), min(len(sc), i + px(12, s) + 1)
         seg = sc[a:b]
         wts = np.where(seg >= 0.5 * sc[i], seg, 0.0)
@@ -1128,6 +1128,32 @@ PROG_HALF_W = 209.5             # centre to either end (750-1169 at 1920 wide)
 PROG_TOP_DY = 38                # top row - track.y1
 PROG_ROWS = 11
 PROG_BRIGHT_MIN = 150           # min channel of fill / border pixels
+
+
+class ProgressPolarity:
+    """Learn whether the left-to-right progress fill is bright or dark per reel.
+
+    Duskwire fills black over a pale empty area; counting bright pixels reports
+    remaining progress backwards. A partial box identifies its colours from
+    the two ends. Keep that choice when the box becomes completely full/empty.
+    """
+
+    def __init__(self):
+        self.bright_fill: Optional[bool] = None
+
+    def fill(self, bright: np.ndarray) -> Optional[float]:
+        if self.bright_fill is None:
+            n = max(1, min(5, bright.shape[1] // 40))
+            left, right = float(bright[:, :n].mean()), float(bright[:, -n:].mean())
+            if left >= 0.8 and right <= 0.2:
+                self.bright_fill = True
+            elif left <= 0.2 and right >= 0.8:
+                self.bright_fill = False
+            else:
+                # A uniform entrance frame does not reveal which colour fills.
+                return None
+        amount = float(np.median(bright.mean(1)))
+        return amount if self.bright_fill else 1.0 - amount
 
 
 def prog_top_dy(s: float = 1.0) -> int:
@@ -1158,15 +1184,58 @@ def _border_rows(frame: np.ndarray, y_lo: int, y_hi: int, s: float) -> np.ndarra
     return left & right
 
 
+PROG_NEAR_MIN_CONTRAST = 40     # box rows vs the rows just outside it (see _box_near)
+
+
+def _box_near(frame: np.ndarray, top0: int, s: float) -> Optional[tuple[int, int]]:
+    """(top, rows) of the progress box within a few px of where it must be, by
+    its INSIDE: rows that agree with each other and differ from the row just
+    above and just below. Fallback for bright scenes, where the end-border test
+    passes on every row. Live (saved_logs/20261003_115620, _115653: Fabulous
+    Rod, ~845px-wide window, pale grey background ~190) the box was never
+    found in a 12s reel. It was 3-4 rows tall there, not px(11, 0.44) = 5."""
+    h, w = frame.shape[:2]
+    p0, p1 = _prog_x(w, s)
+    c0, c1 = p0 + px(3, s), p1 - px(2, s)
+    if c0 < 0 or c1 > w or c1 - c0 < 10:
+        return None
+    rows_n, d = px(PROG_ROWS, s), px(3, s)
+    best, best_sc = None, PROG_NEAR_MIN_CONTRAST
+    for top in range(top0 - d, top0 + d + 1):
+        for n in range(max(2, min(rows_n - d, int(rows_n * 0.6))), rows_n + 2):
+            if top < 1 or top + n + 1 > h:
+                continue
+            box = frame[top:top + n, c0:c1].astype(np.int16)
+            inside = np.median(box, axis=0)
+            above = frame[top - 1, c0:c1].astype(np.int16)
+            below = frame[top + n, c0:c1].astype(np.int16)
+            contrast = min(np.abs(inside - above).sum(1).mean(),
+                           np.abs(inside - below).sum(1).mean())
+            spread = np.abs(box - inside).sum(2).mean(1).max()
+            sc = contrast - spread
+            if sc > best_sc:
+                best, best_sc = (top, n), sc
+    return best
+
+
 def find_progress(frame: np.ndarray, y_lo: Optional[int] = None,
                   y_hi: Optional[int] = None,
-                  scale: Optional[float] = None) -> Optional[tuple[float, int]]:
-    """(fill 0..1, top row) of the progress box, or None if it is not on screen.
+                  scale: Optional[float] = None,
+                  polarity: Optional[ProgressPolarity] = None,
+                  expect_top: Optional[int] = None) -> Optional[tuple[float, int]]:
+    """(amount 0..1, top row) of the progress box, or None if not readable.
+
+    Pass one ProgressPolarity per reel for actual completion in either skin.
+    It waits for a partial box to learn the colours. Without that state this
+    reports the legacy bright fraction, used by geometry/presence probes.
 
     The box is located by its two bright end borders -- a run of ~PROG_ROWS rows
     where both are bright -- so it does not need a track reading. That matters:
     it is what tells the bot the reel is still on when the bar itself is lost.
     `scale` defaults to current_scale().
+
+    `expect_top` (frame row where the box must start: known from the track or
+    the last sighting) enables _box_near when the border test finds nothing.
     """
     s = current_scale() if scale is None else scale
     h, w = frame.shape[:2]
@@ -1180,20 +1249,32 @@ def find_progress(frame: np.ndarray, y_lo: Optional[int] = None,
     if y_hi - y_lo < rows_n:
         return None
     rows = np.flatnonzero(_border_rows(frame, y_lo, y_hi, s))
-    if rows.size == 0:
-        return None
-    runs = _runs(np.isin(np.arange(y_hi - y_lo), rows), 1, min_len=rows_n - tol)
-    runs = [r for r in runs if r[1] - r[0] + 1 <= rows_n + tol]
-    if not runs:
-        return None
-    a, b = max(runs, key=lambda r: r[1] - r[0])
-    top = y_lo + a
+    runs = []
+    if rows.size:
+        runs = _runs(np.isin(np.arange(y_hi - y_lo), rows), 1, min_len=rows_n - tol)
+        runs = [r for r in runs if r[1] - r[0] + 1 <= rows_n + tol]
     p0, p1 = _prog_x(w, s)
     i0, i1 = px(3, s), px(2, s)
-    mid = frame[top + i0:top + b - a - i1, p0 + i0:p1 - i1]
+    if runs:
+        a, b = max(runs, key=lambda r: r[1] - r[0])
+        top = y_lo + a
+        mid = frame[top + i0:top + b - a - i1, p0 + i0:p1 - i1]
+    else:
+        near = _box_near(frame, expect_top, s) if expect_top is not None else None
+        if near is None:
+            return None
+        top, n = near
+        e = 1 if n >= 4 else 0          # skip blended edge rows if there are spare
+        mid = frame[top + e:top + n - e, p0 + i0:p1 - i1]
     if mid.size == 0:
         return None
-    fill = np.median((mid.min(2) >= PROG_BRIGHT_MIN).sum(1)) / (p1 - p0 - i0 - i1)
+    bright = mid.min(2) >= PROG_BRIGHT_MIN
+    if polarity is not None:
+        fill = polarity.fill(bright)
+        return (fill, top) if fill is not None else None
+    # Callers that only test the box's presence need no per-reel state. Preserve
+    # the legacy bright fraction for those calls; the driver supplies polarity.
+    fill = np.median(bright.sum(1)) / (p1 - p0 - i0 - i1)
     return float(min(1.0, fill)), top
 
 

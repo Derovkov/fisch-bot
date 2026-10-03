@@ -1,5 +1,8 @@
 # Local settings and run output
 fischbot_settings.json
+fischbot_profiles.json
+fischbot_profiles.tmp
+fischbot_general.json
 saved_logs/
 *.log
 tmp/
@@ -16,3 +19,6 @@ Thumbs.db
 .DS_Store
 .vscode/
 .idea/
+
+# Local screenshots used by tests (may show other players' names)
+dev_tests/fixtures/

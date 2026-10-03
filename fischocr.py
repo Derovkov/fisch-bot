@@ -63,6 +63,21 @@ def ocr_lines(rgb: np.ndarray, scale: float = 2.0) -> list[tuple[str, tuple[int,
     return out
 
 
+def ocr_words(rgb: np.ndarray, scale: float = 2.0) -> list[tuple[str, tuple[int, int, int, int]]]:
+    """Like ocr_lines, but one entry per WORD with its own box: for layouts
+    where a line spans several boxes (the hotbar's slot labels)."""
+    img = cv2.resize(rgb, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC) \
+        if scale != 1 else rgb
+    res = asyncio.run(_recognize(_bitmap(img)))
+    out = []
+    for line in res.lines:
+        for w in line.words:
+            r = w.bounding_rect
+            out.append((w.text, tuple(int(v / scale) for v in
+                                      (r.x, r.y, r.x + r.width, r.y + r.height))))
+    return out
+
+
 def _norm(s: str) -> str:
     return re.sub(r"[^a-z0-9']+", " ", s.lower()).strip()
 

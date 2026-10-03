@@ -1,0 +1,457 @@
+{
+ "source": "https://fischipedia.org/wiki/Totems",
+ "fetched": "2026-10-03",
+ "usage": "Interacting with a totem while having it equipped will cause the totem to be used, which also causes it to disappear permanently. Upon usage, the totem will either trigger a Weather Condition or a Localized Event. The player is not able to use totems to trigger Weather Conditions or Localized Events that are already active. E.g., the player is not able to use an Aurora Totem during Aurora Borealis. {{clr}}",
+ "totems": [
+  {
+   "name": "Sundial Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Sundial Totem.png",
+   "effect": "advances the daylight cycle",
+   "weather": null,
+   "cooldown": true,
+   "obtain": [
+    "Personal Aquarium",
+    "Sunken Chests",
+    "Daily Shop for {{C$|1,600}}",
+    "Sunstone Cave for {{C$|2,000}} (-1215)"
+   ],
+   "icon": "icons/totems/Sundial_Totem.png"
+  },
+  {
+   "name": "Clearcast Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Clearcast Totem.png",
+   "effect": "sets the weather to Clear",
+   "weather": "Clear",
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Moosewood for {{C$|1,000}} (701)"
+   ],
+   "icon": "icons/totems/Clearcast_Totem.png"
+  },
+  {
+   "name": "Tempest Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Tempest Totem.png",
+   "effect": "sets the weather to Rain",
+   "weather": "Rain",
+   "cooldown": false,
+   "obtain": [
+    "Sunken Chests",
+    "Personal Aquarium",
+    "Terrapin Cave for {{C$|2,000}} (20)"
+   ],
+   "icon": "icons/totems/Tempest_Totem.png"
+  },
+  {
+   "name": "Windset Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Windset Totem.png",
+   "effect": "sets the weather to Windy",
+   "weather": "Windy",
+   "cooldown": false,
+   "obtain": [
+    "Snowcap Cave for {{C$|2,000}} (2845)"
+   ],
+   "icon": "icons/totems/Windset_Totem.png"
+  },
+  {
+   "name": "Smokescreen Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Smokescreen Totem.png",
+   "effect": "sets the weather to Foggy",
+   "weather": "Foggy",
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Sunken Chests",
+    "Mushgrove Swamp for {{C$|2,000}} (2790)"
+   ],
+   "icon": "icons/totems/Smokescreen_Totem.png"
+  },
+  {
+   "name": "Eclipse Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Eclipse Totem.png",
+   "effect": "sets the weather to Eclipse",
+   "weather": "Eclipse",
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Sunken Chests",
+    "Ancient Isle for {{C$|200,000}} (5940)"
+   ],
+   "icon": "icons/totems/Eclipse_Totem.png"
+  },
+  {
+   "name": "Aurora Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Aurora Totem.png",
+   "effect": "sets the weather to Aurora Borealis",
+   "weather": "Aurora Borealis",
+   "cooldown": false,
+   "obtain": [
+    "Treasure Chests",
+    "Angler's Quests",
+    "Daily Shop for {{C$|400,000}}",
+    "Rare Goods Dealer for {{S$|500}}",
+    "75 Various Locations for {{C$|500,000}} (1 can be purchased per location.)",
+    "Ollie Otter",
+    "Scrap-Bot",
+    "Challenges"
+   ],
+   "icon": "icons/totems/Aurora_Totem.png"
+  },
+  {
+   "name": "Starfall Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Starfall Totem.png",
+   "effect": "sets the weather to Starfall",
+   "weather": "Starfall",
+   "cooldown": false,
+   "obtain": [
+    "Fallen Stars",
+    "Personal Aquarium",
+    "Codes",
+    "Angler's Quests",
+    "Totem Carver",
+    "Sunken Chests",
+    "Black Market for {{C$|250,000}}",
+    "Challenges"
+   ],
+   "icon": "icons/totems/Starfall_Totem.png"
+  },
+  {
+   "name": "Rainbow Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Rainbow Totem.png",
+   "effect": "sets the weather to Rainbow",
+   "weather": "Rainbow",
+   "cooldown": false,
+   "obtain": [
+    "Angler's Quests",
+    "Totem Carver",
+    "Treasure Hunting",
+    "Rare Goods Dealer for {{S$|1,000}}",
+    "Challenges",
+    "Kaito's Weekly Shop for {{C$|150000}}"
+   ],
+   "icon": "icons/totems/Rainbow_Totem.png"
+  },
+  {
+   "name": "Tropical Squall Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Tropical Squall Totem.png",
+   "effect": "sets the weather to Tropical Squall",
+   "weather": "Tropical Squall",
+   "cooldown": false,
+   "obtain": [
+    "Kaito's Weekly Shop for {{C$|800000}}",
+    "Lookout Suzu's Quest"
+   ],
+   "icon": "icons/totems/Tropical_Squall_Totem.png"
+  },
+  {
+   "name": "Raging Squall Totem",
+   "kind": "Weather Condition Totems",
+   "icon_file": "Raging Squall Totem.png",
+   "effect": "sets the weather to Raging Squall",
+   "weather": "Raging Squall",
+   "cooldown": false,
+   "obtain": [
+    "Pilgrim Sable's Quest"
+   ],
+   "icon": "icons/totems/Raging_Squall_Totem.png"
+  },
+  {
+   "name": "Meteor Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Meteor Totem.png",
+   "effect": "summons a Meteor",
+   "weather": null,
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Sunken Chests",
+    "Treasure Chests",
+    "Daily Shop for {{C$|15,000}}",
+    "Roslit Volcano for {{C$|75,000}} (-1945)",
+    "Maple Meadow for {{C$|75,000}} (-447)",
+    "Challenges"
+   ],
+   "icon": "icons/totems/Meteor_Totem.png"
+  },
+  {
+   "name": "Avalanche Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Avalanche Totem.png",
+   "effect": "starts an Avalanche",
+   "weather": "Avalanche",
+   "cooldown": false,
+   "obtain": [
+    "Northern Expedition for {{C$|150,000}} (19711)",
+    "Mined from Astral Crystals in Cryogenic Canal - Astral Cavern"
+   ],
+   "icon": "icons/totems/Avalanche_Totem.png"
+  },
+  {
+   "name": "Blizzard Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Blizzard Totem.png",
+   "effect": "starts a Blizzard",
+   "weather": "Blizzard",
+   "cooldown": false,
+   "obtain": [
+    "Northern Expedition for {{C$|150,000}} (20148)",
+    "Mined from Astral Crystals in Cryogenic Canal - Astral Cavern"
+   ],
+   "icon": "icons/totems/Blizzard_Totem.png"
+  },
+  {
+   "name": "Zeus Storm Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Zeus Storm Totem.png",
+   "effect": "starts a Zeus Storm",
+   "weather": "Zeus Storm",
+   "cooldown": false,
+   "obtain": [
+    "Zeus's Sanctuary for {{C$|150,000}} (-4325)"
+   ],
+   "icon": "icons/totems/Zeus_Storm_Totem.png"
+  },
+  {
+   "name": "Poseidon Wrath Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Poseidon Wrath Totem.png",
+   "effect": "starts a Poseidon Wrath",
+   "weather": "Poseidon Wrath",
+   "cooldown": false,
+   "obtain": [
+    "Poseidon Temple for {{C$|150,000}} (-3955)"
+   ],
+   "icon": "icons/totems/Poseidon_Wrath_Totem.png"
+  },
+  {
+   "name": "Blue Moon Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Blue Moon Totem.png",
+   "effect": "starts a Blue Moon",
+   "weather": "Blue Moon",
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Snowcap Island for {{C$|1200000}} (2717)",
+    "Challenges",
+    "Mined from Astral Crystals in Snowcap Island - Astral Cavern"
+   ],
+   "icon": "icons/totems/Blue_Moon_Totem.png"
+  },
+  {
+   "name": "Bloom Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Bloom Totem.png",
+   "effect": "resets all flowers in Living Garden and Verdant Pocket",
+   "weather": null,
+   "cooldown": false,
+   "obtain": [
+    "Mike's quest",
+    "Daisy's quest",
+    "Gardener's Exchanges (20% chance)"
+   ],
+   "icon": "icons/totems/Bloom_Totem.png"
+  },
+  {
+   "name": "Shiny Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Shiny Totem.png",
+   "effect": "starts a Shiny Surge",
+   "weather": "Shiny Surge",
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Codes",
+    "Totem Carver",
+    "Daily Shop for {{C$|250,000}}",
+    "Challenges",
+    "Ollie Otter"
+   ],
+   "icon": "icons/totems/Shiny_Totem.png"
+  },
+  {
+   "name": "Sparkling Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Sparkling Totem.png",
+   "effect": "starts a Day/Night of the Luminous",
+   "weather": "Day/Night of the Luminous",
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Codes",
+    "Totem Carver",
+    "Daily Shop for {{C$|250,000}}",
+    "Challenges"
+   ],
+   "icon": "icons/totems/Sparkling_Totem.png"
+  },
+  {
+   "name": "Mutation Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Mutation Totem.png",
+   "effect": "starts a Mutation Surge",
+   "weather": "Mutation Surge",
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Codes",
+    "Daily Shop for {{C$|200,000}}"
+   ],
+   "icon": "icons/totems/Mutation_Totem.png"
+  },
+  {
+   "name": "Dripstone Collapse Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Dripstone Collapse Totem.png",
+   "effect": "starts a Dripstone Collapse",
+   "weather": null,
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Codes",
+    "Tidefall for {{C$|7,500,000}} (3158)"
+   ],
+   "icon": "icons/totems/Dripstone_Collapse_Totem.png"
+  },
+  {
+   "name": "Megalodon Hunt Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Megalodon Hunt Totem.png",
+   "effect": "starts a Megalodon Hunt",
+   "weather": null,
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Codes",
+    "Totem Carver",
+    "Mysterious Songstress's Fifth Quest",
+    "Daily Shop for {{C$|80,000}}",
+    "Kaito's Weekly Shop for {{C$|80,000}}"
+   ],
+   "icon": "icons/totems/Megalodon_Hunt_Totem.png"
+  },
+  {
+   "name": "Kraken Hunt Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Kraken Hunt Totem.png",
+   "effect": "starts a Kraken Hunt",
+   "weather": null,
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Codes",
+    "Totem Carver",
+    "Daily Shop for {{C$|80,000}}",
+    "Kaito's Weekly Shop for {{C$|80,000}}"
+   ],
+   "icon": "icons/totems/Kraken_Hunt_Totem.png"
+  },
+  {
+   "name": "Colossal Dragon Hunt Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Colossal Dragon Hunt Totem.png",
+   "effect": "starts a Colossal Ethereal Dragon Hunt, Colossal Ancient Dragon Hunt, or Colossal Blue Dragon Hunt",
+   "weather": null,
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Codes",
+    "Daily Shop for {{C$|90,000}}",
+    "Kaito's Weekly Shop for {{C$|80,000}}"
+   ],
+   "icon": "icons/totems/Colossal_Dragon_Hunt_Totem.png"
+  },
+  {
+   "name": "Scylla Hunt Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Scylla Hunt Totem.png",
+   "effect": "starts a Scylla Hunt",
+   "weather": null,
+   "cooldown": false,
+   "obtain": [
+    "Personal Aquarium",
+    "Codes",
+    "Totem Carver",
+    "Daily Shop for {{C$|100,000}}",
+    "Kaito's Weekly Shop for {{C$|80,000}}"
+   ],
+   "icon": "icons/totems/Scylla_Hunt_Totem.png"
+  },
+  {
+   "name": "Cursed Storm Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Cursed Storm Totem.png",
+   "effect": "starts a Cursed Storm",
+   "weather": null,
+   "cooldown": false,
+   "obtain": [
+    "Rare Goods Dealer for {{S$|50}}",
+    "Daily Shop for {{C$|600,000}}"
+   ],
+   "icon": "icons/totems/Cursed_Storm_Totem.png"
+  },
+  {
+   "name": "Brine Storm Totem",
+   "kind": "Localized Events Totems",
+   "icon_file": "Brine Storm Totem.png",
+   "effect": "starts a Brine Storm",
+   "weather": null,
+   "cooldown": false,
+   "obtain": [
+    "Axel's Quest",
+    "Rare Goods Dealer for {{S$|750}}",
+    "Ollie Otter",
+    "Scrap-Bot"
+   ],
+   "icon": "icons/totems/Brine_Storm_Totem.png"
+  },
+  {
+   "name": "Frost Moon Totem",
+   "kind": "Limited/Unobtainable Totems",
+   "icon_file": "Frost Moon Totem.png",
+   "effect": "sets the weather to Frost Moon",
+   "weather": "Frost Moon",
+   "cooldown": false,
+   "obtain": [
+    "Glaciar Ridge for 5,000 (7043)"
+   ],
+   "icon": "icons/totems/Frost_Moon_Totem.png"
+  },
+  {
+   "name": "Frightful Pool Totem",
+   "kind": "Limited/Unobtainable Totems",
+   "icon_file": "Frightful Pool Totem.png",
+   "effect": "spawned a random Frightful Pool",
+   "weather": null,
+   "cooldown": false,
+   "obtain": [
+    "Flying Dutchman for 3,000",
+    "Black Market (Week 4-6) for {{C$|200,000,000}}"
+   ],
+   "icon": "icons/totems/Frightful_Pool_Totem.png"
+  },
+  {
+   "name": "Tropical Sun Totem",
+   "kind": "Limited/Unobtainable Totems",
+   "icon_file": "Tropical Sun Totem.png",
+   "effect": "sets the weather to Tropical Sun",
+   "weather": "Tropical Sun",
+   "cooldown": false,
+   "obtain": [
+    "Codes",
+    "Sunshell Merchant for 15,000"
+   ],
+   "icon": "icons/totems/Tropical_Sun_Totem.png"
+  }
+ ]
+}

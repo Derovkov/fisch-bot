@@ -18,6 +18,15 @@ EVERY TIME
   4. Dashboard: press Start. F9 stops it from any window.
 
 GOOD TO KNOW
+  * Dashboard > Quick switch: Save setup keeps a named rod/enchant/control
+    configuration. Use loads it while idle; Switch queues it after this cast.
+    F6 cycles saved setups for the current rod while Roblox stays in front.
+    Configurations do not equip rods in the game. Equip the matching rod yourself.
+    The cast limit applies to the total casts in the current run.
+  * Saved configurations are kept in fischbot_profiles.json. They contain
+    settings only; run data and screenshots still follow the cleanup setting.
+  * Reel activity shows the latest 24 reels. Expand its details for recent
+    catch confirmations, or hover individual reels.
   * Screen size: it was measured on a 1920-pixel-wide screen with Roblox
     maximised. Other window sizes are worked out on the first fish of each
     run (the log says "UI scale ... locked"). This is new and not yet

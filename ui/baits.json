@@ -1,0 +1,1536 @@
+{
+ "source": "https://fischipedia.org/wiki/Category:Bait",
+ "fetched": "2026-10-03",
+ "baits": [
+  {
+   "name": "Acidic Larva",
+   "page": "Acidic Larva",
+   "rarity": "Limited",
+   "preferred_luck": 330.0,
+   "universal_luck": 15.0,
+   "resilience": 25.0,
+   "lure_speed": 20.0,
+   "ability": "100% chance for Acidic",
+   "mutations": {
+    "Acidic": 100.0
+   },
+   "icon": "icons/baits/Acidic_Larva.png"
+  },
+  {
+   "name": "Ant",
+   "page": "Ant",
+   "rarity": "Trash",
+   "preferred_luck": 90.0,
+   "universal_luck": 5.0,
+   "resilience": -15.0,
+   "lure_speed": -10.0,
+   "ability": "+5% Progress Speed",
+   "mutations": {},
+   "icon": "icons/baits/Ant.png"
+  },
+  {
+   "name": "Astrolure",
+   "page": "Astrolure",
+   "rarity": "Limited",
+   "preferred_luck": 175.0,
+   "universal_luck": 60.0,
+   "resilience": 60.0,
+   "lure_speed": 90.0,
+   "ability": "100% chance for Galactic",
+   "mutations": {
+    "Galactic": 100.0
+   },
+   "icon": "icons/baits/Astrolure.png"
+  },
+  {
+   "name": "Aurora Bait",
+   "page": "Aurora Bait",
+   "rarity": "Mythical",
+   "preferred_luck": 100.0,
+   "universal_luck": 30.0,
+   "resilience": 10.0,
+   "lure_speed": -5.0,
+   "ability": "30% chance for Aurora",
+   "mutations": {
+    "Aurora": 30.0
+   },
+   "icon": "icons/baits/Aurora_Bait.png"
+  },
+  {
+   "name": "Bagel",
+   "page": "Bagel",
+   "rarity": "Common",
+   "preferred_luck": 75.0,
+   "universal_luck": null,
+   "resilience": 15.0,
+   "lure_speed": null,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Bagel.png"
+  },
+  {
+   "name": "Barnacle Cluster",
+   "page": "Barnacle Cluster",
+   "rarity": "Limited",
+   "preferred_luck": 172.0,
+   "universal_luck": 125.0,
+   "resilience": -25.0,
+   "lure_speed": 45.0,
+   "ability": "20% chance for Barnacle+15% Progress Speed",
+   "mutations": {
+    "Barnacle": 20.0
+   },
+   "icon": "icons/baits/Barnacle_Cluster.png"
+  },
+  {
+   "name": "Beach Ball",
+   "page": "Beach Ball (Bait)",
+   "rarity": "Limited",
+   "preferred_luck": 5.0,
+   "universal_luck": 5.0,
+   "resilience": null,
+   "lure_speed": 150.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Beach_Ball.png"
+  },
+  {
+   "name": "Beached Pearl",
+   "page": "Beached Pearl",
+   "rarity": "Limited",
+   "preferred_luck": 250.0,
+   "universal_luck": 300.0,
+   "resilience": 30.0,
+   "lure_speed": 95.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Beached_Pearl.png"
+  },
+  {
+   "name": "Beetle Grub",
+   "page": "Beetle Grub",
+   "rarity": "Uncommon",
+   "preferred_luck": 70.0,
+   "universal_luck": 15.0,
+   "resilience": 5.0,
+   "lure_speed": -5.0,
+   "ability": "3% chance per fish movement to stab for 2.5% progress",
+   "mutations": {},
+   "icon": "icons/baits/Beetle_Grub.png"
+  },
+  {
+   "name": "Berry Vine",
+   "page": "Berry Vine",
+   "rarity": "Limited",
+   "preferred_luck": 10.0,
+   "universal_luck": 20.0,
+   "resilience": null,
+   "lure_speed": 10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Berry_Vine.png"
+  },
+  {
+   "name": "Bio-Infused Coral",
+   "page": "Bio-Infused Coral",
+   "rarity": "Legendary",
+   "preferred_luck": 70.0,
+   "universal_luck": -15.0,
+   "resilience": 10.0,
+   "lure_speed": 50.0,
+   "ability": "10% chance for Bioluminescent +10% Progress Speed",
+   "mutations": {
+    "Bioluminescent": 10.0
+   },
+   "icon": "icons/baits/Bio-Infused_Coral.png"
+  },
+  {
+   "name": "Blackwater Leech",
+   "page": "Blackwater Leech",
+   "rarity": "Limited",
+   "preferred_luck": 233.0,
+   "universal_luck": 35.0,
+   "resilience": -5.0,
+   "lure_speed": 5.0,
+   "ability": "10% chance for Blackwater",
+   "mutations": {
+    "Blackwater": 10.0
+   },
+   "icon": "icons/baits/Blackwater_Leech.png"
+  },
+  {
+   "name": "Blue Ghost Firefly",
+   "page": "Blue Ghost Firefly",
+   "rarity": "Mythical",
+   "preferred_luck": 140.0,
+   "universal_luck": 110.0,
+   "resilience": 8.0,
+   "lure_speed": 35.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Blue_Ghost_Firefly.png"
+  },
+  {
+   "name": "Boulder",
+   "page": "Boulder (Bait)",
+   "rarity": "Special",
+   "preferred_luck": 10.0,
+   "universal_luck": -100.0,
+   "resilience": 200.0,
+   "lure_speed": -40.0,
+   "ability": "100% chance for Stone-5% Progress Speed",
+   "mutations": {
+    "Stone": 100.0
+   },
+   "icon": "icons/baits/Boulder.png"
+  },
+  {
+   "name": "Bread Crumbs",
+   "page": "Bread Crumbs",
+   "rarity": "Limited",
+   "preferred_luck": 12.0,
+   "universal_luck": 12.0,
+   "resilience": 8.0,
+   "lure_speed": 8.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Bread_Crumbs.png"
+  },
+  {
+   "name": "Cacti Pulp",
+   "page": "Cacti Pulp",
+   "rarity": "Legendary",
+   "preferred_luck": 95.0,
+   "universal_luck": 110.0,
+   "resilience": -5.0,
+   "lure_speed": 60.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Cacti_Pulp.png"
+  },
+  {
+   "name": "Candy Corn",
+   "page": "Candy Corn",
+   "rarity": "Limited",
+   "preferred_luck": 150.0,
+   "universal_luck": 90.0,
+   "resilience": -40.0,
+   "lure_speed": 80.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Candy_Corn.png"
+  },
+  {
+   "name": "Carrot Sticks",
+   "page": "Carrot Sticks",
+   "rarity": "Unusual",
+   "preferred_luck": 500.0,
+   "universal_luck": null,
+   "resilience": null,
+   "lure_speed": null,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Carrot_Sticks.png"
+  },
+  {
+   "name": "Centipede",
+   "page": "Centipede",
+   "rarity": "Legendary",
+   "preferred_luck": 200.0,
+   "universal_luck": 60.0,
+   "resilience": -10.0,
+   "lure_speed": 20.0,
+   "ability": "+100% XP from fish",
+   "mutations": {},
+   "icon": "icons/baits/Centipede.png"
+  },
+  {
+   "name": "Chitin Pellets",
+   "page": "Chitin Pellets",
+   "rarity": "Common",
+   "preferred_luck": 78.0,
+   "universal_luck": 35.0,
+   "resilience": 35.0,
+   "lure_speed": 5.0,
+   "ability": "+3 Power",
+   "mutations": {},
+   "icon": "icons/baits/Chitin_Pellets.png"
+  },
+  {
+   "name": "Chocolate Fish",
+   "page": "Chocolate Fish",
+   "rarity": "Limited",
+   "preferred_luck": 200.0,
+   "universal_luck": 150.0,
+   "resilience": 15.0,
+   "lure_speed": 20.0,
+   "ability": "100% chance for Chocolate",
+   "mutations": {
+    "Chocolate": 100.0
+   },
+   "icon": "icons/baits/Chocolate_Fish.png"
+  },
+  {
+   "name": "Clover Cluster",
+   "page": "Clover Cluster",
+   "rarity": "Limited",
+   "preferred_luck": 220.0,
+   "universal_luck": 170.0,
+   "resilience": 5.0,
+   "lure_speed": 25.0,
+   "ability": "50% chance for Lucky Gold",
+   "mutations": {
+    "Lucky Gold": 50.0
+   },
+   "icon": "icons/baits/Clover_Cluster.png"
+  },
+  {
+   "name": "Coal",
+   "page": "Coal",
+   "rarity": "Rare",
+   "preferred_luck": 95.0,
+   "universal_luck": null,
+   "resilience": -10.0,
+   "lure_speed": null,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Coal.png"
+  },
+  {
+   "name": "Colossal Ink Bait",
+   "page": "Colossal Ink Bait",
+   "rarity": "Limited",
+   "preferred_luck": 150.0,
+   "universal_luck": 150.0,
+   "resilience": 40.0,
+   "lure_speed": 5.0,
+   "ability": "+200% Fish Size.100% chance for Colossal Ink",
+   "mutations": {
+    "Colossal Ink": 200.0
+   },
+   "icon": "icons/baits/Colossal_Ink_Bait.png"
+  },
+  {
+   "name": "Cookie Crumble",
+   "page": "Cookie Crumble",
+   "rarity": "Limited",
+   "preferred_luck": 320.0,
+   "universal_luck": 190.0,
+   "resilience": 15.0,
+   "lure_speed": 35.0,
+   "ability": "10% chance for Merry",
+   "mutations": {
+    "Merry": 10.0
+   },
+   "icon": "icons/baits/Cookie_Crumble.png"
+  },
+  {
+   "name": "Coral",
+   "page": "Coral",
+   "rarity": "Unusual",
+   "preferred_luck": 100.0,
+   "universal_luck": null,
+   "resilience": 20.0,
+   "lure_speed": 20.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Coral.png"
+  },
+  {
+   "name": "Coral Pearl",
+   "page": "Coral Pearl",
+   "rarity": "Limited",
+   "preferred_luck": 55.0,
+   "universal_luck": 190.0,
+   "resilience": 20.0,
+   "lure_speed": 45.0,
+   "ability": "+10% Progress Speed",
+   "mutations": {},
+   "icon": "icons/baits/Coral_Pearl.png"
+  },
+  {
+   "name": "Corvid Algae",
+   "page": "Corvid Algae",
+   "rarity": "Limited",
+   "preferred_luck": 350.0,
+   "universal_luck": 350.0,
+   "resilience": 5.0,
+   "lure_speed": 20.0,
+   "ability": "+5% Progress Speed 100% chance for Corvid",
+   "mutations": {
+    "Corvid": 5.0
+   },
+   "icon": "icons/baits/Corvid_Algae.png"
+  },
+  {
+   "name": "Cotton Candy Pieces",
+   "page": "Cotton Candy Pieces",
+   "rarity": "Limited",
+   "preferred_luck": 55.0,
+   "universal_luck": 10.0,
+   "resilience": -5.0,
+   "lure_speed": 100.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Cotton_Candy_Pieces.png"
+  },
+  {
+   "name": "Cranberry Cluster",
+   "page": "Cranberry Cluster",
+   "rarity": "Limited",
+   "preferred_luck": 70.0,
+   "universal_luck": 90.0,
+   "resilience": -5.0,
+   "lure_speed": 60.0,
+   "ability": "20% chance for Gravy +25% Progress Speed",
+   "mutations": {
+    "Gravy": 20.0
+   },
+   "icon": "icons/baits/Cranberry_Cluster.png"
+  },
+  {
+   "name": "Crawlurion",
+   "page": "Crawlurion",
+   "rarity": "Limited",
+   "preferred_luck": 25.0,
+   "universal_luck": 30.0,
+   "resilience": 10.0,
+   "lure_speed": 10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Crawlurion.png"
+  },
+  {
+   "name": "Cricket",
+   "page": "Cricket",
+   "rarity": "Unusual",
+   "preferred_luck": 90.0,
+   "universal_luck": 25.0,
+   "resilience": null,
+   "lure_speed": 10.0,
+   "ability": "+50% XP from fish",
+   "mutations": {},
+   "icon": "icons/baits/Cricket.png"
+  },
+  {
+   "name": "Crustacean Mix",
+   "page": "Crustacean Mix",
+   "rarity": "Rare",
+   "preferred_luck": 90.0,
+   "universal_luck": 65.0,
+   "resilience": 5.0,
+   "lure_speed": 15.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Crustacean_Mix.png"
+  },
+  {
+   "name": "Crystal Bananas",
+   "page": "Crystal Bananas",
+   "rarity": "Rare",
+   "preferred_luck": 150.0,
+   "universal_luck": 90.0,
+   "resilience": 25.0,
+   "lure_speed": null,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Crystal_Bananas.png"
+  },
+  {
+   "name": "Cupcakes",
+   "page": "Cupcakes",
+   "rarity": "Limited",
+   "preferred_luck": 100.0,
+   "universal_luck": 40.0,
+   "resilience": 15.0,
+   "lure_speed": -5.0,
+   "ability": "10% chance for Birthday Candle",
+   "mutations": {
+    "Birthday Candle": 10.0
+   },
+   "icon": null
+  },
+  {
+   "name": "Deep Coral",
+   "page": "Deep Coral",
+   "rarity": "Legendary",
+   "preferred_luck": 150.0,
+   "universal_luck": -10.0,
+   "resilience": 50.0,
+   "lure_speed": null,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Deep_Coral.png"
+  },
+  {
+   "name": "Dragonfly",
+   "page": "Dragonfly",
+   "rarity": "Exotic",
+   "preferred_luck": 160.0,
+   "universal_luck": 50.0,
+   "resilience": -5.0,
+   "lure_speed": 25.0,
+   "ability": "+20% Progress Speed",
+   "mutations": {},
+   "icon": "icons/baits/Dragonfly.png"
+  },
+  {
+   "name": "Earthworm",
+   "page": "Earthworm",
+   "rarity": "Common",
+   "preferred_luck": 60.0,
+   "universal_luck": 10.0,
+   "resilience": 20.0,
+   "lure_speed": -15.0,
+   "ability": "100% chance for Dirty",
+   "mutations": {
+    "Dirty": 100.0
+   },
+   "icon": "icons/baits/Earthworm.png"
+  },
+  {
+   "name": "Ember Berries",
+   "page": "Ember Berries",
+   "rarity": "Unusual",
+   "preferred_luck": 120.0,
+   "universal_luck": 45.0,
+   "resilience": 15.0,
+   "lure_speed": 5.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Ember_Berries.png"
+  },
+  {
+   "name": "Firefly",
+   "page": "Firefly",
+   "rarity": "Common",
+   "preferred_luck": 80.0,
+   "universal_luck": 20.0,
+   "resilience": 5.0,
+   "lure_speed": 5.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Firefly.png"
+  },
+  {
+   "name": "Fischversation Hearts",
+   "page": "Fischversation Hearts",
+   "rarity": "Limited",
+   "preferred_luck": 200.0,
+   "universal_luck": 150.0,
+   "resilience": 15.0,
+   "lure_speed": 20.0,
+   "ability": "100% chance for Candy",
+   "mutations": {
+    "Candy": 100.0
+   },
+   "icon": "icons/baits/Fischversation_Hearts.png"
+  },
+  {
+   "name": "Fish Head",
+   "page": "Fish Head",
+   "rarity": "Legendary",
+   "preferred_luck": 150.0,
+   "universal_luck": null,
+   "resilience": -10.0,
+   "lure_speed": 10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Fish_Head.png"
+  },
+  {
+   "name": "Flakes",
+   "page": "Flakes",
+   "rarity": "Common",
+   "preferred_luck": 85.0,
+   "universal_luck": null,
+   "resilience": -3.0,
+   "lure_speed": 10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Flakes.png"
+  },
+  {
+   "name": "Frostnova Bait",
+   "page": "Frostnova Bait",
+   "rarity": "Limited",
+   "preferred_luck": 120.0,
+   "universal_luck": 150.0,
+   "resilience": 50.0,
+   "lure_speed": 35.0,
+   "ability": "30% chance for Frostnova +50% Progress Speed",
+   "mutations": {
+    "Frostnova": 30.0
+   },
+   "icon": "icons/baits/Frostnova_Bait.png"
+  },
+  {
+   "name": "Fruitcake Flakes",
+   "page": "Fruitcake Flakes",
+   "rarity": "Limited",
+   "preferred_luck": 135.0,
+   "universal_luck": 180.0,
+   "resilience": 50.0,
+   "lure_speed": 15.0,
+   "ability": "10% chance for Merry",
+   "mutations": {
+    "Merry": 10.0
+   },
+   "icon": "icons/baits/Fruitcake_Flakes.png"
+  },
+  {
+   "name": "Gale Grub",
+   "page": "Gale Grub",
+   "rarity": "Common",
+   "preferred_luck": 85.0,
+   "universal_luck": -10.0,
+   "resilience": -5.0,
+   "lure_speed": 30.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Gale_Grub.png"
+  },
+  {
+   "name": "Garbage",
+   "page": "Garbage",
+   "rarity": "Common",
+   "preferred_luck": null,
+   "universal_luck": -500.0,
+   "resilience": 50.0,
+   "lure_speed": -5.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Garbage.png"
+  },
+  {
+   "name": "Glass Beetle",
+   "page": "Glass Beetle",
+   "rarity": "Rare",
+   "preferred_luck": 125.0,
+   "universal_luck": -80.0,
+   "resilience": 30.0,
+   "lure_speed": 30.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Glass_Beetle.png"
+  },
+  {
+   "name": "Glowworm",
+   "page": "Glowworm",
+   "rarity": "Secret",
+   "preferred_luck": 300.0,
+   "universal_luck": 100.0,
+   "resilience": 5.0,
+   "lure_speed": 15.0,
+   "ability": "100% chance for Glowy +50% Progress Speed",
+   "mutations": {
+    "Glowy": 100.0
+   },
+   "icon": "icons/baits/Glowworm.png"
+  },
+  {
+   "name": "Gobstopper",
+   "page": "Gobstopper",
+   "rarity": "Limited",
+   "preferred_luck": 300.0,
+   "universal_luck": 150.0,
+   "resilience": 100.0,
+   "lure_speed": -50.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Gobstopper.png"
+  },
+  {
+   "name": "Golden Coin",
+   "page": "Golden Coin (Bait)",
+   "rarity": "Special",
+   "preferred_luck": 300.0,
+   "universal_luck": 300.0,
+   "resilience": null,
+   "lure_speed": null,
+   "ability": "100% chance for Radiant",
+   "mutations": {
+    "Radiant": 100.0
+   },
+   "icon": "icons/baits/Golden_Coin.png"
+  },
+  {
+   "name": "Golden Shrimp Bait",
+   "page": "Golden Shrimp Bait",
+   "rarity": "Secret",
+   "preferred_luck": 150.0,
+   "universal_luck": 150.0,
+   "resilience": 10.0,
+   "lure_speed": 15.0,
+   "ability": "100% chance for Golden",
+   "mutations": {
+    "Golden": 100.0
+   },
+   "icon": "icons/baits/Golden_Shrimp_Bait.png"
+  },
+  {
+   "name": "Golden Tentacle",
+   "page": "Golden Tentacle",
+   "rarity": "Special",
+   "preferred_luck": 150.0,
+   "universal_luck": 140.0,
+   "resilience": 20.0,
+   "lure_speed": 50.0,
+   "ability": "+20% Progress Speed",
+   "mutations": {},
+   "icon": "icons/baits/Golden_Tentacle.png"
+  },
+  {
+   "name": "Golden Worm",
+   "page": "Golden Worm",
+   "rarity": "Exotic",
+   "preferred_luck": 200.0,
+   "universal_luck": 100.0,
+   "resilience": 45.0,
+   "lure_speed": 20.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Golden_Worm.png"
+  },
+  {
+   "name": "Gombak Bent-Winged Firefly",
+   "page": "Gombak Bent-Winged Firefly",
+   "rarity": "Secret",
+   "preferred_luck": 180.0,
+   "universal_luck": 150.0,
+   "resilience": 10.0,
+   "lure_speed": 55.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Gombak_Bent-Winged_Firefly.png"
+  },
+  {
+   "name": "Gourd Bites",
+   "page": "Gourd Bites",
+   "rarity": "Limited",
+   "preferred_luck": 100.0,
+   "universal_luck": 80.0,
+   "resilience": 35.0,
+   "lure_speed": 10.0,
+   "ability": "20% chance for Gravy",
+   "mutations": {
+    "Gravy": 20.0
+   },
+   "icon": "icons/baits/Gourd_Bites.png"
+  },
+  {
+   "name": "Gummy Fish",
+   "page": "Gummy Fish",
+   "rarity": "Limited",
+   "preferred_luck": 130.0,
+   "universal_luck": 85.0,
+   "resilience": -5.0,
+   "lure_speed": 30.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Gummy_Fish.png"
+  },
+  {
+   "name": "Gurt Flakes",
+   "page": "Gurt Flakes",
+   "rarity": "Special",
+   "preferred_luck": 1000.0,
+   "universal_luck": 100.0,
+   "resilience": 50.0,
+   "lure_speed": 50.0,
+   "ability": "50% chance for Pink+10% Progress Speed",
+   "mutations": {
+    "Pink": 50.0
+   },
+   "icon": "icons/baits/Gurt_Flakes.png"
+  },
+  {
+   "name": "Hallow-Pop",
+   "page": "Hallow-Pop",
+   "rarity": "Limited",
+   "preferred_luck": 155.0,
+   "universal_luck": 65.0,
+   "resilience": 10.0,
+   "lure_speed": 30.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Hallow-Pop.png"
+  },
+  {
+   "name": "Hangman's Hook",
+   "page": "Hangman's Hook",
+   "rarity": "Mythical",
+   "preferred_luck": 150.0,
+   "universal_luck": 35.0,
+   "resilience": 20.0,
+   "lure_speed": -5.0,
+   "ability": "+45% Progress Speed",
+   "mutations": {},
+   "icon": "icons/baits/Hangman_s_Hook.png"
+  },
+  {
+   "name": "Holly Berry",
+   "page": "Holly Berry",
+   "rarity": "Limited",
+   "preferred_luck": 80.0,
+   "universal_luck": 30.0,
+   "resilience": 10.0,
+   "lure_speed": -5.0,
+   "ability": "20% chance for Jolly",
+   "mutations": {
+    "Jolly": 20.0
+   },
+   "icon": "icons/baits/Holly_Berry.png"
+  },
+  {
+   "name": "Hourglass Bait",
+   "page": "Hourglass Bait",
+   "rarity": "Limited",
+   "preferred_luck": 150.0,
+   "universal_luck": 150.0,
+   "resilience": 40.0,
+   "lure_speed": 5.0,
+   "ability": "+200% Fish Weight.+100% XP from fish.100% chance for Neon",
+   "mutations": {
+    "Neon": 200.0
+   },
+   "icon": "icons/baits/Hourglass_Bait.png"
+  },
+  {
+   "name": "Icy Fisch'n Dots",
+   "page": "Icy Fisch'n Dots",
+   "rarity": "Limited",
+   "preferred_luck": 75.0,
+   "universal_luck": -5.0,
+   "resilience": 50.0,
+   "lure_speed": 10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Icy_Fisch_n_Dots.png"
+  },
+  {
+   "name": "Insect",
+   "page": "Insect",
+   "rarity": "Common",
+   "preferred_luck": 75.0,
+   "universal_luck": null,
+   "resilience": null,
+   "lure_speed": 5.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Insect.png"
+  },
+  {
+   "name": "Instant Catcher",
+   "page": "Instant Catcher",
+   "rarity": "Legendary",
+   "preferred_luck": null,
+   "universal_luck": -20.0,
+   "resilience": -15.0,
+   "lure_speed": 65.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Instant_Catcher.png"
+  },
+  {
+   "name": "Kraken Tentacle",
+   "page": "Kraken Tentacle",
+   "rarity": "Exotic",
+   "preferred_luck": 100.0,
+   "universal_luck": 110.0,
+   "resilience": 15.0,
+   "lure_speed": 35.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Kraken_Tentacle.png"
+  },
+  {
+   "name": "Krill",
+   "page": "Krill",
+   "rarity": "Uncommon",
+   "preferred_luck": 90.0,
+   "universal_luck": 35.0,
+   "resilience": -5.0,
+   "lure_speed": 15.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Krill.png"
+  },
+  {
+   "name": "Lagoon Leech",
+   "page": "Lagoon Leech",
+   "rarity": "Rare",
+   "preferred_luck": 75.0,
+   "universal_luck": -10.0,
+   "resilience": 20.0,
+   "lure_speed": 15.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Lagoon_Leech.png"
+  },
+  {
+   "name": "Loopy Five Firefly",
+   "page": "Loopy Five Firefly",
+   "rarity": "Legendary",
+   "preferred_luck": 120.0,
+   "universal_luck": 80.0,
+   "resilience": 5.0,
+   "lure_speed": 40.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Loopy_Five_Firefly.png"
+  },
+  {
+   "name": "Lucky",
+   "page": "Lucky",
+   "rarity": "Limited",
+   "preferred_luck": 200.0,
+   "universal_luck": 150.0,
+   "resilience": 15.0,
+   "lure_speed": 20.0,
+   "ability": "50% chance to catch Blarney",
+   "mutations": {
+    "Blarney": 50.0
+   },
+   "icon": "icons/baits/Lucky.png"
+  },
+  {
+   "name": "Luminous Flakes",
+   "page": "Luminous Flakes",
+   "rarity": "Mythical",
+   "preferred_luck": 135.0,
+   "universal_luck": 60.0,
+   "resilience": -3.0,
+   "lure_speed": 40.0,
+   "ability": "+10 Power +5% Progress Speed",
+   "mutations": {},
+   "icon": "icons/baits/Luminous_Flakes.png"
+  },
+  {
+   "name": "Luminous Larva",
+   "page": "Luminous Larva",
+   "rarity": "Exotic",
+   "preferred_luck": 200.0,
+   "universal_luck": 125.0,
+   "resilience": 40.0,
+   "lure_speed": 10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Luminous_Larva.png"
+  },
+  {
+   "name": "Lushrooms",
+   "page": "Lushrooms",
+   "rarity": "Common",
+   "preferred_luck": 100.0,
+   "universal_luck": 20.0,
+   "resilience": 10.0,
+   "lure_speed": 10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Lushrooms.png"
+  },
+  {
+   "name": "Maggot",
+   "page": "Maggot",
+   "rarity": "Uncommon",
+   "preferred_luck": 80.0,
+   "universal_luck": 35.0,
+   "resilience": null,
+   "lure_speed": -10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Maggot.png"
+  },
+  {
+   "name": "Magnet",
+   "page": "Magnet",
+   "rarity": "Unusual",
+   "preferred_luck": 200.0,
+   "universal_luck": null,
+   "resilience": null,
+   "lure_speed": null,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Magnet.png"
+  },
+  {
+   "name": "Marshmallow Chicks",
+   "page": "Marshmallow Chicks",
+   "rarity": "Limited",
+   "preferred_luck": 320.0,
+   "universal_luck": 190.0,
+   "resilience": 5.0,
+   "lure_speed": 35.0,
+   "ability": "50% chance for Marshmallow+5% Progress Speed",
+   "mutations": {
+    "Marshmallow": 50.0
+   },
+   "icon": "icons/baits/Marshmallow_Chicks.png"
+  },
+  {
+   "name": "Meteor",
+   "page": "Meteor",
+   "rarity": "Limited",
+   "preferred_luck": 55.0,
+   "universal_luck": 65.0,
+   "resilience": 100.0,
+   "lure_speed": 10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Meteor.png"
+  },
+  {
+   "name": "Minnow",
+   "page": "Minnow (Bait)",
+   "rarity": "Unusual",
+   "preferred_luck": 115.0,
+   "universal_luck": null,
+   "resilience": -10.0,
+   "lure_speed": null,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Minnow.png"
+  },
+  {
+   "name": "Mist Worms",
+   "page": "Mist Worms",
+   "rarity": "Legendary",
+   "preferred_luck": 100.0,
+   "universal_luck": 80.0,
+   "resilience": 25.0,
+   "lure_speed": 20.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Mist_Worms.png"
+  },
+  {
+   "name": "Moonhaze",
+   "page": "Moonhaze",
+   "rarity": "Limited",
+   "preferred_luck": 225.0,
+   "universal_luck": 230.0,
+   "resilience": 5.0,
+   "lure_speed": 60.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Moonhaze.png"
+  },
+  {
+   "name": "Nectar",
+   "page": "Nectar",
+   "rarity": "Unusual",
+   "preferred_luck": 500.0,
+   "universal_luck": -100.0,
+   "resilience": null,
+   "lure_speed": 30.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Nectar.png"
+  },
+  {
+   "name": "Neuro Slug",
+   "page": "Neuro Slug",
+   "rarity": "Legendary",
+   "preferred_luck": 90.0,
+   "universal_luck": 100.0,
+   "resilience": 60.0,
+   "lure_speed": -20.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Neuro_Slug.png"
+  },
+  {
+   "name": "Night Shrimp",
+   "page": "Night Shrimp (Bait)",
+   "rarity": "Legendary",
+   "preferred_luck": 200.0,
+   "universal_luck": 90.0,
+   "resilience": null,
+   "lure_speed": 15.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Night_Shrimp.png"
+  },
+  {
+   "name": "Nightmare Larva",
+   "page": "Nightmare Larva",
+   "rarity": "Mythical",
+   "preferred_luck": 120.0,
+   "universal_luck": 35.0,
+   "resilience": 25.0,
+   "lure_speed": 25.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Nightmare_Larva.png"
+  },
+  {
+   "name": "Noctic Larva",
+   "page": "Noctic Larva",
+   "rarity": "Limited",
+   "preferred_luck": 300.0,
+   "universal_luck": 250.0,
+   "resilience": 35.0,
+   "lure_speed": 45.0,
+   "ability": "+15% Progress Speed 100% chance for Noctic",
+   "mutations": {
+    "Noctic": 15.0
+   },
+   "icon": "icons/baits/Noctic_Larva.png"
+  },
+  {
+   "name": "Nullbit",
+   "page": "Nullbit",
+   "rarity": "Limited",
+   "preferred_luck": 120.0,
+   "universal_luck": 120.0,
+   "resilience": -20.0,
+   "lure_speed": 60.0,
+   "ability": "100% chance for Nullified",
+   "mutations": {
+    "Nullified": 100.0
+   },
+   "icon": "icons/baits/Nullbit.png"
+  },
+  {
+   "name": "Obsidian-Bone",
+   "page": "Obsidian-Bone",
+   "rarity": "Exotic",
+   "preferred_luck": 250.0,
+   "universal_luck": 180.0,
+   "resilience": 55.0,
+   "lure_speed": -5.0,
+   "ability": "10% chance for Obsidian-2% Progress Speed",
+   "mutations": {
+    "Obsidian": 10.0
+   },
+   "icon": "icons/baits/Obsidian-Bone.png"
+  },
+  {
+   "name": "Part",
+   "page": "Part (Bait)",
+   "rarity": "Limited",
+   "preferred_luck": null,
+   "universal_luck": null,
+   "resilience": null,
+   "lure_speed": null,
+   "ability": "100% chance for Part",
+   "mutations": {
+    "Part": 100.0
+   },
+   "icon": "icons/baits/Part.png"
+  },
+  {
+   "name": "Peppermint Worm",
+   "page": "Peppermint Worm",
+   "rarity": "Limited",
+   "preferred_luck": 50.0,
+   "universal_luck": 30.0,
+   "resilience": 20.0,
+   "lure_speed": -5.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Peppermint_Worm.png"
+  },
+  {
+   "name": "Phantom Leech",
+   "page": "Phantom Leech",
+   "rarity": "Rare",
+   "preferred_luck": 105.0,
+   "universal_luck": 30.0,
+   "resilience": 25.0,
+   "lure_speed": 10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Phantom_Leech.png"
+  },
+  {
+   "name": "Phosphor Jelly",
+   "page": "Phosphor Jelly",
+   "rarity": "Exotic",
+   "preferred_luck": 295.0,
+   "universal_luck": 210.0,
+   "resilience": -20.0,
+   "lure_speed": -10.0,
+   "ability": "+5 Power -10% Progress Speed",
+   "mutations": {},
+   "icon": "icons/baits/Phosphor_Jelly.png"
+  },
+  {
+   "name": "Pumpkin Pieces",
+   "page": "Pumpkin Pieces",
+   "rarity": "Limited",
+   "preferred_luck": 120.0,
+   "universal_luck": 150.0,
+   "resilience": 50.0,
+   "lure_speed": 5.0,
+   "ability": "20% chance for Gravy +10% Progress Speed",
+   "mutations": {
+    "Gravy": 20.0
+   },
+   "icon": "icons/baits/Pumpkin_Pieces.png"
+  },
+  {
+   "name": "Rapid Catcher",
+   "page": "Rapid Catcher",
+   "rarity": "Rare",
+   "preferred_luck": null,
+   "universal_luck": null,
+   "resilience": -15.0,
+   "lure_speed": 35.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Rapid_Catcher.png"
+  },
+  {
+   "name": "Sapphire Krill",
+   "page": "Sapphire Krill",
+   "rarity": "Mythical",
+   "preferred_luck": 150.0,
+   "universal_luck": 125.0,
+   "resilience": 40.0,
+   "lure_speed": 5.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Sapphire_Krill.png"
+  },
+  {
+   "name": "Seaweed",
+   "page": "Seaweed (Bait)",
+   "rarity": "Unusual",
+   "preferred_luck": 95.0,
+   "universal_luck": null,
+   "resilience": 10.0,
+   "lure_speed": 20.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Seaweed.png"
+  },
+  {
+   "name": "Shady Larva",
+   "page": "Shady Larva",
+   "rarity": "Limited",
+   "preferred_luck": 350.0,
+   "universal_luck": 200.0,
+   "resilience": -20.0,
+   "lure_speed": 20.0,
+   "ability": "25% chance for Shady",
+   "mutations": {
+    "Shady": 25.0
+   },
+   "icon": "icons/baits/Shady_Larva.png"
+  },
+  {
+   "name": "Shark Head",
+   "page": "Shark Head",
+   "rarity": "Mythical",
+   "preferred_luck": 225.0,
+   "universal_luck": 30.0,
+   "resilience": 10.0,
+   "lure_speed": -5.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Shark_Head.png"
+  },
+  {
+   "name": "Shrimp",
+   "page": "Shrimp (Bait)",
+   "rarity": "Uncommon",
+   "preferred_luck": 95.0,
+   "universal_luck": 25.0,
+   "resilience": -5.0,
+   "lure_speed": null,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Shrimp.png"
+  },
+  {
+   "name": "Singularity",
+   "page": "Singularity (Bait)",
+   "rarity": "Special",
+   "preferred_luck": null,
+   "universal_luck": null,
+   "resilience": 150.0,
+   "lure_speed": -20.0,
+   "ability": "100% chance for Surreal",
+   "mutations": {
+    "Surreal": 100.0
+   },
+   "icon": "icons/baits/Singularity.png"
+  },
+  {
+   "name": "Small Pebbles",
+   "page": "Small Pebbles",
+   "rarity": "Limited",
+   "preferred_luck": 10.0,
+   "universal_luck": 20.0,
+   "resilience": 5.0,
+   "lure_speed": 5.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Small_Pebbles.png"
+  },
+  {
+   "name": "Snail",
+   "page": "Snail",
+   "rarity": "Rare",
+   "preferred_luck": 80.0,
+   "universal_luck": -30.0,
+   "resilience": 30.0,
+   "lure_speed": -20.0,
+   "ability": "+0.1 Control",
+   "mutations": {},
+   "icon": "icons/baits/Snail.png"
+  },
+  {
+   "name": "Snare",
+   "page": "Snare",
+   "rarity": "Secret",
+   "preferred_luck": 125.0,
+   "universal_luck": -10.0,
+   "resilience": -20.0,
+   "lure_speed": 80.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Snare.png"
+  },
+  {
+   "name": "Sour Gummy Worm",
+   "page": "Sour Gummy Worm",
+   "rarity": "Limited",
+   "preferred_luck": 195.0,
+   "universal_luck": 85.0,
+   "resilience": -20.0,
+   "lure_speed": 40.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Sour_Gummy_Worm.png"
+  },
+  {
+   "name": "Squid",
+   "page": "Squid (Bait)",
+   "rarity": "Unusual",
+   "preferred_luck": 105.0,
+   "universal_luck": 45.0,
+   "resilience": null,
+   "lure_speed": -25.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Squid.png"
+  },
+  {
+   "name": "Stag Beetle",
+   "page": "Stag Beetle",
+   "rarity": "Mythical",
+   "preferred_luck": 120.0,
+   "universal_luck": 35.0,
+   "resilience": -5.0,
+   "lure_speed": 35.0,
+   "ability": "10% chance per fish movement to slash for 2.5% progress",
+   "mutations": {},
+   "icon": "icons/baits/Stag_Beetle.png"
+  },
+  {
+   "name": "Star",
+   "page": "Star (Bait)",
+   "rarity": "Special",
+   "preferred_luck": 120.0,
+   "universal_luck": 120.0,
+   "resilience": -10.0,
+   "lure_speed": 80.0,
+   "ability": "100% chance for Galaxy",
+   "mutations": {
+    "Galaxy": 100.0
+   },
+   "icon": "icons/baits/Star.png"
+  },
+  {
+   "name": "Starlight Worm",
+   "page": "Starlight Worm",
+   "rarity": "Secret",
+   "preferred_luck": 300.0,
+   "universal_luck": 100.0,
+   "resilience": 15.0,
+   "lure_speed": 30.0,
+   "ability": "30% chance for Nova +20% Progress Speed",
+   "mutations": {
+    "Nova": 30.0
+   },
+   "icon": "icons/baits/Starlight_Worm.png"
+  },
+  {
+   "name": "Stud Bait",
+   "page": "Stud Bait",
+   "rarity": "Limited",
+   "preferred_luck": 150.0,
+   "universal_luck": 40.0,
+   "resilience": 20.0,
+   "lure_speed": 50.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Stud_Bait.png"
+  },
+  {
+   "name": "Super Flakes",
+   "page": "Super Flakes",
+   "rarity": "Rare",
+   "preferred_luck": 200.0,
+   "universal_luck": 70.0,
+   "resilience": -15.0,
+   "lure_speed": null,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Super_Flakes.png"
+  },
+  {
+   "name": "Taco",
+   "page": "Taco (Bait)",
+   "rarity": "Special",
+   "preferred_luck": 100.0,
+   "universal_luck": 100.0,
+   "resilience": -20.0,
+   "lure_speed": 100.0,
+   "ability": "100% chance for Spicy+100% XP from all fish",
+   "mutations": {
+    "Spicy": 100.0
+   },
+   "icon": "icons/baits/Taco.png"
+  },
+  {
+   "name": "Thorn Cluster",
+   "page": "Thorn Cluster",
+   "rarity": "Limited",
+   "preferred_luck": 350.0,
+   "universal_luck": 70.0,
+   "resilience": 65.0,
+   "lure_speed": 15.0,
+   "ability": "+5% Progress Speed",
+   "mutations": {},
+   "icon": "icons/baits/Thorn_Cluster.png"
+  },
+  {
+   "name": "Toxic Jelly Core",
+   "page": "Toxic Jelly Core",
+   "rarity": "Legendary",
+   "preferred_luck": 180.0,
+   "universal_luck": 90.0,
+   "resilience": 35.0,
+   "lure_speed": -5.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Toxic_Jelly_Core.png"
+  },
+  {
+   "name": "Trench Grubs",
+   "page": "Trench Grubs",
+   "rarity": "Uncommon",
+   "preferred_luck": 50.0,
+   "universal_luck": 10.0,
+   "resilience": 5.0,
+   "lure_speed": 10.0,
+   "ability": "10% chance for Entrenched +5 Power",
+   "mutations": {
+    "Entrenched": 10.0
+   },
+   "icon": "icons/baits/Trench_Grubs.png"
+  },
+  {
+   "name": "Tropical Fruit Mix",
+   "page": "Tropical Fruit Mix",
+   "rarity": "Limited",
+   "preferred_luck": 85.0,
+   "universal_luck": 50.0,
+   "resilience": 15.0,
+   "lure_speed": 50.0,
+   "ability": "+5% Progress Speed",
+   "mutations": {},
+   "icon": "icons/baits/Tropical_Fruit_Mix.png"
+  },
+  {
+   "name": "Truffle Worm",
+   "page": "Truffle Worm",
+   "rarity": "Legendary",
+   "preferred_luck": 300.0,
+   "universal_luck": null,
+   "resilience": null,
+   "lure_speed": -10.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Truffle_Worm.png"
+  },
+  {
+   "name": "Tryhard Worm",
+   "page": "Tryhard Worm",
+   "rarity": "Special",
+   "preferred_luck": 5000.0,
+   "universal_luck": null,
+   "resilience": 65.0,
+   "lure_speed": 45.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Tryhard_Worm.png"
+  },
+  {
+   "name": "UFO",
+   "page": "UFO (Bait)",
+   "rarity": "Special",
+   "preferred_luck": 110.0,
+   "universal_luck": 177.0,
+   "resilience": 70.0,
+   "lure_speed": 77.0,
+   "ability": "100% chance for Alien",
+   "mutations": {
+    "Alien": 100.0
+   },
+   "icon": "icons/baits/UFO.png"
+  },
+  {
+   "name": "Umbrella",
+   "page": "Umbrella",
+   "rarity": "Limited",
+   "preferred_luck": 125.0,
+   "universal_luck": 50.0,
+   "resilience": 30.0,
+   "lure_speed": 50.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Umbrella.png"
+  },
+  {
+   "name": "Weird Algae",
+   "page": "Weird Algae",
+   "rarity": "Legendary",
+   "preferred_luck": 200.0,
+   "universal_luck": 200.0,
+   "resilience": null,
+   "lure_speed": -35.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Weird_Algae.png"
+  },
+  {
+   "name": "Whale Bait",
+   "page": "Whale Bait",
+   "rarity": "Legendary",
+   "preferred_luck": 180.0,
+   "universal_luck": 20.0,
+   "resilience": 30.0,
+   "lure_speed": -5.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Whale_Bait.png"
+  },
+  {
+   "name": "Worm",
+   "page": "Worm",
+   "rarity": "Common",
+   "preferred_luck": 75.0,
+   "universal_luck": null,
+   "resilience": null,
+   "lure_speed": 15.0,
+   "ability": null,
+   "mutations": {},
+   "icon": "icons/baits/Worm.png"
+  }
+ ]
+}

@@ -69,14 +69,15 @@ from typing import Callable
 
 import fischmeasure
 from fischcalib import GeometryLearner, precheck
+from fischcatch import CatchNotice, CatchWatch
 from fischcontrol import ControlConfig, ReelController
 from fischrods import (DEFAULT_ROD, ENCHANTS, RodContext, RodProfile, get_rod,
                        reel_enchants)
 from fischsession import Session
 from fischtrack import (EDGE_MIN, GEO_ROWS, HINT_Y_PAD, PROG_ROWS, TRACK_PROBE,
-                        SkinTracker, TrackReading, current_scale, edge_scores,
-                        find_progress, lock_scale, locked_scale, px, read_track,
-                        scales, set_client, track_x)
+                        ProgressPolarity, SkinTracker, TrackReading, current_scale, edge_scores,
+                        find_progress, lock_scale, locked_scale, prog_top_dy, px,
+                        read_track, scales, set_client, track_x)
 
 user32 = ctypes.windll.user32
 user32.SetProcessDPIAware()
@@ -298,6 +299,13 @@ class FischBot:
         # Live numbers for the UI (read from another thread; plain values only).
         self.live = {"in_reel": False, "fill": None, "inside": None, "elapsed": 0.0}
         self.reel_history: list[dict] = []
+        self.mutations: dict[str, int] = {}     # this run's caught mutations
+        # Quest tracker (fischquest.py): read at the start and after every cast.
+        self.track_quests = True
+        self.owned_rods: list[str] = []         # for the quest plan (Rods page)
+        self.quests: list = []
+        self.quest_view: Optional[dict] = None   # for the UI's Quests tab
+        self._quest_state: Optional[dict] = None
         self.learner = GeometryLearner(self.log)
         self.start_confirm = START_CONFIRM
         self.cfg = cfg
@@ -316,6 +324,22 @@ class FischBot:
         self.reel_logs: list[str] = []
         self.pending_hint: Optional[TrackReading] = None
         self.last_prog_top: Optional[int] = None    # progress box row, client coords
+        self.progress_polarity = ProgressPolarity()
+        self.catch_watch = CatchWatch(self.rod.name)
+        self._catch_warned = False
+        self.on_cycle_boundary: Optional[Callable[[], None]] = None
+        # Useables tab (fischuse.Useables): set by the UI before run()
+        self.useables = None
+        # The rod in the player's hands, as far as this run knows: the one picked
+        # for Start, then whatever equip_rod takes out of the hotbar.
+        self._held_rod = self.rod.name
+        # Everything log() says also goes to the session folder (kept with the
+        # other logs when Keep logs is on): the switch / equip messages were
+        # only on screen, so a failed switch could not be looked at afterwards.
+        try:
+            self._log_file = self.session.path("bot.log").open("a", encoding="utf-8")
+        except (OSError, AttributeError):
+            self._log_file = None
         self.trace_file = None
         self._trace_t0 = self._trace_last = time.perf_counter()
         self._slider_widths: list[int] = []     # this reel's slider widths (px)
@@ -328,6 +352,10 @@ class FischBot:
 
     def log(self, msg: str) -> None:
         line = f"[{datetime.now():%H:%M:%S}] {msg}"
+        f = getattr(self, "_log_file", None)
+        if f is not None and not f.closed:
+            f.write(line + "\n")
+            f.flush()
         if self.on_log is not None:
             self.on_log(line)
         else:
@@ -339,7 +367,11 @@ class FischBot:
         self.mouse.release()
 
     # -- phases ---------------------------------------------------------------------
-    def cast(self) -> None:
+    def cast(self) -> bool:
+        # Catch VFX can look like a reel. Let the old caption clear before the
+        # next attempt; a fresh notification then belongs to this fish only.
+        if not self._wait_catch_clear():
+            return False
         # Never cast into a running minigame. Live (2026-10-02) a reel was declared
         # over while it was still on screen, and the next cast's 0.65s hold plus
         # the shake clicks threw the slider off the fish.
@@ -350,9 +382,123 @@ class FischBot:
                 self.log("minigame still on screen -- waiting before casting")
                 waited = True
             time.sleep(0.1)
+        if not self.running:
+            return False
+        self.catch_watch.begin_attempt()
         self.state = "casting"
         self.log(f"cast (hold {self.cfg.cast_hold_s:.2f}s)")
         self.mouse.hold(self.cfg.cast_hold_s)
+        return True
+
+    def _sample_catch(self, now: float, image=None, y_off: int = 0) -> None:
+        """Centre/lower notification region only, kept in RAM on the OCR worker.
+
+        The saved recording's catch text is near 78% of client height. Use a
+        generous band for the two-line passive and different window sizes.
+        Reuse a full existing frame, otherwise grab rows at most four times/s.
+        """
+        if not self.catch_watch.ready(now):
+            return
+        w, h = self.rect.width, self.rect.height
+        ya, yb = int(h * .5), int(h * .91)
+        if image is None or y_off > ya or y_off + image.shape[0] < yb:
+            if hasattr(self.grabber, "grab_rows"):
+                image = self.grabber.grab_rows(ya, yb)
+                y_off = ya
+            elif image is None:
+                image = self.grabber.grab()
+                y_off = 0
+        lo, hi = max(0, ya - y_off), min(image.shape[0], yb - y_off)
+        self.catch_watch.sample(image[lo:hi, int(w * .15):int(w * .85)], now)
+
+    def _poll_catch(self, now: float, active_since=None) -> Optional[CatchNotice]:
+        notice = self.catch_watch.poll(now, active_since)
+        if self.catch_watch.error and not self._catch_warned:
+            self._catch_warned = True
+            self.log("catch-text reader unavailable -- using progress for this run "
+                     f"({self.catch_watch.error})")
+        return notice
+
+    def _wait_catch_clear(self) -> bool:
+        self.mouse.release()
+        deadline = time.perf_counter() + 8
+        waited = False
+        while self.running and time.perf_counter() < deadline:
+            if not self.focus.ready():
+                return False
+            now = time.perf_counter()
+            self._poll_catch(now)
+            if self.catch_watch.error or self.catch_watch.clear_ready:
+                return True
+            if not waited and now > deadline - 7:
+                self.log("waiting for the previous catch notification to clear")
+                waited = True
+            self._sample_catch(now)
+            time.sleep(.02)
+        return False
+
+    def _check_catch_after_reel(self, first_seen: float) -> Optional[CatchNotice]:
+        # Allow a delayed caption / in-flight OCR result to confirm the catch.
+        # Input stays released throughout; the regular reel loop never waits.
+        deadline = time.perf_counter() + 1.2
+        while self.running and time.perf_counter() < deadline:
+            if not self.focus.ready():
+                return None
+            now = time.perf_counter()
+            notice = self._poll_catch(now, first_seen)
+            if notice is not None or self.catch_watch.error:
+                return notice
+            self._sample_catch(now)
+            time.sleep(.02)
+        return self._poll_catch(time.perf_counter(), first_seen)
+
+    def _finish_reel(self, first_seen: float, last_seen: float,
+                     trend: ProgressTrend, notice: Optional[CatchNotice] = None) -> bool:
+        self.ctl.step(None, now=time.perf_counter())
+        self.mouse.release()
+        s = self.ctl.stats
+        span = max(0, last_seen - first_seen)
+        caught = (True if notice is not None else
+                  trend.peak >= CAUGHT_PEAK if trend.last_fill is not None else
+                  s.inside_frac > .5 if s.frames else False)
+        source = (notice.source if notice is not None else
+                  "progress" if trend.last_fill is not None else "tracking estimate")
+        rate = f" | {s.frames / span:.0f} readings/s" if span > 0 else ""
+        fill = (f" | progress peak {trend.peak:.0%}, last {trend.last_fill:.0%}"
+                if trend.last_fill is not None else "")
+        result = f" | {'CAUGHT' if caught else 'ESCAPED?'} ({source})"
+        self.log("minigame ended (catch confirmed)" if notice is not None else
+                 "minigame ended (bar and progress box gone)")
+        # Perfect catch (Fisch): the fish never left the bar. The game's progress
+        # box says so -- it fills only while the fish is inside, so no sample
+        # of it falling. None when the box was not read.
+        perfect = (bool(caught) and s.game_in == s.game_n) if s.game_n else None
+        what = ""
+        if notice is not None and notice.fish:
+            what = " ".join([*notice.attributes, notice.mutation or "", notice.fish]).split()
+            what = " | " + " ".join(what) + (f" {notice.kg:g}kg" if notice.kg else "")
+            if notice.mutation:
+                self.mutations[notice.mutation] = self.mutations.get(notice.mutation, 0) + 1
+        self.reel_logs.append(s.summary() + rate + fill + result + what
+                              + (" | PERFECT" if perfect else ""))
+        self.log(self.reel_logs[-1])
+        self.reel_history.append({
+            "caught": bool(caught), "confirmation": source,
+            "peak": round(trend.peak, 3),
+            "filling": round(s.game_in / s.game_n, 3) if s.game_n else None,
+            "duration": round(span, 1),
+            "readings": round(s.frames / span) if span > 0 else 0,
+            "input_changes": s.input_changes,
+            "perfect": perfect,
+            "fish": notice.fish if notice is not None else None,
+            "mutation": notice.mutation if notice is not None else None,
+            "attributes": list(notice.attributes) if notice is not None else [],
+            "kg": notice.kg if notice is not None else None,
+        })
+        self.live = {"in_reel": False, "fill": None, "inside": None, "elapsed": 0.0}
+        self.last_prog_top = None
+        self.catch_watch.end_attempt()
+        return bool(caught)
 
     def _trace(self, tag: str, frame: np.ndarray, y_off: int,
                r: Optional[TrackReading], note: str = "") -> None:
@@ -383,16 +529,21 @@ class FischBot:
         p = None
         if self.last_prog_top is not None:
             lo, hi = self._prog_window(self.last_prog_top, s)
-            p = find_progress(frame, lo - y_off, hi - y_off, scale=s)
+            p = find_progress(frame, lo - y_off, hi - y_off, scale=s,
+                              polarity=self.progress_polarity,
+                              expect_top=self.last_prog_top - y_off)
         if p is None:
-            p = find_progress(frame, y0 + px(20, s), y0 + px(100, s), scale=s)
+            p = find_progress(frame, y0 + px(20, s), y0 + px(100, s), scale=s,
+                              polarity=self.progress_polarity,
+                              expect_top=y0 + px(GEO_ROWS, s) - 1 + prog_top_dy(s))
         prog = f"prog={p[0]:.3f}@{p[1] + y_off}" if p else "prog=none"
+        style = {True: "bright", False: "dark", None: "unknown"}[self.progress_polarity.bright_fill]
         crop = self._trace_crop(frame, y0, s, now, readable=r is not None,
                                 bar_seen=score >= EDGE_MIN or p is not None)
         self.trace_file.write(
             f"t={now - self._trace_t0:7.2f} {tag} scale={s:.2f} "
             f"rows={y0 + y_off}-{y0 + y_off + px(GEO_ROWS, s) - 1} "
-            f"edge={score:5.0f} {geo} {prog} held={self.mouse.down} "
+            f"edge={score:5.0f} {geo} {prog} prog_style={style} held={self.mouse.down} "
             + (f"why=\"{note}\" " if note else "")
             + (f"img={crop} " if crop else "")
             + f"{fischmeasure.sample(frame, y0, s)}\n")
@@ -482,8 +633,9 @@ class FischBot:
         cfg.end_gap_s. Shorter dropouts (a VFX flash over the marker) keep the
         current input.
 
-        The return value is a proxy: whether the fish was inside the slider for
-        most of the reel. The bar alone does not say caught vs escaped.
+        Fresh catch text confirms success, even if the passive leaves bar-like
+        effects on screen. Otherwise use the progress peak, or the existing
+        inside-fraction estimate if progress could not be read.
         """
         self.log("reeling: waiting for the bar")
         t0 = time.perf_counter()
@@ -496,6 +648,7 @@ class FischBot:
         first_seen = last_seen = last_prog = 0.0
         frames = 0
         trend = ProgressTrend()
+        self.progress_polarity = ProgressPolarity()
         falling_inside_since: Optional[float] = None
         reacquires = 0
         rod_active = False
@@ -513,14 +666,21 @@ class FischBot:
                 self.log(f"no bar within {self.cfg.bite_timeout_s:.0f}s -- "
                          "cast probably failed or fish was lost; recasting")
                 self.mouse.release()
+                self.catch_watch.end_attempt()
                 return False
             if not self.focus.ready():
                 self.mouse.release()
                 self.log("focus lost mid-reel -- fish almost certainly lost")
+                self.catch_watch.end_attempt()
                 return False
 
             self.state = "reeling" if in_phase else "waiting for a bite"
             r, now, img, y_off = self._grab_and_read(hint, tracker)
+            notice = self._poll_catch(now, first_seen if in_phase else None)
+            if in_phase:
+                if notice is not None:
+                    return self._finish_reel(first_seen, last_seen, trend, notice)
+                self._sample_catch(now, img, y_off)
             if tracker is not None:
                 if r is not None:
                     tracker_ok = now
@@ -529,6 +689,7 @@ class FischBot:
                              f"({tracker.why or 'no reading'}) -- re-finding it")
                     tracker = None
                     hint = None
+                    self.ctl.reset_motion()
             self._trace("reel" if in_phase else "wait", img, y_off, r,
                         tracker.why if tracker is not None and r is None else "")
 
@@ -555,12 +716,18 @@ class FischBot:
             scale = r.scale if r is not None else current_scale()
             if r is not None:
                 p_lo, p_hi = r.y1 + px(20, scale), r.y1 + px(70, scale)
+                p_top = r.y1 + prog_top_dy(scale)
             elif self.last_prog_top is not None and in_phase:
                 p_lo, p_hi = self._prog_window(self.last_prog_top, scale)
+                p_top = self.last_prog_top
             else:
                 p_lo = None
             if p_lo is not None:
-                p = find_progress(img, p_lo - y_off, p_hi - y_off, scale=scale)
+                # p_top: where the box must be, for light scenes where its
+                # borders do not stand out (fischtrack._box_near)
+                p = find_progress(img, p_lo - y_off, p_hi - y_off, scale=scale,
+                                  polarity=self.progress_polarity,
+                                  expect_top=p_top - y_off)
                 if p is not None:
                     self.last_prog_top = p[1] + y_off
                     last_prog = now
@@ -587,6 +754,7 @@ class FischBot:
                         hint = None
                         r = None
                         tracker = None
+                        self.ctl.reset_motion()
                         falling_inside_since = None
                 else:
                     falling_inside_since = None
@@ -661,38 +829,17 @@ class FischBot:
                     hint = None
                 continue
 
-            self.ctl.step(None, now=now)
             self.mouse.release()
-            s = self.ctl.stats
-            span = last_seen - first_seen
-            rate = f" | {s.frames / span:.0f} readings/s" if span > 0 else ""
-            fill = ""
-            if trend.last_fill is not None:
-                fill = (f" | progress peak {trend.peak:.0%}, last {trend.last_fill:.0%}"
-                        f" | {'CAUGHT' if trend.peak >= CAUGHT_PEAK else 'ESCAPED?'}")
-            self.log("minigame ended (bar and progress box gone)")
-            self.reel_logs.append(s.summary() + rate + fill)
-            self.log(s.summary() + rate + fill)
-            caught = (trend.peak >= CAUGHT_PEAK if trend.last_fill is not None
-                      else s.inside_frac > 0.5)
-            self.reel_history.append({
-                "caught": bool(caught),
-                "peak": round(trend.peak, 3),
-                "filling": round(s.game_in / s.game_n, 3) if s.game_n else None,
-                "duration": round(span, 1),
-                "readings": round(s.frames / span) if span > 0 else 0,
-                "input_changes": s.input_changes,
-            })
-            self.live = {"in_reel": False, "fill": None, "inside": None, "elapsed": 0.0}
-            # The box reaching (nearly) full is the catch. "last" alone is not:
-            # the box resets right after a catch, so the last reading can be low
-            # even for a landed fish (seen in the recording replay).
-            if trend.last_fill is not None:
-                return trend.peak >= CAUGHT_PEAK
-            return s.inside_frac > 0.5 if s.frames else False
+            notice = self._check_catch_after_reel(first_seen)
+            return self._finish_reel(first_seen, last_seen, trend, notice)
 
         self.mouse.release()
-        self.log(f"reel timed out: {self.ctl.stats.summary()}")
+        # Without a minigame the stats are still the previous cast's (live log,
+        # 2026-10-03: "reel timed out: ... filling 246/246 (100%)" after a cast
+        # made with no rod in hand) -- say what happened instead.
+        self.log("reel timed out: " + (self.ctl.stats.summary() if in_phase
+                                       else "no minigame appeared (no bite, or no rod in hand?)"))
+        self.catch_watch.end_attempt()
         return False
 
     def _grab_and_read(self, hint: Optional[TrackReading],
@@ -742,7 +889,156 @@ class FischBot:
         w = self._slider_widths[-SLIDER_W_WINDOW:]
         return float(np.median(w)) if len(w) >= 3 else None
 
+    def _check_quests(self) -> None:
+        """Read the quest tracker (left of the screen) and log what changed;
+        on the first read, the tracked quests and a plan for objectives that
+        need a mutation. Never fails the run: a reading error turns it off."""
+        if not self.track_quests:
+            return
+        from fischquest import find_open_chat, plan, read_tracker
+
+        try:
+            frame = self.grabber.grab()
+            # An open Roblox chat can cover the tracker: close it (its topbar
+            # button is a solid bubble while open). Between casts only.
+            chat = find_open_chat(frame)
+            if chat is not None and self.focus.ready():
+                from fischequip import WinInput
+                WinInput().click(self.rect.left + chat[0], self.rect.top + chat[1])
+                user32.SetCursorPos(self.rect.left + self.rect.width // 2,
+                                    self.rect.top + int(self.rect.height * 0.55))
+                time.sleep(0.35)
+                frame = self.grabber.grab()
+                self.log("quests: Roblox chat was open over the quest tracker -- closed it"
+                         + ("" if find_open_chat(frame) is None else " (still open?)"))
+            quests = read_tracker(frame)
+        except Exception as exc:
+            self.log(f"quest tracker unreadable ({exc!r}) -- quest tracking off for this run")
+            self.track_quests = False
+            return
+        state = {(q.title, o.text): (o.have, o.need, o.done)
+                 for q in quests for o in q.objectives}
+        first = self._quest_state is None
+        if first:
+            if not quests:
+                self.log("quests: no quest tracker on screen (track quests in the Quest "
+                         "Book to have the bot follow them)")
+            else:
+                self.log(f"quests: {len(quests)} tracked, "
+                         f"{sum(1 for q in quests if q.done)} complete")
+                for q in quests:
+                    if q.done:
+                        continue
+                    left = [o for o in q.objectives if not o.done]
+                    self.log(f"  {q.title}" + (f" ({q.npc}, {q.location})" if q.npc else "")
+                             + ": " + "; ".join(
+                                 o.text + (f" {o.have}/{o.need}" if o.need else "")
+                                 for o in left))
+                for line in plan(quests, self.owned_rods):
+                    self.log("  plan: " + line)
+        else:
+            for key, (have, need, done) in state.items():
+                old = self._quest_state.get(key)
+                if old is None or old == (have, need, done):
+                    continue
+                title, text = key
+                self.log(f"quest progress: {title}: {text} "
+                         f"{old[0]}/{old[1]} -> {have}/{need}" + (" -- DONE" if done else ""))
+            was_done = {q.title for q in self.quests if q.done}
+            for q in quests:
+                if q.done and q.title not in was_done and any(
+                        k[0] == q.title for k in self._quest_state):
+                    self.log(f"QUEST COMPLETE: {q.title}"
+                             + (f" -- hand it in to {q.npc} ({q.location})" if q.npc else ""))
+        self.quests, self._quest_state = quests, state
+        from fischquest import quests_view
+        self.quest_view = dict(quests_view(quests, self.owned_rods), read_at=time.time())
+
+    def equip_rod(self, name: str) -> bool:
+        """Equip `name` in the game through the Equipment Bag (fischequip.py).
+        Worker thread, between casts only: the rod is reeled in after a reel, and
+        N does not open while it is cast. The menu is always closed again.
+        False (and logged) if it could not be done."""
+        from fischequip import VK_T, EquipmentMenu, MenuError, WinInput
+
+        if not self.focus.ready():
+            self.log(f"equip {name}: Roblox is not in front -- skipped")
+            return False
+        self.mouse.release()
+        prev_state, self.state = self.state, "equipping rod"
+        self.log(f"equipping {name} (Equipment Bag)")
+        try:
+            with EquipmentMenu(self.grabber.grab, self.rect, self.log,
+                               cancelled=lambda: not self.running) as menu:
+                result = menu.equip(name)
+            self.log(f"  {name}: " + ("already equipped in the bag"
+                                      if result == "already" else "equipped in the bag"))
+            # The bag only puts it in the hotbar; it must still be taken in hand
+            # (live 2026-10-03: the cast after a switch did nothing). Fisch's T
+            # key takes the equipped rod out -- the user's find; it replaced
+            # reading the hotbar for the rod's slot. Like a hotbar key it would
+            # put AWAY a rod already in hand, so skip it when this run last took
+            # exactly this rod out.
+            if result == "equipped" or self._held_rod != name:
+                time.sleep(0.3)                  # the bag's close animation
+                WinInput().tap(VK_T)
+                self._held_rod = name
+                self.log(f"  {name}: taken in hand (T)")
+            return True
+        except MenuError as exc:
+            self.log(f"  could not equip {name}: {exc}")
+            return False
+        except Exception as exc:          # OCR missing etc.: never kill the run
+            self.log(f"  could not equip {name}: {exc!r}")
+            return False
+        finally:
+            self.state = prev_state
+            self.recentre()
+            time.sleep(0.2)
+
+    def recentre(self) -> None:
+        """Cursor back over the game's middle, where casting clicks belong."""
+        if not self.mouse.dry_run:
+            user32.SetCursorPos(self.rect.left + self.rect.width // 2,
+                                self.rect.top + int(self.rect.height * 0.55))
+
+    def _use_items(self) -> None:
+        """Useables tab (fischuse.py): totems and baits, between casts only.
+        Never lets a problem there end the run."""
+        u = self.useables
+        if u is None or not u.active or not self.running:
+            return
+        if not self.focus.ready():
+            return
+        self.mouse.release()
+        prev, self.state = self.state, "using items"
+        try:
+            u.between_casts(self)
+        except Exception as exc:
+            self.log(f"useables: skipped this time ({exc!r})")
+        finally:
+            self.state = prev
+
     # -- main -----------------------------------------------------------------------
+    def apply_configuration(self, cfg: MacroConfig, ccfg: ControlConfig,
+                            rod: RodProfile, enchants: list[str], keep: bool) -> None:
+        """Worker-thread only, between casts; never mutate an active reel."""
+        self.mouse.release()
+        if cfg.trace and self.trace_file is None:
+            self.trace_file = self.session.path(
+                f"trace_{datetime.fromtimestamp(time.time()):%Y%m%d_%H%M%S}.txt").open('a', encoding='utf-8')
+        elif not cfg.trace and self.trace_file is not None:
+            self.trace_file.close()
+            self.trace_file = None
+        self.cfg, self.ccfg, self.ctl.cfg = cfg, ccfg, ccfg
+        self.focus.mode = cfg.focus_mode
+        self.rod, self.enchants = rod, list(enchants)
+        self.catch_watch.rod = rod.name
+        self.session.keep_logs = keep
+        self.last_prog_top = None
+        self.pending_hint = None
+        self.ctl.reset_motion()
+
     def run(self) -> None:
         self.running = True
         self.mouse.place_cursor(self.rect)
@@ -753,6 +1049,8 @@ class FischBot:
         # idle scene, and re-learn the bar's position on the first reel.
         self.state = "calibrating"
         pre = precheck(self.grabber.grab, self.rect.width, self.rect.height, self.log)
+        self._check_quests()
+        self._use_items()
         if pre.busy_scene:
             self.start_confirm = START_CONFIRM_BUSY
         self.log(f"rod: {self.rod.name}"
@@ -771,6 +1069,8 @@ class FischBot:
 
         try:
             while self.running:
+                if self.on_cycle_boundary is not None:
+                    self.on_cycle_boundary()
                 if self.cfg.max_fish and self.cycles >= self.cfg.max_fish:
                     self.log(f"reached --max-fish={self.cfg.max_fish}")
                     break
@@ -778,7 +1078,8 @@ class FischBot:
                     time.sleep(0.4)
                     continue
 
-                self.cast()
+                if not self.cast():
+                    continue
                 time.sleep(self.cfg.cast_pause_s)
                 self.lure()
                 if self.reel():
@@ -788,8 +1089,15 @@ class FischBot:
                 self.cycles += 1
                 self.log(f"cycle {self.cycles} done: {self.caught} caught, "
                          f"{self.lost} lost")
-                time.sleep(0.6)
+                if self.useables is not None:
+                    self.useables.cast_done()
+                self._check_quests()
+                self._use_items()
+                # Caption-clear detection already guards the next cast. Keep
+                # only a short breather instead of adding another 0.6s delay.
+                time.sleep(0.15)
         finally:
+            self.catch_watch.close()
             self.state = "stopped"
             self.mouse.release()
             self.mouse.restore_cursor()
@@ -797,11 +1105,25 @@ class FischBot:
                 self.trace_file.close()
             self.log(f"stopped -- {self.cycles} cycles, {self.caught} caught, "
                      f"{self.lost} lost")
+            perfect = sum(1 for h in self.reel_history if h.get("perfect"))
+            if self.reel_history:
+                self.log(f"perfect catches: {perfect}/{sum(1 for h in self.reel_history if h['caught'])}")
+            if self.mutations:
+                self.log("mutations caught: " + ", ".join(
+                    f"{m} x{n}" for m, n in sorted(self.mutations.items(), key=lambda kv: -kv[1])))
             if self.reel_logs:
                 self.session.path("reel_runs.log").write_text(
                     "\n".join(self.reel_logs), encoding="utf-8")
+            self.close_log()
             if self._own_session:
                 self.session.close()
+
+    def close_log(self) -> None:
+        """Close bot.log (Windows cannot delete the session folder around an
+        open file). Later log() lines still reach the screen."""
+        f = getattr(self, "_log_file", None)
+        if f is not None and not f.closed:
+            f.close()
 
     def diagnose_loop(self) -> None:
         """Watch only, send nothing.

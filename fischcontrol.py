@@ -69,9 +69,10 @@ class ControlConfig:
     # >=95% at 80ms. Latency is the thing that kills it -- keep the loop fast.
     lookahead_s: float = 0.50
 
-    # EMA factor for the velocity estimates (per frame). Detector x is quantised
-    # to 1px, so raw frame-to-frame differences at 60fps are noisy.
-    vel_alpha: float = 0.35
+    # Velocity filter gain at vel_min_dt_s. A slow estimate keeps reporting the
+    # old direction as the slider accelerates through a turn. Retain smoothing,
+    # but respond sooner and use elapsed time so different FPS has the same lag.
+    vel_alpha: float = 0.55
 
     # Min time between the samples a velocity is computed from (~2 screen frames).
     vel_min_dt_s: float = 0.03
@@ -144,6 +145,10 @@ class ReelController:
         self.held = False
         self._last_change = 0.0
         self.stats = ReelStats()
+        self.reset_motion()
+
+    def reset_motion(self) -> None:
+        """Forget velocity after reacquisition without changing input or stats."""
         self._prev: Optional[tuple[float, float, float]] = None  # t, slider, fish
         self.v_slider = 0.0
         self.v_fish = 0.0
@@ -157,7 +162,7 @@ class ReelController:
                 # the input chatter. Wait for a sample far enough apart.
                 return
             if dt < 0.25:
-                a = self.cfg.vel_alpha
+                a = 1.0 - (1.0 - self.cfg.vel_alpha) ** (dt / self.cfg.vel_min_dt_s)
                 self.v_slider += a * ((slider_c - self._prev[1]) / dt - self.v_slider)
                 self.v_fish += a * ((fish_x - self._prev[2]) / dt - self.v_fish)
             elif dt >= 0.25:

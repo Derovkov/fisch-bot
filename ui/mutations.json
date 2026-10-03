@@ -1,0 +1,7082 @@
+{
+ "source": "https://fischipedia.org/wiki/Mutations",
+ "fetched": "2026-10-03",
+ "mutations": [
+  {
+   "name": "Aether",
+   "type": "Mutations",
+   "value": 15.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Companions",
+    "Natural"
+   ],
+   "companions": [
+    "Him"
+   ],
+   "how": [
+    "Naturally at a 0.004% chance.",
+    "Him passive ability at a 50% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Ascended",
+   "type": "Mutations",
+   "value": 12.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Masterline Rod": 30.0
+   },
+   "how": [
+    "Masterline Rod at a 30% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Darkheart",
+   "type": "Limited Mutations",
+   "value": 11.8,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Darkheart": 15.0
+   },
+   "how": [
+    "Darkheart at a 15% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Fury",
+   "type": "Limited Mutations",
+   "value": 11.7,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Castbound": 25.0
+   },
+   "how": [
+    "Castbound ghost passive at a 25% chance.",
+    "Castbound when perfect casting at a 10% chance when the \"The Journey's End?\" Mastery Enhancement is active."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Hades' Curse",
+   "type": "Mutations",
+   "value": 11.1,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Hades' Soul-Scythe": 100.0
+   },
+   "how": [
+    "Hades' Soul-Scythe at a 100% chance with full Curse Meter bar."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Golden Part",
+   "type": "Limited Mutations",
+   "value": 11.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Part": 5.0
+   },
+   "how": [
+    "Part at a 5% chance when Mastery Enhancement is active."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Rhythmic",
+   "type": "Limited Mutations",
+   "value": 11.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Noiseform": 33.0
+   },
+   "how": [
+    "Noiseform at a 33% chance if no incorrect zones were selected during the minigame."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Hadal",
+   "type": "Limited Mutations",
+   "value": 11.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Harpoon Guns"
+   ],
+   "rods": {
+    "Halibut Harpoon": 20.0
+   },
+   "how": [
+    "Halibut Harpoon at a 20% chance.",
+    "Halibut Harpoon at a 10% chance upon perfect catching."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Energy",
+   "type": "Limited Mutations",
+   "value": 10.85,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Castbound": 25.0
+   },
+   "how": [
+    "Castbound ghost passive at a 25% chance.",
+    "Castbound when perfect casting at a 10% chance when the \"The Journey's End?\" Mastery Enhancement is active."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Singularity",
+   "type": "Mutations",
+   "value": 10.618,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Rod of the Singularity": 18.54
+   },
+   "how": [
+    "Rod of the Singularity at an 18.54% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Abaia's Spite",
+   "type": "Mutations",
+   "value": 10.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Abaia's Spite": 25.0
+   },
+   "how": [
+    "Abaia's Spite at a 25% chance.",
+    "50% chance during a Perfect Catch."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Departed",
+   "type": "Limited Mutations",
+   "value": 10.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Remembrance": 50.0
+   },
+   "how": [
+    "Remembrance at a 50% chance.",
+    "75% when Mastery Enhancement is active."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Ocean's Ruin",
+   "type": "Mutations",
+   "value": 10.2,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Thalassar's Ruin": 30.0
+   },
+   "how": [
+    "Thalassar's Ruin at a 30% chance. (10% chance from passive)"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Olympian",
+   "type": "Mutations",
+   "value": 10.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Olympian Godbreaker": 2.0
+   },
+   "how": [
+    "100% when fished at Olympian Fissure with the Olympian Charge bar fully charged.",
+    "Olympian Godbreaker at a 2% chance for each Mastery completed (10% Max)"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Infernal",
+   "type": "Limited Mutations",
+   "value": 10.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects"
+   ],
+   "how": [
+    "Infernal Melody status effect at a 5% chance.",
+    "Infernal Melody status effect at a 20% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Myriapodic",
+   "type": "Mutations",
+   "value": 10.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Chasm-Stalker": 35.0
+   },
+   "how": [
+    "Chasm-Stalker at a 35% chance.",
+    "+8% chance for each Perfect-Catch streak (maximum of +40%, for a total of 75%)"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Photical",
+   "type": "Mutations",
+   "value": 10.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Terrotrapper": 15.0
+   },
+   "how": [
+    "Terrotrapper at a 15% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Plagued",
+   "type": "Mutations",
+   "value": 10.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Plaguereaver": 15.0
+   },
+   "how": [
+    "Plaguereaver at a 15% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Super-Tanned",
+   "type": "Event Mutations",
+   "value": 10.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events",
+    "Companions",
+    "Appraisal",
+    "Natural"
+   ],
+   "companions": [
+    "Sunhat Starfish"
+   ],
+   "how": [
+    "Appraisal, during the Fischfest 2 event at a Super-Tanned chance.",
+    "Fished up naturally at a ~0.0004% chance during Fischfest 2.",
+    "Fished up naturally at a 1% chance during a Tropical Sun.",
+    "Fishing with Sunhat Starfish equipped at a ~0.556% chance (~0.972% at max level)."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Tryhard",
+   "type": "Mutations",
+   "value": 10.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Tryhard Rod": 100.0
+   },
+   "how": [
+    "Tryhard Rod at a 100% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Gravitas",
+   "type": "Mutations",
+   "value": 9.81,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Olympian Godbreaker": 30.0
+   },
+   "how": [
+    "Olympian Godbreaker at a 30% chance.",
+    "Olympian Godbreaker at a 30% chance during the Black Hole ability."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Requies",
+   "type": "Mutations",
+   "value": 9.8,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Requiem": 100.0
+   },
+   "how": [
+    "Requiem at a 100% chance alongside caught {{Mutation fish.|20% chance for Husk.25% chance for Husk when Mastery Enhancement is active.}}"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Astraeus",
+   "type": "Limited Mutations",
+   "value": 9.6,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Astraeus Serenade": 18.0
+   },
+   "how": [
+    "Astraeus Serenade at an 18% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Fabulous",
+   "type": "Mutations",
+   "value": 9.6,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Fabulous Rod": 49.0
+   },
+   "how": [
+    "Fabulous Rod at a 49% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Poseidon's Blessing",
+   "type": "Mutations",
+   "value": 9.55,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "how": [
+    "The next catch when the Poseidon Charge Meter is full at a 100% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Permafrost",
+   "type": "Event Mutations",
+   "value": 9.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Weather"
+   ],
+   "rods": {
+    "North Pole": 25.0
+   },
+   "how": [
+    "North Pole at a 25% chance.",
+    "Fished up naturally during a Frost Moon at 0.5% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Verdant",
+   "type": "Mutations",
+   "value": 9.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Verdant Oath": 100.0
+   },
+   "how": [
+    "Verdant Oath at a 100% chance if the fish is perfect caught."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Withered",
+   "type": "Mutations",
+   "value": 9.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Spears"
+   ],
+   "spears": [
+    "Withered Spear"
+   ],
+   "rods": {
+    "Decayed Rod": 10.0
+   },
+   "how": [
+    "Withered Spear at a 25% chance.",
+    "Decayed Rod at a 10% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Darkness",
+   "type": "Limited Mutations",
+   "value": 9.4,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects"
+   ],
+   "how": [
+    "Darkness status effect at a 5% chance.",
+    "Darkness status effect at a 10% chance.",
+    "Darkness status effect at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Royal",
+   "type": "Mutations",
+   "value": 9.4,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods",
+    "Harpoon Guns",
+    "Spears"
+   ],
+   "spears": [
+    "Royal Spear"
+   ],
+   "rods": {
+    "Rod Of The Eternal King": 10.0,
+    "Halibut Harpoon": 10.0
+   },
+   "how": [
+    "Royal Spear at a 35% chance.",
+    "Rod Of The Eternal King at a 10% chance.",
+    "Royal Escort status effect at a 10% chance.",
+    "Halibut Harpoon at a 10% chance while using a Legendary Bait."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Zeus's Storm",
+   "type": "Mutations",
+   "value": 9.3,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Zeus's Thundermaul": 10.0
+   },
+   "weather": [
+    "Rain",
+    "Stormy"
+   ],
+   "how": [
+    "Zeus's Thundermaul at a 10% chance.",
+    "+20% chance during Rain or Stormy weather."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Nebula",
+   "type": "Limited Mutations",
+   "value": 9.2,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Castbound": 25.0
+   },
+   "how": [
+    "Castbound ghost passive at a 25% chance.",
+    "Castbound when perfect casting at a 10% chance when the \"The Journey's End?\" Mastery Enhancement is active."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Embraced",
+   "type": "Event Mutations",
+   "value": 9.1,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Cupid's Embrace": 25.0
+   },
+   "how": [
+    "Cupid's Embrace at a 25% chance (40% chance when fishing near another player with the Cupid's Embrace)"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Contraband",
+   "type": "Limited Mutations",
+   "value": 9.088,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Crowbar": 50.0
+   },
+   "how": [
+    "Crowbar at a 50% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Empyrean",
+   "type": "Mutations",
+   "value": 9.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments"
+   ],
+   "enchants": [
+    "Empyrean"
+   ],
+   "how": [
+    "Empyrean Enchantment at a 100% chance on duplicated fish (15% chance to duplicate fish)."
+   ],
+   "group": "enchant"
+  },
+  {
+   "name": "Frostbitten",
+   "type": "Event Mutations",
+   "value": 9.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Weather"
+   ],
+   "rods": {
+    "Maelstrom": 30.0
+   },
+   "how": [
+    "Maelstrom at a 30% chance.",
+    "Frost Moon at a 2% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Luminous",
+   "type": "Mutations",
+   "value": 9.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Luminous Rod": 30.0
+   },
+   "how": [
+    "Luminous Rod at a 30% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Monstrous",
+   "type": "Mutations",
+   "value": 9.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Harpoon Guns"
+   ],
+   "harpoons": [
+    "Cusk-Shot"
+   ],
+   "rods": {
+    "Cusk Purger": 50.0
+   },
+   "how": [
+    "Cusk-Shot at a 50% chance.",
+    "Cusk Purger at a 50% chance.",
+    "Cusk Purger's passive at a 100% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Scalded",
+   "type": "Mutations",
+   "value": 9.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Harpoon Guns"
+   ],
+   "harpoons": [
+    "Titanic Scalder"
+   ],
+   "rods": {
+    "Scalding Hook": 1.7
+   },
+   "how": [
+    "Titanic Scalder at a +5% chance per pull.",
+    "Titanic Scalder at a 100% chance if meter is full.{{Verify}}",
+    "Scalding Hook at a +1.7% chance for every % of Forced Progress Speed."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Thalassic",
+   "type": "Limited Mutations",
+   "value": 9.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Harpoon Guns"
+   ],
+   "rods": {
+    "Halibut Harpoon": 20.0
+   },
+   "how": [
+    "Halibut Harpoon at a 20% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Titanium",
+   "type": "Mutations",
+   "value": 9.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Titanium Rod": 25.0
+   },
+   "how": [
+    "Titanium Rod at a 25% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Umbra",
+   "type": "Mutations",
+   "value": 9.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Rod of the Singularity": 20.0
+   },
+   "how": [
+    "Rod of the Singularity at a 20% chance.",
+    "Eclipsed status effect at a 10% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Nightmare",
+   "type": "Event Mutations",
+   "value": 8.8,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Dusekkar Rod": 20.0
+   },
+   "how": [
+    "Dusekkar Rod at a 20% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Synth",
+   "type": "Mutations",
+   "value": 8.8,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Stellarwave Melody": 8.8
+   },
+   "how": [
+    "Stellarwave Melody at an 8.8% chance.",
+    "12.4% with Cosmic Crescendo Mastery Enhancement."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Mossy",
+   "type": "Mutations",
+   "value": 8.7,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Elder Mossripper": 100.0
+   },
+   "how": [
+    "Elder Mossripper's passive at a 100% chance.",
+    "Elder Mossripper at a 15% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Puritas",
+   "type": "Mutations",
+   "value": 8.7,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Onirifalx": 3.0
+   },
+   "how": [
+    "Onirifalx at a 3% chance.",
+    "7% when Mastery Enhancement is active."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Igneous",
+   "type": "Mutations",
+   "value": 8.65,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Igneous Rupturer": 50.0
+   },
+   "how": [
+    "Igneous Rupturer at a 50% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Breezed",
+   "type": "Mutations",
+   "value": 8.6,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Wind Elemental": 30.0,
+    "Astraeus Serenade": 11.0
+   },
+   "weather": [
+    "Windy"
+   ],
+   "how": [
+    "Wind Elemental at a 30% chance.",
+    "50% chance during Windy.",
+    "Wind Elemental's Omni Elemental mode at a 20% chance.",
+    "Astraeus Serenade at an 11% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Ignited",
+   "type": "Mutations",
+   "value": 8.6,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Wind Elemental": 30.0
+   },
+   "weather": [
+    "Foggy"
+   ],
+   "how": [
+    "Wind Elemental's Fire Elemental mode at a 30% chance.",
+    "50% chance during Foggy.",
+    "Wind Elemental's Omni Elemental mode at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Stormy",
+   "type": "Mutations",
+   "value": 8.6,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Wind Elemental": 30.0
+   },
+   "weather": [
+    "Rain"
+   ],
+   "how": [
+    "Wind Elemental's Water Elemental mode at a 30% chance.",
+    "50% chance during Rain.",
+    "Wind Elemental's Omni Elemental mode at a 20% chance"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Terra",
+   "type": "Mutations",
+   "value": 8.6,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Wind Elemental": 30.0
+   },
+   "weather": [
+    "Clear"
+   ],
+   "how": [
+    "Wind Elemental's Earth Elemental mode at a 30% chance.",
+    "50% chance during Clear.",
+    "Wind Elemental's Omni Elemental mode at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Cosmos",
+   "type": "Limited Mutations",
+   "value": 8.55,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Castbound": 25.0
+   },
+   "how": [
+    "Castbound ghost passive at a 25% chance.",
+    "Castbound when perfect casting at a 10% chance when the \"The Journey's End?\" Mastery Enhancement is active."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Noctic",
+   "type": "Exclusive Mutations",
+   "value": 8.5,
+   "priority": 4,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Noctic Larva"
+   ],
+   "how": [
+    "Fishing with Noctic Larva Bait at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Oblivion",
+   "type": "Event Mutations",
+   "value": 8.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Natural"
+   ],
+   "how": [
+    "Fished up when the meteor was close to impact during the beginning of the Continental Drift update."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Soultorn",
+   "type": "Limited Mutations",
+   "value": 8.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Noiseform": 35.0
+   },
+   "how": [
+    "Noiseform at a 35% chance.",
+    "45% when Mastery Enhancement 'A Noisy Throwback' is active.",
+    "Noiseform ghost passive at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Blessed",
+   "type": "Mutations",
+   "value": 8.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Seraphic Rod": 35.0,
+    "Masterline Rod": 25.0,
+    "Destiny Rod": 5.0
+   },
+   "how": [
+    "Seraphic Rod at a 35% chance.",
+    "50% when Mastery Enhancement is active.",
+    "Masterline Rod at a 25% chance.",
+    "Destiny Rod at a 5% chance.",
+    "10% when Mastery Enhancement is active."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Distraught",
+   "type": "Mutations",
+   "value": 8.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Dreambreaker": 35.0
+   },
+   "how": [
+    "Dreambreaker during Night at a 35% chance. (Day at a 25% chance)"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Evil",
+   "type": "Mutations",
+   "value": 8.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Evil Pitchfork": 20.0
+   },
+   "how": [
+    "Evil Pitchfork at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Jack's Curse",
+   "type": "Event Mutations",
+   "value": 8.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Jack-o-Blazer": 2.0
+   },
+   "how": [
+    "Jack-o-Blazer, at a 2% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Santa",
+   "type": "Event Mutations",
+   "value": 8.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Admin Events"
+   ],
+   "rods": {
+    "Santa's Miracle Rod": 20.0
+   },
+   "enchants": [
+    "Santa"
+   ],
+   "how": [
+    "Santa's Miracle Rod at a 20% chance.",
+    "Santa Enchantment at a 6% chance.",
+    "Santa Affix at a 2% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Serene",
+   "type": "Mutations",
+   "value": 8.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Duskwire": 2.0,
+    "Polaris Serenade": 18.0,
+    "Astraeus Serenade": 13.0
+   },
+   "how": [
+    "Duskwire at a 2% chance. (3% after a perfect catch)",
+    "5% chance when the Mastery Enhancement is active. (10% after a perfect catch)",
+    "Polaris Serenade at an 18% chance.",
+    "Astraeus Serenade at a 13% chance.",
+    "Serenity status effect at a 10% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Sovereign",
+   "type": "Mutations",
+   "value": 8.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Status Effects",
+    "Enchantments"
+   ],
+   "companions": [
+    "Relic Construct"
+   ],
+   "enchants": [
+    "Propensity Spirit"
+   ],
+   "weather": [
+    "Sovereign Surge",
+    "Sovereign Storm",
+    "Sovereign Reckoning"
+   ],
+   "how": [
+    "Relic Construct Sovereign Status Effect at a 10% chance.",
+    "Propensity Spirit Enchantment at a 100% chance on duplicated fish (15% chance to duplicate fish).",
+    "Fishing in a Sovereign Beam Pool during Sovereign Surge, Sovereign Storm or Sovereign Reckoning at a 5% chance."
+   ],
+   "group": "enchant"
+  },
+  {
+   "name": "Tidal Surge",
+   "type": "Mutations",
+   "value": 8.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Poseidon's Lance": 25.0
+   },
+   "weather": [
+    "Rain",
+    "Stormy"
+   ],
+   "how": [
+    "Poseidon's Lance at a 25% chance.",
+    "30% during Rain weather",
+    "40% during Stormy weather"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Floral",
+   "type": "Mutations",
+   "value": 8.4,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Natural"
+   ],
+   "rods": {
+    "Gardenkeeper Rod": 25.0
+   },
+   "how": [
+    "Gardenkeeper Rod at a 25% chance.",
+    "Fished up in Living Garden at a 0.071% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Obsidian",
+   "type": "Mutations",
+   "value": 8.3,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Bait"
+   ],
+   "baits": [
+    "Obsidian-Bone"
+   ],
+   "rods": {
+    "Chasm-Stalker": 25.0
+   },
+   "how": [
+    "Fishing with the Obsidian-Bone Bait at a 10% chance.",
+    "Chasm-Stalker at a 25% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Melody",
+   "type": "Mutations",
+   "value": 8.18,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Stellarwave Melody": 18.8
+   },
+   "how": [
+    "Stellarwave Melody at an 18.8% chance.",
+    "22.4% with Cosmic Crescendo Mastery Enhancement."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Popsicle",
+   "type": "Event Mutations",
+   "value": 8.16,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Popsicle Rod": 15.0
+   },
+   "how": [
+    "Popsicle Rod at a 15% chance.",
+    "Fished up naturally during the Fischfest 1 event at a 0.04% chance.",
+    "Appraisal during the Fischfest 1 event, at a 0.03% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Bouka",
+   "type": "Limited Mutations",
+   "value": 8.01,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "MiguRod": 100.0
+   },
+   "how": [
+    "MiguRod at a 100% chance alongside caught {{Mutation fish.|40.1% chance for Supersonic when Mastery Enhancement is active.}}"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Idol",
+   "type": "Limited Mutations",
+   "value": 8.01,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "MiguRod": 100.0
+   },
+   "how": [
+    "MiguRod at a 100% chance alongside caught {{Mutation fish.|40.1% chance for Supersonic when Mastery Enhancement is active.}}"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Supersonic",
+   "type": "Limited Mutations",
+   "value": 8.01,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "MiguRod": 40.1
+   },
+   "how": [
+    "MiguRod at a 40.1% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Counterfeit",
+   "type": "Limited Mutations",
+   "value": 8.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Crowbar": 10.0
+   },
+   "how": [
+    "Crowbar at a 10% chance.",
+    "Crowbar 'Steal' ability at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Birthday",
+   "type": "Event Mutations",
+   "value": 8.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Appraisal",
+    "Natural"
+   ],
+   "how": [
+    "Fished up naturally during the Anniversary event at a 0.04% chance.",
+    "Appraisal, during the Anniversary event at a 0.03% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Sour",
+   "type": "Event Mutations",
+   "value": 8.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Lemonade Serenade": 3.0
+   },
+   "how": [
+    "Lemonade Serenade at a +3% chance for every drop caught during the minigame while the Mastery Enhancement is active."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Alien",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events",
+    "Bait"
+   ],
+   "baits": [
+    "UFO"
+   ],
+   "how": [
+    "Fishing with UFO Bait at a 100% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Atomic",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events"
+   ],
+   "items": [
+    "Atomic Nuke"
+   ],
+   "how": [
+    "Fishing in the immediate fallout of an Atomic Nuke, at a 100% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Chlorowoken",
+   "type": "Admin Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Crimsonwrath",
+   "type": "Limited Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Crimsonwrath": 30.0
+   },
+   "how": [
+    "Crimsonwrath at a 30% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Fragmented",
+   "type": "Admin Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Frostnova",
+   "type": "Event Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Weather",
+    "Bait"
+   ],
+   "baits": [
+    "Frostnova Bait"
+   ],
+   "how": [
+    "Fishing with Frostnova Bait at a 30% chance.",
+    "Fished up naturally during a Frost Moon at 1% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Galaxy",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events",
+    "Bait"
+   ],
+   "baits": [
+    "Star"
+   ],
+   "how": [
+    "Fishing with Star Bait at a 100% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Glacial",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Frostbane Rod": 1.0,
+    "Cryolash": 25.0,
+    "Fallen Snowblade": null
+   },
+   "seasons": [
+    "Winter",
+    "Spring",
+    "Autumn",
+    "Summer"
+   ],
+   "how": [
+    "Frostbane Rod at a 1% chance. (3% during Winter)",
+    "Cryolash at a 25% chance.",
+    "Fallen Snowblade",
+    "10% chance during Spring and Autumn",
+    "5% chance during Summer"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Gleebous",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Natural"
+   ],
+   "rods": {
+    "Blade Of Glorp": 23.0
+   },
+   "how": [
+    "Blade Of Glorp at a 23% chance.",
+    "33% when Mastery Enhancement is active.",
+    "Fished up naturally in specific abundances at Roslit Bay at a 1.48% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Glowy",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Bait"
+   ],
+   "baits": [
+    "Glowworm"
+   ],
+   "rods": {
+    "Noctone": 40.0
+   },
+   "how": [
+    "Fishing with Glowworm Bait at a 100% chance.",
+    "Noctone at a 40% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Heartburst",
+   "type": "Event Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Fishing Rods"
+   ],
+   "items": [
+    "Love Nuke"
+   ],
+   "rods": {
+    "Cupid's Bow": 10.0,
+    "Cerebra": 10.0
+   },
+   "how": [
+    "Fishing in the immediate fallout of a Love Nuke at a 100% chance.",
+    "Cupid's Bow at a 10% chance.",
+    "Cerebra at a 10% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Jingle Bell",
+   "type": "Event Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Jinglestar Rod": 25.0
+   },
+   "enchants": [
+    "Santa"
+   ],
+   "how": [
+    "Jinglestar Rod at a 25% chance.",
+    "Santa Enchantment at a 6% chance.",
+    "Santa Affix at a 2% chance.",
+    "Fished up naturally during Fischmas 2 at a 0.03% chance.",
+    "Appraisal during Fischmas 2, at a 0.03% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lovely",
+   "type": "Event Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments",
+    "Admin Events",
+    "Natural"
+   ],
+   "enchants": [
+    "Valentine's"
+   ],
+   "how": [
+    "Valentine's Enchantment at a 15% chance.",
+    "Valentine's Affix at a ~3.33% chance.",
+    "Fished up naturally during the Valentides event with an active duo at a 0.2% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Madness",
+   "type": "Admin Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Mastered",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Ruinous Oath": 100.0
+   },
+   "how": [
+    "Ruinous Oath at a 100% chance if the fish is perfect caught.",
+    "Ruinous Oath at a 25% chance if the fish is not perfect caught."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Mayhem",
+   "type": "Admin Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Nocturnal",
+   "type": "Limited Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Wingripper": 40.0
+   },
+   "how": [
+    "Wingripper at a 40% chance during the night."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Paradise",
+   "type": "Event Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments",
+    "Admin Events",
+    "Companions",
+    "Appraisal",
+    "Natural"
+   ],
+   "enchants": [
+    "Paradise"
+   ],
+   "how": [
+    "Paradise Enchantment at a 10% chance.",
+    "Paradise Affix at a 10% chance.",
+    "Appraisal, during the Fischfest 2 event at a Paradise chance.",
+    "Fished up naturally at a 0.004% chance during Fischfest 2.",
+    "Fished up naturally at a 5% chance during a Tropical Sun.",
+    "Fishing with Sunhat Starfish equipped at a ~2.781% chance (~4.865% at max level)."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Petrified",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Ancient Idol Rod": 100.0
+   },
+   "how": [
+    "Ancient Idol Rod’s Idol’s Blessing passive at a 100% chance when the Petrification Bar is filled.",
+    "Fished up naturally at a 0.065% chance in Skycrest.",
+    "Petrified base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Prism",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Spears"
+   ],
+   "spears": [
+    "Prism Spear"
+   ],
+   "rods": {
+    "Ethereal Prism Rod": 10.0
+   },
+   "how": [
+    "Prism Spear at a 35% chance.",
+    "Ethereal Prism Rod at a 10% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Radiant",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events",
+    "Bait"
+   ],
+   "baits": [
+    "Golden Coin"
+   ],
+   "how": [
+    "Fishing with Golden Coin Bait at a 100% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Spectral",
+   "type": "Admin Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Spicy",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events",
+    "Bait"
+   ],
+   "baits": [
+    "Taco"
+   ],
+   "how": [
+    "Fishing with Taco Bait at a 100% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Vitalic",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Bloomspire: Blooming Splendor": 50.0
+   },
+   "how": [
+    "Bloomspire: Blooming Splendor at a 50% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Tentacle Surge",
+   "type": "Mutations",
+   "value": 7.8,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Dead Man's Rod": 20.0,
+    "Kraken Rod": 10.0
+   },
+   "how": [
+    "Dead Man's Rod at a 20% chance.",
+    "Kraken Rod at a 10% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Jackpot",
+   "type": "Mutations",
+   "value": 7.77,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Random Rod": 50.0
+   },
+   "how": [
+    "Random Rod at a 50% chance.",
+    "Fishing in Lucky Pools at a 15% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Wicked",
+   "type": "Event Mutations",
+   "value": 7.7,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Jack-o-Blazer": 20.0
+   },
+   "how": [
+    "Jack-o-Blazer, at a 20% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Forest Spirit",
+   "type": "Mutations",
+   "value": 7.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Spirit of the Forest": 5.0
+   },
+   "how": [
+    "Spirit of the Forest at a 5% chance.",
+    "15% when all spirits are max level."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Gusty",
+   "type": "Mutations",
+   "value": 7.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Harpoon Guns",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Breeze Caster": 25.0
+   },
+   "weather": [
+    "Windy"
+   ],
+   "harpoons": [
+    "Breeze Guster"
+   ],
+   "how": [
+    "Breeze Caster at a 25% chance.",
+    "70% chance during Windy.",
+    "Breeze Guster at a 25% chance.",
+    "70% chance during Windy.",
+    "Fished up naturally in Skycrest at a 0.17% chance.",
+    "Gusty base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Mourned",
+   "type": "Mutations",
+   "value": 7.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Tidemourner": 35.0
+   },
+   "how": [
+    "Tidemourner at a 35% chance.",
+    "Fished up in Tidefall at a 0.036% chance.",
+    "Mourned base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Sanctified",
+   "type": "Limited Mutations",
+   "value": 7.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Wingkeeper": 35.0
+   },
+   "how": [
+    "Wingkeeper at a 35% chance during the day."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Soultouched",
+   "type": "Mutations",
+   "value": 7.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Hades' Soul-Scythe": 40.0
+   },
+   "how": [
+    "Hades' Soul-Scythe at a 40% chance.",
+    "",
+    ""
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Liberty",
+   "type": "Event Mutations",
+   "value": 7.42026,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Liberty-Line": 25.0
+   },
+   "how": [
+    "Liberty-Line at a 25% chance",
+    "Appraisal, during the Patriotic Seas event at a Liberty chance.",
+    "Fished up naturally at a 0.02% chance during Patriotic Seas."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Necrotic",
+   "type": "Event Mutations",
+   "value": 7.4,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Necrotic Rod": 30.0
+   },
+   "how": [
+    "Necrotic Rod at a 30% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Patriotic",
+   "type": "Event Mutations",
+   "value": 7.4,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Patriot Rod": 20.0
+   },
+   "how": [
+    "Patriot Rod at a 20% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Acidic",
+   "type": "Limited Mutations",
+   "value": 7.3,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Bait"
+   ],
+   "rods": {
+    "Acidgrinder": 40.0
+   },
+   "baits": [
+    "Acidic Larva"
+   ],
+   "how": [
+    "Acidgrinder at a 40% chance.",
+    "Fishing with Acidic Larva Bait at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Light",
+   "type": "Limited Mutations",
+   "value": 7.2,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects"
+   ],
+   "how": [
+    "Light status effect at a 5% chance.",
+    "Light status effect at a 10% chance.",
+    "Light status effect at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Magical",
+   "type": "Mutations",
+   "value": 7.2,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Merlin's Staff": 35.0
+   },
+   "how": [
+    "Merlin's Staff at a 35% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Crystalline",
+   "type": "Mutations",
+   "value": 7.1,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Harpoon Guns"
+   ],
+   "harpoons": [
+    "Crystal Crasher"
+   ],
+   "how": [
+    "Crystal Crasher at a 25% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Bathyal",
+   "type": "Limited Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Harpoon Guns"
+   ],
+   "rods": {
+    "Halibut Harpoon": 20.0
+   },
+   "how": [
+    "Halibut Harpoon at a 20% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Bellona's Fury",
+   "type": "Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Bellona's Waraxe": 20.0
+   },
+   "how": [
+    "Bellona's Waraxe at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Bliss",
+   "type": "Limited Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Bloomspire: Slumbering Elegance": 15.0
+   },
+   "how": [
+    "Bloomspire: Slumbering Elegance at a 15% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Cragged",
+   "type": "Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Olympian Godbreaker": 30.0,
+    "Meteoric Rod": 20.0
+   },
+   "how": [
+    "Olympian Godbreaker at a 30% chance.",
+    "Olympian Godbreaker at a 70% chance during the Black Hole ability.",
+    "Meteoric Rod at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Diurnal",
+   "type": "Limited Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Wingripper": 40.0
+   },
+   "how": [
+    "Wingripper at a 40% chance during the day"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Flora",
+   "type": "Limited Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Chrysalis": 20.0
+   },
+   "how": [
+    "Chrysalis at a 20% chance, or from its \"Eye\" passive at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Fluttering",
+   "type": "Limited Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Remembrance": 50.0
+   },
+   "how": [
+    "Remembrance at a 50% chance.",
+    "75% when Mastery Enhancement is active."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lustrous",
+   "type": "Admin Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Mango",
+   "type": "Admin Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Refracted",
+   "type": "Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Harpoon Guns"
+   ],
+   "harpoons": [
+    "Sightless Oracle"
+   ],
+   "how": [
+    "Sightless Oracle at a 50% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Sacratus",
+   "type": "Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Onirifalx": 7.0
+   },
+   "how": [
+    "Onirifalx at a 7% chance.",
+    "13% when Mastery Enhancement is active."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Shrouded",
+   "type": "Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Elder Mossripper": 20.0,
+    "Vineweaver Rod": 15.0
+   },
+   "how": [
+    "Elder Mossripper at a 20% chance.",
+    "Vineweaver Rod at a 15% chance.",
+    "Fished up naturally in Lost Jungle at a 0.03% chance.",
+    "Shrouded base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Starshell",
+   "type": "Event Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Starshell Rod": 20.0
+   },
+   "how": [
+    "Starshell Rod at a 20% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Sweet",
+   "type": "Event Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "enchants": [
+    "Valentine's",
+    "Cupid"
+   ],
+   "how": [
+    "Valentine's Enchantment at a 15% chance.",
+    "Valentine's Affix at a ~3.33% chance.",
+    "Cupid Enchantment at a 10% chance.",
+    "Cupid Affix at a 10% chance.",
+    "Fished up naturally during the Valentides event.",
+    "Appraisal during the Valentides event at a Sweet chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Tidal",
+   "type": "Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Rod Of The Forgotten Fang": 35.0,
+    "Riptide Rod": 10.0
+   },
+   "how": [
+    "Rod Of The Forgotten Fang at a 35% chance.",
+    "Rod Of The Forgotten Fang's Megalodon passive at a 100% chance.",
+    "Riptide Rod at a 10% on Enchanted Casts"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Tropical",
+   "type": "Event Mutations",
+   "value": 7.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments",
+    "Admin Events",
+    "Companions",
+    "Appraisal",
+    "Natural"
+   ],
+   "enchants": [
+    "Tropical"
+   ],
+   "how": [
+    "Tropical Enchantment at a 10% chance.",
+    "Tropical Affix at a 10% chance.",
+    "Appraisal, during the Fischfest 2 event at a Tropical chance.",
+    "Fished up naturally at a 0.004% chance during Fischfest 2.",
+    "Fished up naturally at a 5% chance during a Tropical Sun.",
+    "Fishing with Sunhat Starfish equipped at a ~2.781% chance (~4.865% at max level)."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Sunlit",
+   "type": "Mutations",
+   "value": 6.8,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Apollo's Sunshot": 100.0
+   },
+   "how": [
+    "Apollo's Sunshot at a 100% chance after a successful burn."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Fruit-Crowned",
+   "type": "Limited Mutations",
+   "value": 6.7,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Fruitline": 25.0
+   },
+   "how": [
+    "Fruitline at a 25% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Siren's Spite",
+   "type": "Mutations",
+   "value": 6.66,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Evil Pitchfork": 25.0
+   },
+   "how": [
+    "Evil Pitchfork at a 25% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Tormented",
+   "type": "Admin Mutations",
+   "value": 6.66,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Banana",
+   "type": "Event Mutations",
+   "value": 6.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Lemonade Serenade": 33.33
+   },
+   "items": [
+    "Bananade Serenade"
+   ],
+   "how": [
+    "Lemonade Serenade with the Bananade Serenade skin equipped or favorited at a 33.33% chance.",
+    "Lemonade Serenade with the Bananade Serenade skin equipped or favorited at a 100% chance every 30 seconds."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Blueberry",
+   "type": "Event Mutations",
+   "value": 6.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Lemonade Serenade": 33.33
+   },
+   "items": [
+    "Blueberry Serenade"
+   ],
+   "how": [
+    "Lemonade Serenade with the Blueberry Serenade skin equipped or favorited at a 33.33% chance.",
+    "Lemonade Serenade with the Blueberry Serenade skin equipped or favorited at a 100% chance every 30 seconds."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lavender",
+   "type": "Event Mutations",
+   "value": 6.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Lemonade Serenade": 33.33
+   },
+   "items": [
+    "Lavender Serenade"
+   ],
+   "how": [
+    "Lemonade Serenade with the Lavender Serenade skin equipped or favorited at a 33.33% chance.",
+    "Lemonade Serenade with the Lavender Serenade skin equipped or favorited at a 100% chance every 30 seconds."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lemon",
+   "type": "Event Mutations",
+   "value": 6.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Lemonade Serenade": 33.33
+   },
+   "how": [
+    "Lemonade Serenade at a 33.33% chance.",
+    "Lemonade Serenade at a 100% chance every 30 seconds."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lime",
+   "type": "Event Mutations",
+   "value": 6.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Lemonade Serenade": 33.33
+   },
+   "items": [
+    "Limeade Serenade"
+   ],
+   "how": [
+    "Lemonade Serenade with the Limeade Serenade skin equipped or favorited at a 33.33% chance.",
+    "Lemonade Serenade with the Limeade Serenade skin equipped or favorited at a 100% chance every 30 seconds."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Strawberry",
+   "type": "Event Mutations",
+   "value": 6.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Lemonade Serenade": 33.33
+   },
+   "items": [
+    "Berrynade Serenade"
+   ],
+   "how": [
+    "Lemonade Serenade with the Berrynade Serenade skin equipped or favorited at a 33.33% chance.",
+    "Lemonade Serenade with the Berrynade Serenade skin equipped or favorited at a 100% chance every 30 seconds."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Aurora",
+   "type": "Mutations",
+   "value": 6.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Weather",
+    "Bait"
+   ],
+   "rods": {
+    "Stellarwave Melody": 25.0,
+    "Aurora Rod": 15.0
+   },
+   "weather": [
+    "Aurora Borealis",
+    "Lunar Eclipse"
+   ],
+   "baits": [
+    "Aurora Bait"
+   ],
+   "how": [
+    "Stellarwave Melody at a 25% chance.",
+    "30% with Cosmic Crescendo Mastery Enhancement.",
+    "Aurora Rod at a 15% chance. (30% during Aurora Borealis)",
+    "+10% when Mastery Enhancement is active.",
+    "Fishing with Aurora Bait at a 30% chance.",
+    "Fished up during a Lunar Eclipse at a 5% chance.",
+    "Fished up naturally during an Aurora Borealis at a 1% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Cursed Touch",
+   "type": "Mutations",
+   "value": 6.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Harpoon Guns"
+   ],
+   "rods": {
+    "Great Dreamer Rod": 50.0
+   },
+   "harpoons": [
+    "Great Dream Waker"
+   ],
+   "how": [
+    "Great Dreamer Rod's passive at a 50% chance.",
+    "Great Dream Waker at a 20% chance"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Flowed",
+   "type": "Limited Mutations",
+   "value": 6.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Noiseform": 25.0
+   },
+   "how": [
+    "Noiseform at a 25% chance.",
+    "35% when Mastery Enhancement is active."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Luminescent",
+   "type": "Mutations",
+   "value": 6.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Luminescent Oath": 100.0,
+    "Azure Of Lagoon": 15.0,
+    "Nocturnal Rod": 8.0
+   },
+   "weather": [
+    "Night"
+   ],
+   "how": [
+    "Luminescent Oath at a 100% chance if the fish is perfect caught.",
+    "Azure Of Lagoon at a 15% chance.",
+    "Luminescent Oath at a 15% chance if the fish is not perfect caught.",
+    "Nocturnal Rod at an 8% chance during Night time."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Prismatic",
+   "type": "Limited Mutations",
+   "value": 6.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Lullaby": 24.0
+   },
+   "weather": [
+    "Night"
+   ],
+   "how": [
+    "Lullaby at a 24% chance. (30% at Night)",
+    "Prismatic status effect at a 12% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Prismize",
+   "type": "Mutations",
+   "value": 6.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Ethereal Prism Rod": 50.0
+   },
+   "how": [
+    "Ethereal Prism Rod at a 50% chance.",
+    "60% when Mastery Enhancement is active."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Refined",
+   "type": "Mutations",
+   "value": 6.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Companions"
+   ],
+   "companions": [
+    "Scrap-Bot"
+   ],
+   "how": [
+    "Scrap-Bot's Refining passive at a 100% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Relic",
+   "type": "Mutations",
+   "value": 6.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Harpoon Guns"
+   ],
+   "harpoons": [
+    "Relic Piercer"
+   ],
+   "how": [
+    "Relic Piercer at a 35% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Tainted",
+   "type": "Mutations",
+   "value": 6.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Bloomspire: Twisted Toxins": 40.0
+   },
+   "how": [
+    "Bloomspire: Twisted Toxins at a 40% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Venomous",
+   "type": "Admin Mutations",
+   "value": 6.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Oscar",
+   "type": "Mutations",
+   "value": 6.4,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Great Rod of Oscar": 20.0
+   },
+   "how": [
+    "Great Rod of Oscar at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Subspace",
+   "type": "Mutations",
+   "value": 6.4,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments"
+   ],
+   "enchants": [
+    "Quantum"
+   ],
+   "how": [
+    "Quantum Enchantment at a 25% chance. (35% after a Perfect Cast)"
+   ],
+   "group": "enchant"
+  },
+  {
+   "name": "Sunken",
+   "type": "Mutations",
+   "value": 6.3,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Treasure Chests",
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Dead Man's Rod": 20.0,
+    "Sunken Rod": 8.0
+   },
+   "companions": [
+    "Plunderbeak"
+   ],
+   "how": [
+    "Dead Man's Rod at a 20% chance.",
+    "Sunken Rod at a 8% chance.",
+    "13% when Mastery Enhancement is active.",
+    "Can be found in Treasure Chests at an 18.4% chance.",
+    "25.56% chance when Plunderbeak is equipped and fully leveled up."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Chaotic",
+   "type": "Mutations",
+   "value": 6.2,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Accessories"
+   ],
+   "rods": {
+    "Duskwire": 30.0
+   },
+   "enchants": [
+    "Chaotic"
+   ],
+   "items": [
+    "Voided Glove"
+   ],
+   "weather": [
+    "Meteoric Outburst"
+   ],
+   "how": [
+    "Duskwire at a 30% chance. (97% after a perfect catch)",
+    "50% chance when the Mastery Enhancement is active. (90% after a perfect catch)",
+    "Chaotic Enchantment at a 12% chance.",
+    "100% chance on fish duplicated by Voided Glove.",
+    "Fished up during a Meteoric Outburst at a 5% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Summer",
+   "type": "Event Mutations",
+   "value": 6.2,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Tidal Wave Rod": 5.0
+   },
+   "how": [
+    "Tidal Wave Rod at a 5% chance.",
+    "Fished up naturally during the Fischfest 1 event at a 0.04% chance.",
+    "Appraisal during the Fischfest 1 event, at a 0.03% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lucky Gold",
+   "type": "Event Mutations",
+   "value": 6.14,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Accessories",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Leprechaun Line": 10.0
+   },
+   "items": [
+    "Lucky Gloves"
+   ],
+   "baits": [
+    "Clover Cluster"
+   ],
+   "how": [
+    "Leprechaun Line at a 10% chance.",
+    "Lucky Gloves at a 10% chance.",
+    "Fishing with the Clover Cluster Bait at a 50% chance.",
+    "Fished up naturally during the Shamrock Seas event at a 0.071% chance.",
+    "Appraisal, during the Shamrock Seas event at a 0.054% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Beached",
+   "type": "Event Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments",
+    "Admin Events",
+    "Companions",
+    "Appraisal",
+    "Weather",
+    "Natural"
+   ],
+   "enchants": [
+    "Beached"
+   ],
+   "how": [
+    "Beached Enchantment at a 10% chance.",
+    "Beached Affix at a 10% chance.",
+    "Appraisal, during the Fischfest 2 event at a Beached chance.",
+    "Fished up naturally at a 0.004% chance during Fischfest 2.",
+    "Fished up naturally at a 5% chance during a Tropical Sun.",
+    "Fishing with Sunhat Starfish equipped at a ~2.781% chance (~4.865% at max level)."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Bioluminescent",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural",
+    "Bait"
+   ],
+   "rods": {
+    "Luminous Rod": 10.0,
+    "Firefly Rod": 10.0
+   },
+   "weather": [
+    "Night"
+   ],
+   "baits": [
+    "Bio-Infused Coral"
+   ],
+   "how": [
+    "Luminous Rod at a 10% chance.",
+    "Firefly Rod at a 10% chance at Night.",
+    "Fishing with Bio-Infused Coral Bait at a 10% chance.",
+    "Fished up naturally in Outer Deep, Lower Deep and Gloomy Crevice at a 0.634% chance.",
+    "Bioluminescent base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Chilled",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Challenger's Rod": 35.0,
+    "Frostbane Rod": 10.0
+   },
+   "seasons": [
+    "Winter"
+   ],
+   "how": [
+    "Challenger's Rod at a 35% chance.",
+    "Frostbane Rod at a 10% chance.",
+    "30% during Winter."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Dune",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments"
+   ],
+   "enchants": [
+    "Dune"
+   ],
+   "how": [
+    "Dune Enchantment at a 5% chance."
+   ],
+   "group": "enchant"
+  },
+  {
+   "name": "Eerie",
+   "type": "Event Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Spooky Rod": 10.0
+   },
+   "enchants": [
+    "Eerie"
+   ],
+   "how": [
+    "Spooky Rod at a 10% chance.",
+    "Eerie Enchantment at a 10% chance.",
+    "Eerie Affix at a 10% chance.",
+    "Fished up naturally during the FischFright 2 event.",
+    "Appraisal during the FischFright 2 event."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Fallen",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Fallen Rod": 50.0
+   },
+   "how": [
+    "Fallen Rod at a 50% chance when fishing below a Y-Level of -400.",
+    "Fished up naturally at a 0.072% chance.",
+    "Fallen base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Fortune",
+   "type": "Admin Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Frightful",
+   "type": "Event Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Spooky Rod": 10.0
+   },
+   "enchants": [
+    "Frightful"
+   ],
+   "how": [
+    "Spooky Rod at a 10% chance.",
+    "Frightful Enchantment at a 10% chance.",
+    "Frightful Affix at a 10% chance.",
+    "Fished up naturally during the FischFright 2 event.",
+    "Appraisal during the FischFright 2 event."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Frostbite",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Harpoon Guns"
+   ],
+   "harpoons": [
+    "Frost Biter"
+   ],
+   "how": [
+    "Frost Biter at a 40% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Gravy",
+   "type": "Event Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural",
+    "Bait"
+   ],
+   "rods": {
+    "Cornucopia Rod": 10.0
+   },
+   "baits": [
+    "Gourd Bites",
+    "Pumpkin Pieces",
+    "Cranberry Cluster"
+   ],
+   "how": [
+    "Cornucopia Rod at a 10% chance.",
+    "Fishing with Gourd Bites Bait at a 20% chance.",
+    "Fishing with Pumpkin Pieces Bait at a 20% chance.",
+    "Fishing with Cranberry Cluster Bait at a 20% chance.",
+    "Fished up naturally during the Fischgiving 2 event at a 0.04% chance.",
+    "Appraisal during the Fischgiving 2 event, at a 0.03% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Haunted",
+   "type": "Admin Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Heavenly",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Heaven's Rod": 35.0,
+    "Seraphic Rod": 10.0
+   },
+   "how": [
+    "Heaven's Rod at a 35% chance.",
+    "40% when Mastery Enhancement is active.",
+    "+10% when above Y-Level 150.",
+    "Seraphic Rod at a 10% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Nova",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Weather",
+    "Bait"
+   ],
+   "rods": {
+    "Rod of the Singularity": 25.92,
+    "Rod of the Cosmos": 15.0,
+    "Cerulean Fang Rod": 15.0,
+    "Astraeus Serenade": 11.0
+   },
+   "weather": [
+    "Starfall",
+    "Lunar Eclipse"
+   ],
+   "baits": [
+    "Starlight Worm"
+   ],
+   "how": [
+    "Rod of the Singularity at a 25.92% chance.",
+    "Rod of the Cosmos at a 15% chance.",
+    "Cerulean Fang Rod at a 15% chance.",
+    "Astraeus Serenade at an 11% chance.",
+    "Fished up during Starfall at a 10% chance.",
+    "Fished up during Lunar Eclipse at a 5% chance.",
+    "Fished up using Starlight Worm at a 30% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Nuclear",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Fishing Rods"
+   ],
+   "items": [
+    "Nuke",
+    "Cursed Nuke"
+   ],
+   "rods": {
+    "nilCaster": 50.0
+   },
+   "how": [
+    "Fishing in the immediate fallout of a Nuke or a Cursed Nuke, at a 100% chance.",
+    "nilCaster at a 50% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Rainbow",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Lullaby": 18.0,
+    "Rainbow Cluster Rod": 10.0
+   },
+   "weather": [
+    "Rainbow"
+   ],
+   "how": [
+    "Lullaby at an 18% chance.",
+    "Rainbow Cluster Rod at a 10% chance. (15% during a Rainbow)"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Sand Castled",
+   "type": "Event Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Sand Castle Caster": 100.0
+   },
+   "how": [
+    "Sand Castle Caster at a 100% chance after filling the meter during the catch."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Snowy",
+   "type": "Admin Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Fallen Snowblade": 20.0
+   },
+   "seasons": [
+    "Winter",
+    "Summer"
+   ],
+   "how": [
+    "Fallen Snowblade at a 20% chance.",
+    "50% chance during Winter.",
+    "10% chance during Summer."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Spooky",
+   "type": "Event Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Spooky Rod": 10.0
+   },
+   "enchants": [
+    "Spooky"
+   ],
+   "how": [
+    "Spooky Rod at a 10% chance.",
+    "Spooky Enchantment at a 10% chance.",
+    "Spooky Affix at a 10% chance.",
+    "Fished up naturally during the FischFright 2 event.",
+    "Appraisal during the FischFright 2 event."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Squalled",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Weather"
+   ],
+   "rods": {
+    "Abaia's Spite": 75.0
+   },
+   "weather": [
+    "Tropical Squall",
+    "Raging Squall"
+   ],
+   "how": [
+    "Abaia's Spite at a 75% chance.",
+    "50% chance during a Perfect Catch.",
+    "Fished up during a Tropical Squall at a 15% chance.",
+    "Fished up during a Raging Squall at a 25% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Toxic",
+   "type": "Mutations",
+   "value": 6.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Toxic Spire Rod": 25.0,
+    "Toxinburst Rod": 15.0
+   },
+   "how": [
+    "Toxic Spire Rod at a 25% chance.",
+    "Toxinburst Rod at a 15% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Anomalous",
+   "type": "Mutations",
+   "value": 5.55,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments"
+   ],
+   "enchants": [
+    "Anomalous"
+   ],
+   "how": [
+    "Anomalous Enchantment at a 100% chance on duplicated fish (20% chance to duplicate fish)."
+   ],
+   "group": "enchant"
+  },
+  {
+   "name": "King's Blessing",
+   "type": "Mutations",
+   "value": 5.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Poseidon Rod": 10.0,
+    "Kings Rod": 5.0
+   },
+   "how": [
+    "Poseidon Rod at a 10% chance.",
+    "20% when Mastery Enhancement is active.",
+    "Kings Rod at a 5% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Abyssal",
+   "type": "Mutations",
+   "value": 5.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Companions",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Rod Of The Depths": 30.0,
+    "Abyssal Specter Rod": 25.0
+   },
+   "companions": [
+    "Mutated Sharky"
+   ],
+   "enchants": [
+    "Abyssal"
+   ],
+   "weather": [
+    "Abyssal Alignment"
+   ],
+   "how": [
+    "Rod Of The Depths at a 30% chance.",
+    "Rod Of The Depths ghost passive at a 85% chance.",
+    "Abyssal Specter Rod at a 25% chance.",
+    "35% when Mastery Enhancement is active.",
+    "Mutated Sharky at a 15% chance.",
+    "20% chance at max level.",
+    "Abyssal Enchantment at a 20% chance.",
+    "Fished up during an Abyssal Alignment at a 5% chance.",
+    "Fished up naturally in The Depths at a 0.09% chance.",
+    "Abyssal base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Mythical",
+   "type": "Mutations",
+   "value": 5.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Weather",
+    "Natural"
+   ],
+   "rods": {
+    "Paintbrush": 50.0,
+    "Mythical Rod": 30.0,
+    "Lullaby": 12.0
+   },
+   "weather": [
+    "Rainbow"
+   ],
+   "how": [
+    "Paintbrush at a 50% chance.",
+    "Mythical Rod at a 30% chance",
+    "35% when Mastery Enhancement is active.",
+    "Lullaby at a 12% chance.",
+    "Prismatic status effect at a 3% chance.",
+    "Fished up during a Rainbow at a 15% chance.",
+    "Fished up naturally at a 0.04% chance.",
+    "Mythical base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Wisp",
+   "type": "Admin Mutations",
+   "value": 5.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Solar",
+   "type": "Mutations",
+   "value": 5.3,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Daybreaker Rod": 50.0
+   },
+   "weather": [
+    "Day",
+    "Night"
+   ],
+   "how": [
+    "Daybreaker Rod at a 50% chance during Day. (25% during Night)"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Clockwork",
+   "type": "Limited Mutations",
+   "value": 5.25,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Steampunk Rod": 25.0
+   },
+   "how": [
+    "Steampunk Rod at a 25% chance.",
+    "Steampunk Rod at a 100% chance while Kinetic Release is active."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Glyphed",
+   "type": "Exclusive Mutations",
+   "value": 5.2,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Pen Rod": 52.0
+   },
+   "how": [
+    "Pen Rod at a 52% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Spirit",
+   "type": "Mutations",
+   "value": 5.2,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Spiritbinder": 10.0,
+    "Tranquility Rod": 15.0,
+    "SOULREAPER": 100.0
+   },
+   "how": [
+    "Spiritbinder at a 10% chance.",
+    "Spiritbinder's passives at a 100% chance.",
+    "Tranquility Rod at a 15% chance.",
+    "SOULREAPER passive at a 100% chance.",
+    "Fished up naturally at a 0.05% chance.",
+    "Spirit base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Colossal Ink",
+   "type": "Exclusive Mutations",
+   "value": 5.0,
+   "priority": 4,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Colossal Ink Bait"
+   ],
+   "how": [
+    "Fishing with Colossal Ink Bait at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Corvid",
+   "type": "Exclusive Mutations",
+   "value": 5.0,
+   "priority": 4,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Corvid Algae"
+   ],
+   "how": [
+    "Fishing with Corvid Algae Bait at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Galactic",
+   "type": "Exclusive Mutations",
+   "value": 5.0,
+   "priority": 4,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Astrolure"
+   ],
+   "how": [
+    "Fishing with Astrolure at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Nullified",
+   "type": "Exclusive Mutations",
+   "value": 5.0,
+   "priority": 4,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Nullbit"
+   ],
+   "how": [
+    "Fishing with Nullbit at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lobster",
+   "type": "Limited Mutations",
+   "value": 5.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Lobster Rod": 30.0
+   },
+   "how": [
+    "Lobster Rod at a 30% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Ashen Fortune",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Volcanic Rod": 30.0,
+    "Scalding Hook": 100.0
+   },
+   "how": [
+    "Volcanic Rod at a 30% chance.",
+    "Scalding Hook passive at a 100% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Barnacle",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Barnacle Cluster"
+   ],
+   "how": [
+    "Fishing with Barnacle Cluster at a 20% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Carrot",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Carrot Rod": 25.0
+   },
+   "how": [
+    "Carrot Rod at a 25% chance.",
+    "Fishing in the \"Carrot Pool\" spawned by the Carrot Rod at a 15% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Creamsicle",
+   "type": "Event Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Creamsicle Rod": 25.0
+   },
+   "how": [
+    "Creamsicle Rod at a 25% chance.",
+    "Creamsicle Rod's passive at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Electric Shock",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Zeus Rod": 90.0
+   },
+   "how": [
+    "Fishing in Zeus Rod's \"Thunderstorm\" ability at a 90% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Emberflame",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects",
+    "Admin Events"
+   ],
+   "how": [
+    "Infernal Melody status effect at a 15% chance.",
+    "Infernal Melody status effect at a 20% chance.",
+    "Ablaze status effect at a 5% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Gemstone",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Treasure Rod": 30.0
+   },
+   "how": [
+    "Treasure Rod at a 30% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Gingerbread",
+   "type": "Event Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Admin Events",
+    "Accessories",
+    "Appraisal",
+    "Weather",
+    "Natural"
+   ],
+   "rods": {
+    "Gingerbread Rod": 25.0,
+    "Santa's Miracle Rod": 3.3
+   },
+   "items": [
+    "Winter Gloves"
+   ],
+   "weather": [
+    "Winter"
+   ],
+   "enchants": [
+    "Gingerbread",
+    "Santa",
+    "Festive"
+   ],
+   "how": [
+    "Gingerbread Rod at a 25% chance.",
+    "Santa's Miracle Rod at a ~3.3% chance.",
+    "Winter Gloves at a ~3.3% chance.",
+    "5% during Winter.",
+    "Gingerbread Enchantment at a 10% chance.",
+    "Santa Enchantment at a 6% chance.",
+    "Festive Affix at a ~3.33% chance.",
+    "Santa Affix at a 2% chance.",
+    "Fished up naturally during a Frost Moon at 3% chance.",
+    "Appraisal during the Fischmas 2 event at a 0.03% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Greedy",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Rod Of The Eternal King": 60.0,
+    "Dead Man's Rod": 20.0,
+    "Noctone": 20.0,
+    "Scurvy Rod": 15.0,
+    "Champions Rod": 10.0
+   },
+   "how": [
+    "Rod Of The Eternal King at a 60% chance.",
+    "Dead Man's Rod at a 20% chance.",
+    "Noctone at a 20% chance.",
+    "Scurvy Rod at a 15% chance.",
+    "Champions Rod at a 10% chance.",
+    "Fished up naturally at a 0.05% chance.",
+    "Greedy base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Idol's Spirit",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Ancient Idol Rod": 60.0
+   },
+   "how": [
+    "Ancient Idol Rod Idol’s Blessing passive up to a 60% chance when the Petrification Bar is not full."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Levitas",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Onirifalx": 50.0
+   },
+   "how": [
+    "Onirifalx at a 50% chance.",
+    "60% when Mastery Enhancement is active."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Merry",
+   "type": "Event Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Admin Events",
+    "Accessories",
+    "Appraisal",
+    "Weather",
+    "Natural",
+    "Bait"
+   ],
+   "rods": {
+    "Christmas Tree Rod": 25.0,
+    "Santa's Miracle Rod": 3.3
+   },
+   "items": [
+    "Winter Gloves"
+   ],
+   "weather": [
+    "Winter"
+   ],
+   "enchants": [
+    "Merry",
+    "Santa",
+    "Festive"
+   ],
+   "baits": [
+    "Cookie Crumble",
+    "Fruitcake Flakes"
+   ],
+   "how": [
+    "Christmas Tree Rod at a 25% chance.",
+    "Santa's Miracle Rod at a ~3.3% chance.",
+    "Winter Gloves at a ~3.33% chance.",
+    "5% during Winter.",
+    "Merry Enchantment at a 10% chance.",
+    "Santa Enchantment at a 6% chance.",
+    "Festive Affix at a ~3.33% chance.",
+    "Santa Affix at a 2% chance.",
+    "Fishing with Cookie Crumble at a 10% chance.",
+    "Fishing with Fruitcake Flakes at a 10% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Nico's Nyantics",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Companions"
+   ],
+   "companions": [
+    "Nico"
+   ],
+   "rods": {
+    "Nico's Yarncaster": 33.0
+   },
+   "items": [
+    "Clownfish Cat Toy"
+   ],
+   "how": [
+    "Nico at a 30% chance every 30 seconds. (15 seconds at max level)",
+    "Nico's Yarncaster's mastery enhancement at a 33% chance. (63% when Clownfish Cat Toy is equipped)",
+    "Nico's Yarncaster with the Clownfish Cat Toy bobber equipped at a 30% chance. (60% when Mastery Enhancement is active)"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Olympian Infliction",
+   "type": "Limited Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Natural"
+   ],
+   "events": [
+    "Zeus Storm"
+   ],
+   "how": [
+    "Anywhere during a Zeus Storm at a 12% chance.",
+    "Fished up naturally in Atlantean Storm at a 12% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Paranormal",
+   "type": "Limited Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "SOULREAPER": 50.0
+   },
+   "how": [
+    "SOULREAPER at a 50% chance.",
+    "SOULREAPER Tombstone passive at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Peppermint",
+   "type": "Event Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Admin Events",
+    "Accessories",
+    "Appraisal",
+    "Weather",
+    "Natural"
+   ],
+   "rods": {
+    "Peppermint Rod": 25.0,
+    "Santa's Miracle Rod": 3.3
+   },
+   "items": [
+    "Winter Gloves"
+   ],
+   "weather": [
+    "Winter"
+   ],
+   "enchants": [
+    "Peppermint",
+    "Santa",
+    "Festive"
+   ],
+   "how": [
+    "Peppermint Rod at a 25% chance.",
+    "Santa's Miracle Rod at a ~3.3% chance.",
+    "Winter Gloves at a ~3.33% chance.",
+    "5% during Winter.",
+    "Peppermint Enchantment at a 10% chance.",
+    "Santa Enchantment at a 6% chance.",
+    "Festive Affix at a ~3.33% chance.",
+    "Santa Affix at a 2% chance.",
+    "Fished up naturally during a Frost Moon at 3% chance.",
+    "Appraisal during the Fischmas 2 event at a 0.03% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Rainbow Cluster",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Weather"
+   ],
+   "rods": {
+    "Rainbow Cluster Rod": 20.0
+   },
+   "weather": [
+    "Rainbow"
+   ],
+   "how": [
+    "Rainbow Cluster Rod at a 20% chance. (35% during a Rainbow)",
+    "Fished up during a Rainbow at a 5% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Sandstormy",
+   "type": "Admin Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Sanguine",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments"
+   ],
+   "rods": {
+    "Sanguine Spire": 30.0,
+    "No-Life Rod": 25.0
+   },
+   "enchants": [
+    "Sacrificial"
+   ],
+   "how": [
+    "Sanguine Spire at a 30% chance.",
+    "No-Life Rod at a 25% chance with Mastery Enhancement active.",
+    "Sacrificial Enchantment at a chance equal to the players current HP."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Skeletal",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Spears"
+   ],
+   "spears": [
+    "Bone Lance"
+   ],
+   "how": [
+    "Bone Lance at a 20% chance.",
+    "Bone Lance's passive at a 100% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Terro",
+   "type": "Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Terrotrapper": 40.0
+   },
+   "how": [
+    "Terrotrapper at a 40% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Veilfallen",
+   "type": "Limited Mutations",
+   "value": 5.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Wingkeeper": 50.0
+   },
+   "how": [
+    "Wingkeeper at a 50% chance during the night."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Electrified",
+   "type": "Mutations",
+   "value": 4.9,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Zeus's Thundermaul": 90.0
+   },
+   "how": [
+    "Zeus's Thundermaul at a 90% chance during the Electrified State."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Blossomed",
+   "type": "Mutations",
+   "value": 4.6,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Verdant Oath": 40.0
+   },
+   "how": [
+    "Verdant Oath if the fish is not perfect caught, at a 40% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Blarney",
+   "type": "Event Mutations",
+   "value": 4.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Lucky"
+   ],
+   "how": [
+    "Fishing with Lucky Bait at a 50% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Clover",
+   "type": "Event Mutations",
+   "value": 4.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Shamrock Rod": 10.0,
+    "Clover Rod": 1.0
+   },
+   "how": [
+    "Shamrock Rod at a 10% chance.",
+    "Clover Rod at a 1% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lost",
+   "type": "Mutations",
+   "value": 4.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "The Lost Rod": 36.0
+   },
+   "how": [
+    "The Lost Rod at a 36% chance after a Perfect Catch."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Rose",
+   "type": "Event Mutations",
+   "value": 4.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Rose Rod": 30.0
+   },
+   "how": [
+    "Rose Rod at a 30% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Blackwater",
+   "type": "Mutations",
+   "value": 4.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Blackwater Leech"
+   ],
+   "how": [
+    "Fishing with Blackwater Leech at a 10% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Bunny",
+   "type": "Event Mutations",
+   "value": 4.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Bunnybloom Caster": 25.0
+   },
+   "weather": [
+    "Spring"
+   ],
+   "how": [
+    "Bunnybloom Caster at a 25% chance. (50% chance during Spring)"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Phantom",
+   "type": "Mutations",
+   "value": 4.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Eidolon Rod": 35.0
+   },
+   "how": [
+    "Eidolon Rod at a 35% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Wrath",
+   "type": "Mutations",
+   "value": 4.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Rod Of The Zenith": 70.0,
+    "Dead Man's Rod": 20.0,
+    "Crimsonwrath": 10.0
+   },
+   "weather": [
+    "Poseidon Wrath"
+   ],
+   "how": [
+    "Rod Of The Zenith at a 70% chance.",
+    "Dead Man's Rod at a 20% chance.",
+    "Crimsonwrath at a 10% chance.",
+    "Fished up anywhere during Poseidon Wrath at a 2% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Harmonized",
+   "type": "Mutations",
+   "value": 4.2,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Pinion's Aria": 42.0
+   },
+   "how": [
+    "Pinion's Aria at a 42% chance.",
+    "62% when Mastery Enhancement is active."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Doomsday",
+   "type": "Admin Mutations",
+   "value": 4.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Easter",
+   "type": "Event Mutations",
+   "value": 4.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Egg Rod": 10.0
+   },
+   "how": [
+    "Egg Rod at a 10% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Firework",
+   "type": "Event Mutations",
+   "value": 4.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Firework Rod": 15.0
+   },
+   "how": [
+    "Firework Rod at a 15% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Amped",
+   "type": "Event Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Microphone Rod": 10.0
+   },
+   "how": [
+    "Microphone Rod at a 10% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Atlantean",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Harpoon Guns"
+   ],
+   "rods": {
+    "Trident Rod": 30.0,
+    "Dead Man's Rod": 20.0
+   },
+   "harpoons": [
+    "Trident Striker"
+   ],
+   "how": [
+    "Trident Rod at a 30% chance.",
+    "Trident Striker at a 30% chance.",
+    "Dead Man's Rod at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Bloom",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Free Spirit Rod": 30.0,
+    "Chrysalis": 80.0
+   },
+   "how": [
+    "Free Spirit Rod at a 30% chance.",
+    "Chrysalis at an 80% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Blue Moon",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Weather"
+   ],
+   "weather": [
+    "Blue Moon"
+   ],
+   "how": [
+    "Fished up during a Blue Moon at a 10% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Boreal",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Boreal Rod": 40.0
+   },
+   "how": [
+    "Boreal Rod at a 40% chance.",
+    "Fished up naturally in Boreal Pines at a 0.07% chance.",
+    "Boreal base chance. through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Celestial",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods",
+    "Admin Events",
+    "Weather"
+   ],
+   "rods": {
+    "Astraeus Serenade": 11.0
+   },
+   "weather": [
+    "Celestial Congregation",
+    "Lunar Eclipse"
+   ],
+   "how": [
+    "Astraeus Serenade at an 11% chance.",
+    "Celestial status effect at a 100% chance.",
+    "Celestial Congregation weather at a 5% chance",
+    "Lunar Eclipse at a 5% chance"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Cracked",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "how": [
+    "Ablaze status effect at a 5% chance.",
+    "Ablaze status effect at a 10% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Crimson",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Scarlet Spincaster Rod": 30.0,
+    "No-Life Rod": 25.0,
+    "Crimsonwrath": 10.0
+   },
+   "how": [
+    "Scarlet Spincaster Rod at a 30% chance.",
+    "No-Life Rod at a 25% chance with Mastery Enhancement active.",
+    "Crimsonwrath at a 10% chance.",
+    "Fished up naturally in Crimson Cavern at a 0.11% chance.",
+    "Crimson base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Cursed",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Admin Events"
+   ],
+   "how": [
+    "Fished up in the Cursed Storm at a 8% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Entrenched",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Appraisal",
+    "Natural",
+    "Bait"
+   ],
+   "baits": [
+    "Trench Grubs"
+   ],
+   "how": [
+    "Fishing with Trench Grubs Bait at a 10% chance.",
+    "Fished up naturally in Outer Deep, Lower Deep and Gloomy Crevice at a 0.317% chance.",
+    "Entrenched base chance through Appraisal."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Fungal",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Harpoon Guns"
+   ],
+   "rods": {
+    "Fungal Rod": 30.0
+   },
+   "harpoons": [
+    "Fungal Harpoon Gun"
+   ],
+   "how": [
+    "Fungal Rod at a 30% chance.",
+    "Fungal Harpoon Gun at a 30% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Hades' Infliction",
+   "type": "Limited Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Natural"
+   ],
+   "events": [
+    "Zeus Storm"
+   ],
+   "how": [
+    "Anywhere during a Zeus Storm at a 13% chance.",
+    "Fished up naturally in Atlantean Storm at a 13% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lovestruck",
+   "type": "Event Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Cupid's Bow": 60.0
+   },
+   "how": [
+    "Cupid's Bow at a 60% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Marrow",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Marrow Rod": 35.0
+   },
+   "how": [
+    "Marrow Rod at a 35% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Moon-Kissed",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects"
+   ],
+   "how": [
+    "Blue Moon status effect at a 5% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Revitalized",
+   "type": "Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "NPCs"
+   ],
+   "how": [
+    "Obtained by giving Amber fish to the Chiseler at a 25% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Stardust",
+   "type": "Limited Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Astralhook Rod": 10.0
+   },
+   "how": [
+    "Astralhook Rod at a 10% chance if the catch had a Perfect Cast and a Perfect Catch."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Tiki",
+   "type": "Event Mutations",
+   "value": 4.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Tiki Rod": 30.0
+   },
+   "how": [
+    "Tiki Rod at a 30% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Zeus's Infliction",
+   "type": "Limited Mutations",
+   "value": 3.8,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Natural"
+   ],
+   "events": [
+    "Zeus Storm"
+   ],
+   "how": [
+    "Anywhere during a Zeus Storm at a 14% chance.",
+    "Fished up naturally in Atlantean Storm at a 14% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Aureolin",
+   "type": "Mutations",
+   "value": 3.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Auric Rod": 20.0
+   },
+   "how": [
+    "Auric Rod at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Beach Ball",
+   "type": "Limited Mutations",
+   "value": 3.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Beach Ball Rod": 10.0
+   },
+   "how": [
+    "Beach Ball Rod at a 10% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Brined",
+   "type": "Mutations",
+   "value": 3.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Brine-Infused Rod": 50.0
+   },
+   "how": [
+    "Brine-Infused Rod at a 50% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Crystalized",
+   "type": "Mutations",
+   "value": 3.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Crystalized Rod": 30.0
+   },
+   "how": [
+    "Crystalized Rod at a 30% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Dreaming",
+   "type": "Limited Mutations",
+   "value": 3.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Bloomspire: Slumbering Elegance": 85.0
+   },
+   "how": [
+    "Bloomspire: Slumbering Elegance at a 85% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lucid",
+   "type": "Mutations",
+   "value": 3.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Lucid Rod": 20.0
+   },
+   "weather": [
+    "Clear"
+   ],
+   "how": [
+    "Lucid Rod at a 20% chance.",
+    "30% during Clear weather.",
+    "Lucid Rod at a 100% chance alongside caught {{Mutation fish.|20% chance for Lucid.30% chance for Lucid during Clear weather.}}"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Poseidon's Infliction",
+   "type": "Limited Mutations",
+   "value": 3.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Natural"
+   ],
+   "events": [
+    "Zeus Storm"
+   ],
+   "how": [
+    "Anywhere during a Zeus Storm at a 14% chance.",
+    "Fished up naturally in Atlantean Storm at a 14% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Solarblaze",
+   "type": "Mutations",
+   "value": 3.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods",
+    "Admin Events",
+    "Weather",
+    "Natural"
+   ],
+   "rods": {
+    "Fang of the Eclipse": 10.0,
+    "Wicked Fang Rod": 30.0,
+    "Phoenix Rod": 10.0
+   },
+   "weather": [
+    "Eclipse",
+    "Evershifting Eclipse"
+   ],
+   "how": [
+    "Fang of the Eclipse at a 10% chance.",
+    "Wicked Fang Rod at a 30% chance.",
+    "Phoenix Rod at a 10% chance.",
+    "Eclipsed status effect at a 90% chance.",
+    "Fished up during an Eclipse at a 10% chance.",
+    "Fished up during an Evershifting Eclipse at a 5% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Vined",
+   "type": "Mutations",
+   "value": 3.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Vineweaver Rod": 30.0
+   },
+   "how": [
+    "Vineweaver Rod at a 30% chance.",
+    "Fished up naturally in Lost Jungle at a 0.14%.",
+    "Vined base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Fossilized",
+   "type": "Mutations",
+   "value": 3.3,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Voyager Rod": 40.0
+   },
+   "how": [
+    "Voyager Rod at a 40% chance.",
+    "Fished up naturally at a 0.15% chance.",
+    "Fossilized base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Mesmerized",
+   "type": "Limited Mutations",
+   "value": 3.2,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "MiguRod": 100.0
+   },
+   "how": [
+    "MiguRod's additional catch passive at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Minty",
+   "type": "Event Mutations",
+   "value": 3.2,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Appraisal",
+    "Natural"
+   ],
+   "how": [
+    "Fished up naturally during the Fischmas 1 event.",
+    "Appraisal during the Fischmas 1 event."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Apollo's Infliction",
+   "type": "Limited Mutations",
+   "value": 3.2,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Natural"
+   ],
+   "events": [
+    "Zeus Storm"
+   ],
+   "how": [
+    "Anywhere during a Zeus Storm at a 15% chance.",
+    "Fished up naturally in Atlantean Storm at a 15% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Awesome",
+   "type": "Event Mutations",
+   "value": 3.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Natural"
+   ],
+   "rods": {
+    "Brick Built Rod": 10.0
+   },
+   "how": [
+    "Brick Built Rod at a 10% chance.",
+    "Fished up naturally during the LEGO Event at a 0.04% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Brother",
+   "type": "Limited Mutations",
+   "value": 3.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Brother's Rod": 100.0
+   },
+   "how": [
+    "Brother's Rod at a 100% chance on duplicated fish (20% chance to duplicate fish)."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Ghastly",
+   "type": "Event Mutations",
+   "value": 3.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Haunted Rod": 10.0
+   },
+   "how": [
+    "Haunted Rod at a 10% chance.",
+    "Fished up naturally during the FischFright 1 event.",
+    "Appraisal during the FischFright 1 event."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Astral",
+   "type": "Limited Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Astralhook Rod": 63.0
+   },
+   "how": [
+    "Fishing in the \"Enchanted Pool\" spawned by the Astralhook Rod, at a 63% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Aurulent",
+   "type": "Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Auric Rod": 20.0
+   },
+   "how": [
+    "Auric Rod at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Bellona's Infliction",
+   "type": "Limited Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Natural"
+   ],
+   "events": [
+    "Zeus Storm"
+   ],
+   "how": [
+    "Anywhere during a Zeus Storm at a 15% chance.",
+    "Fished up naturally in Atlantean Storm at a 15% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Blighted",
+   "type": "Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Ice Warpers Rod": 25.0,
+    "Summit Rod": 15.0
+   },
+   "weather": [
+    "Blizzard"
+   ],
+   "how": [
+    "Ice Warpers Rod at a 25% chance.",
+    "Summit Rod at a 15% chance.",
+    "20% when Mastery Enhancement is active.",
+    "Fished up at Northern Expedition during a Blizzard at a 15% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Brown Wood",
+   "type": "Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Verdant Shear Rod": 33.3
+   },
+   "how": [
+    "Fishing with Verdant Shear Rod at a 33.3% chance from the passive ability"
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Ember",
+   "type": "Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Magma Rod": 35.0
+   },
+   "how": [
+    "Ablaze status effect at a 20% chance.",
+    "Ablaze status effect at a 35% chance.",
+    "Magma Rod at a 35% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Floatie",
+   "type": "Event Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Floatie Rod": 10.0
+   },
+   "how": [
+    "Floatie Rod at a 10% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Green Leaf",
+   "type": "Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Verdant Shear Rod": 33.3
+   },
+   "how": [
+    "Verdant Shear Rod at a 33.3% chance from the passive ability."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Hexed",
+   "type": "Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "No-Life Rod": 50.0,
+    "Original No-Life Rod": 20.0,
+    "Rod Of The Depths": 15.0
+   },
+   "how": [
+    "No-Life Rod, at a 50% chance.",
+    "Original No-Life Rod, at a 20% chance.",
+    "Rod Of The Depths, at a 15% chance.",
+    "Fished up naturally at a 0.55% chance.",
+    "Hexed base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Mother Nature",
+   "type": "Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Verdant Shear Rod": 33.3,
+    "Wildflower Rod": 50.0
+   },
+   "how": [
+    "Verdant Shear Rod at a 33.3% chance from the passive ability.",
+    "Wildflower Rod at a 50% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Quiet",
+   "type": "Limited Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Polaris Serenade": 100.0,
+    "Astraeus Serenade": 100.0
+   },
+   "how": [
+    "Polaris Serenade at a 100% chance every two minutes.",
+    "Astraeus Serenade's mastery enhancement at a 100% chance every three minutes."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Scavenged",
+   "type": "Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Scavenger Rod": 40.0
+   },
+   "how": [
+    "Scavenger Rod at a 40% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Scorched",
+   "type": "Mutations",
+   "value": 3.0,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Phoenix Rod": 40.0
+   },
+   "how": [
+    "Phoenix Rod at a 40% chance.",
+    "Infernal Melody status effect at a 60% chance.",
+    "Infernal Melody status effect at a 60% chance.",
+    "Fished up naturally at a 0.33% chance.",
+    "Scorched base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Sinister",
+   "type": "Event Mutations",
+   "value": 2.9,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Haunted Rod": 10.0
+   },
+   "how": [
+    "Haunted Rod at a 10% chance.",
+    "Fished up naturally during the FischFright 1 event.",
+    "Appraisal during the FischFright 1 event."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Kaito's Blessing",
+   "type": "Mutations",
+   "value": 2.8,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Spears"
+   ],
+   "rods": {
+    "Artisan Rod": 25.0
+   },
+   "spears": [
+    "Artisan Spear"
+   ],
+   "how": [
+    "Artisan Rod at a 25% chance.",
+    "Artisan Spear at a 25% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "New Years",
+   "type": "Event Mutations",
+   "value": 2.6,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "New Years Rod": 15.0
+   },
+   "how": [
+    "New Years Rod at a 15% chance.",
+    "Fished up naturally during the New Years Countdown event at a 0.09% chance.",
+    "Appraisal during the New Years Countdown event at a 0.09% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Honey",
+   "type": "Mutations",
+   "value": 2.6,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Sweet-Stinger": 30.0
+   },
+   "how": [
+    "Sweet-Stinger at a 30% chance.",
+    "Fished up in Nectar Den at a 0.107% chance.",
+    "Honey base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Batty",
+   "type": "Event Mutations",
+   "value": 2.5,
+   "priority": 3,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Bat Whisperer Rod": 100.0
+   },
+   "how": [
+    "Bat Whisperer Rod's passive at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Chocolate",
+   "type": "Event Mutations",
+   "value": 2.5,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Chocolate Fish"
+   ],
+   "how": [
+    "Fishing with Chocolate Fish Bait at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Aureate",
+   "type": "Mutations",
+   "value": 2.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Auric Rod": 20.0
+   },
+   "how": [
+    "Auric Rod at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Botanic",
+   "type": "Admin Mutations",
+   "value": 2.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Lunar",
+   "type": "Mutations",
+   "value": 2.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Weather"
+   ],
+   "rods": {
+    "Astral Rod": 5.0,
+    "Event Horizon Rod": 5.0,
+    "Moonlit Rod": 100.0
+   },
+   "weather": [
+    "Moonlit Mirage",
+    "Lunar Eclipse"
+   ],
+   "how": [
+    "Astral Rod at a 5% chance.",
+    "Event Horizon Rod at a 5% chance.",
+    "Moonlit Rod at a 100% chance during Moonlit Mirage",
+    "Moonlit Blessing status effect at a 100% chance.",
+    "Fished up naturally during a Moonlit Mirage at a 0.63% chance.",
+    "Fished up during Lunar Eclipse at a 5% chance.",
+    "Lunar base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Marshmallow",
+   "type": "Event Mutations",
+   "value": 2.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Marshmallow Chicks"
+   ],
+   "how": [
+    "Fishing with Marshmallow Chicks Bait at a 50% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Midas",
+   "type": "Mutations",
+   "value": 2.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Natural",
+    "Spears"
+   ],
+   "rods": {
+    "Midas Rod": 100.0
+   },
+   "spears": [
+    "Royal Spear"
+   ],
+   "how": [
+    "Midas Rod at a 100% chance.",
+    "Royal Spear at a 35% chance.",
+    "Fished up naturally at a 0.11% chance.",
+    "Midas base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Purified",
+   "type": "Mutations",
+   "value": 2.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments",
+    "NPCs"
+   ],
+   "enchants": [
+    "Insight"
+   ],
+   "how": [
+    "Obtained by giving Amber fish to the Chiseler at a 75% chance.",
+    "Insight Enchantment at a 30% chance."
+   ],
+   "group": "enchant"
+  },
+  {
+   "name": "Skrunkly",
+   "type": "Mutations",
+   "value": 2.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Nico's Yarncaster": 30.0
+   },
+   "how": [
+    "Nico's Yarncaster at a 30% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Splashed",
+   "type": "Event Mutations",
+   "value": 2.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Pool Noodle Rod": 15.0
+   },
+   "how": [
+    "Pool Noodle Rod at a 15% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Sludged",
+   "type": "Mutations",
+   "value": 2.5,
+   "priority": -1,
+   "appraisable": false,
+   "sources": [
+    "Companions"
+   ],
+   "companions": [
+    "Smudge"
+   ],
+   "weather": [
+    "Foggy"
+   ],
+   "how": [
+    "Smudge every 1—2 minutes. (45—90 seconds at max level)",
+    "Fishing with Smudge equipped while it is Foggy at a 10% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Festive",
+   "type": "Event Mutations",
+   "value": 2.4,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Candy Cane Rod": 10.0
+   },
+   "how": [
+    "Candy Cane Rod at a 10% chance.",
+    "Fished up naturally during the Fischmas 1 event.",
+    "Appraisal during the Fischmas 1 event."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Sleet",
+   "type": "Mutations",
+   "value": 2.4,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Avalanche Rod": 25.0,
+    "Summit Rod": 20.0
+   },
+   "weather": [
+    "Avalanche"
+   ],
+   "how": [
+    "Avalanche Rod at a 25% chance.",
+    "Summit Rod at a 20% chance.",
+    "25% when Mastery Enhancement is active.",
+    "Fished up at Northern Expedition during an Avalanche at a 10% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Oak",
+   "type": "Admin Mutations",
+   "value": 2.3,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Eardrum": 35.0
+   },
+   "how": [
+    "Eardrum at a 35% chance.",
+    "Eardrum's passive ability at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Jolly",
+   "type": "Event Mutations",
+   "value": 2.2,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural",
+    "Codes",
+    "Bait"
+   ],
+   "rods": {
+    "Antler Rod": 25.0
+   },
+   "baits": [
+    "Holly Berry"
+   ],
+   "codes": [
+    "FischmasSoon"
+   ],
+   "how": [
+    "Antler Rod at a 25% chance.",
+    "Fishing with Holly Berry Bait at a 20% chance.",
+    "Fished up naturally during the Fischmas 1 event.",
+    "Appraisal during the Fischmas 1 event.",
+    "FischmasSoon Code awarded Bountiful Bait Crate."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Electric",
+   "type": "Mutations",
+   "value": 2.1,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Admin Events",
+    "Appraisal",
+    "Weather",
+    "Natural"
+   ],
+   "enchants": [
+    "Storming"
+   ],
+   "weather": [
+    "Rain",
+    "Stormy"
+   ],
+   "rods": {
+    "Tempest Rod": 10.0
+   },
+   "how": [
+    "Storming Enchantment at a 25% chance outside of Rain and Stormy, 50% chance during Rain, 75% chance during Stormy.",
+    "Fished up naturally at a 0.55% chance, boosted to 15% in Grand Reef.",
+    "Fished up during Stormy weather at a 10% chance.",
+    "Electric base chance through Appraisal.",
+    "Tempest Rod at a 10% chance",
+    "35% chance when the Mastery Enhancement is active outside of Rain, 60% during Rain."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Beachy",
+   "type": "Event Mutations",
+   "value": 2.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Tidal Wave Rod": 20.0
+   },
+   "how": [
+    "Tidal Wave Rod at a 20% chance.",
+    "Fished up naturally during the Fischfest 1 event at a 0.08% chance.",
+    "Appraisal during the Fischfest 1 event, at a 0.06% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Honked",
+   "type": "Limited Mutations",
+   "value": 2.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Silly Fun Happy Rod": 50.0
+   },
+   "how": [
+    "Silly Fun Happy Rod at a 50% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Smurf",
+   "type": "Event Mutations",
+   "value": 2.0,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Smurf Rod": 10.0
+   },
+   "how": [
+    "Smurf Rod at a 10% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Aurelian",
+   "type": "Mutations",
+   "value": 2.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Auric Rod": 20.0
+   },
+   "how": [
+    "Auric Rod at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Bubblegum",
+   "type": "Limited Mutations",
+   "value": 2.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Nates Blade": 33.0
+   },
+   "how": [
+    "Nates Blade at a 33% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Candy",
+   "type": "Event Mutations",
+   "value": 2.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Enchantments",
+    "Admin Events",
+    "Bait"
+   ],
+   "enchants": [
+    "Valentine's"
+   ],
+   "baits": [
+    "Fischversation Hearts"
+   ],
+   "how": [
+    "Valentine's Enchantment at a 15% chance.",
+    "Valentine's Affix at a ~3.33% chance.",
+    "Fishing with Fischversation Hearts at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Forgotten",
+   "type": "Mutations",
+   "value": 2.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Thalassar's Ruin": 90.0
+   },
+   "how": [
+    "Thalassar's Ruin at a 90% chance every 25 seconds."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Golden",
+   "type": "Mutations",
+   "value": 2.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events",
+    "Companions",
+    "Bait"
+   ],
+   "baits": [
+    "Golden Shrimp Bait"
+   ],
+   "companions": [
+    "Plunderbeak"
+   ],
+   "how": [
+    "Fishing with Golden Shrimp Bait at a 100% chance.",
+    "Plunderbeak when catching a fish with a higher rarity than Trash at a 10% chance. (20% when fully leveled up)"
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Lightning",
+   "type": "Mutations",
+   "value": 2.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Test Rod": 5.0
+   },
+   "weather": [
+    "Zeus Storm"
+   ],
+   "how": [
+    "Test Rod at a 5% chance.",
+    "Fished up during a Zeus Storm in Zeus's Sanctuary at a 10% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Lumpy",
+   "type": "Limited Mutations",
+   "value": 2.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Nates Blade": 33.0
+   },
+   "how": [
+    "Nates Blade at a 33% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Mace",
+   "type": "Admin Mutations",
+   "value": 2.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Rockstar",
+   "type": "Limited Mutations",
+   "value": 2.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Nates Blade": 33.0
+   },
+   "how": [
+    "Nates Blade at a 33% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Shady",
+   "type": "Mutations",
+   "value": 2.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Localized Events",
+    "Fishing Rods",
+    "Admin Events",
+    "Bait"
+   ],
+   "rods": {
+    "Shady Rod": 35.0
+   },
+   "baits": [
+    "Shady Larva"
+   ],
+   "items": [
+    "Shady Nuke"
+   ],
+   "how": [
+    "Shady Rod at a 35% chance.",
+    "Fishing with Shady Larva at a 25% chance.",
+    "Fishing in the immediate fallout of a Shady Nuke at a 100% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Shiny",
+   "type": "Attributes",
+   "value": 1.85,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods",
+    "Enchantments",
+    "Appraisal",
+    "Weather",
+    "Natural"
+   ],
+   "weather": [
+    "Shiny Surge",
+    "Rainbow"
+   ],
+   "enchants": [
+    "Glimmering Crown",
+    "Blessed",
+    "Glittered"
+   ],
+   "rods": {
+    "Destiny Rod": 10.0,
+    "Seraphic Rod": 8.0,
+    "SOULREAPER": 3.0,
+    "Polaris Serenade": 3.0,
+    "Chrysalis": 20.0,
+    "Noctone": 7.0,
+    "Astraeus Serenade": 3.0,
+    "Masterline Rod": 8.0,
+    "Pinion's Aria": 14.2,
+    "Paintbrush": 10.0,
+    "Fabulous Rod": 5.0,
+    "MiguRod": 14.0,
+    "Lullaby": 2.0,
+    "Remembrance": 7.0
+   },
+   "items": [
+    "Calm Gauntlets",
+    "Mariana's Gauntlets"
+   ],
+   "how": [
+    "Fished up naturally or appraised at a 1% chance.",
+    "increased by 1.1-2× during a Shiny mini-event (does not affect appraisal).",
+    "increased by 3% during a Shiny Surge.",
+    "increased by 5% during a Rainbow.",
+    "Glimmering Crown Sovereign Enchantment increasing chance by 10%.",
+    "Blessed Enchantment increasing chance by 5% .",
+    "Glittered Secondary Enchantment increasing chance by 3%.",
+    "Destiny Rod increasing chance by 10%.",
+    "15% when Mastery Enhancement is active.",
+    "Seraphic Rod increasing chance by 8% after completing the \"Perfection of the Skies\" mastery."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Sparkling",
+   "type": "Attributes",
+   "value": 1.85,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Status Effects",
+    "Fishing Rods",
+    "Enchantments",
+    "Appraisal",
+    "Weather",
+    "Natural"
+   ],
+   "weather": [
+    "Day/Night of the Luminous",
+    "Rainbow",
+    "Aurora Borealis",
+    "Starfall"
+   ],
+   "enchants": [
+    "Blessed",
+    "Glimmering Crown",
+    "Glittered"
+   ],
+   "rods": {
+    "Destiny Rod": 10.0,
+    "Seraphic Rod": 8.0,
+    "SOULREAPER": 3.0,
+    "Polaris Serenade": 3.0,
+    "Chrysalis": 20.0,
+    "Noctone": 7.0,
+    "Astraeus Serenade": 3.0,
+    "Masterline Rod": 8.0,
+    "Paintbrush": 10.0,
+    "Fabulous Rod": 5.0,
+    "Lullaby": 2.0,
+    "Remembrance": 7.0,
+    "Stellarwave Melody": 5.0,
+    "Scalding Hook": 17.5
+   },
+   "items": [
+    "Calm Gauntlets",
+    "Mariana's Gauntlets"
+   ],
+   "how": [
+    "Fished up naturally or appraised at a 1% chance.",
+    "increased by 1.1-2× during a Sparkling mini-event (does not affect appraisal).",
+    "increased by 10% during a Day/Night of the Luminous.",
+    "increased by 5% during a Rainbow.",
+    "Blessed Enchantment increasing chance by 5% .",
+    "Glimmering Crown Enchantment increasing chance by 10%.",
+    "Glittered Secondary Enchantment increasing chance by 3%.",
+    "Destiny Rod increasing chance by 10%.",
+    "15% when Mastery Enhancement is active.",
+    "Seraphic Rod increasing chance by 8% after completing the \"Perfection of the Skies\" mastery."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Coral",
+   "type": "Mutations",
+   "value": 1.8,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural",
+    "Spears"
+   ],
+   "rods": {
+    "Coral Rod": 50.0
+   },
+   "spears": [
+    "Coral Spear"
+   ],
+   "how": [
+    "Coral Rod at a 50% chance.",
+    "Coral Spear at a 100% chance.",
+    "Fished up naturally in Coral Bastion at a 0.18% chance.",
+    "Coral base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Silver",
+   "type": "Mutations",
+   "value": 1.8,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Titanium Rod": 75.0,
+    "Precision Rod": 100.0
+   },
+   "how": [
+    "Titanium Rod at a 75% chance.",
+    "Precision Rod at a 100% chance upon perfect catching.",
+    "Fished up naturally at a 0.55% chance.",
+    "Silver base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Studded",
+   "type": "Mutations",
+   "value": 1.8,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Brick Rod": 100.0
+   },
+   "how": [
+    "Brick Rod at a 100% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Glossy",
+   "type": "Mutations",
+   "value": 1.6,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Azure Of Lagoon": 85.0
+   },
+   "how": [
+    "Azure Of Lagoon at an 85% chance.",
+    "Fished up naturally in at a 0.91% chance.",
+    "Glossy base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Cement",
+   "type": "Mutations",
+   "value": 1.5,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Cinder Block Rod": 70.0
+   },
+   "how": [
+    "Cinder Block Rod at a 70% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Albino",
+   "type": "Mutations",
+   "value": 1.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Enchantments",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "enchants": [
+    "Noir"
+   ],
+   "how": [
+    "Noir Enchantment at a 50% chance.",
+    "Fished up naturally at a 1.09% chance.",
+    "Albino base chance through Appraisal."
+   ],
+   "group": "enchant"
+  },
+  {
+   "name": "Aurous",
+   "type": "Mutations",
+   "value": 1.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Auric Rod": 20.0
+   },
+   "how": [
+    "Auric Rod at a 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Darkened",
+   "type": "Mutations",
+   "value": 1.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Depthseeker Rod": 25.0,
+    "Duskwire": 68.0
+   },
+   "enchants": [
+    "Noir"
+   ],
+   "how": [
+    "Depthseeker Rod at a 25% chance.",
+    "100% while underground when Mastery Enhancement is active.",
+    "Duskwire at a 68% chance.",
+    "Noir Enchantment at a 50% chance.",
+    "Fished up naturally at a 1.09% chance.",
+    "Darkened base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Frozen",
+   "type": "Mutations",
+   "value": 1.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events",
+    "Appraisal",
+    "Weather",
+    "Natural"
+   ],
+   "rods": {
+    "Arctic Rod": 100.0,
+    "Summit Rod": 40.0,
+    "Fallen Snowblade": 70.0,
+    "Cryolash": 50.0
+   },
+   "seasons": [
+    "Spring",
+    "Autumn",
+    "Winter",
+    "Summer"
+   ],
+   "weather": [
+    "Frost Moon"
+   ],
+   "how": [
+    "Arctic Rod at a 100% chance.",
+    "Summit Rod at a 40% chance.",
+    "45% when Mastery Enhancement is active.",
+    "Fallen Snowblade at a 70% chance during Spring and Autumn",
+    "50% chance during Winter.",
+    "85% chance during Summer.",
+    "Cryolash at a 50% chance.",
+    "Fished up naturally at a 0.36% chance.",
+    "Frozen base chance through Appraisal.",
+    "Fished up naturally during a Frost Moon at 20% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Mosaic",
+   "type": "Mutations",
+   "value": 1.5,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Appraisal",
+    "Natural"
+   ],
+   "how": [
+    "Fished up naturally at a 0.36% chance.",
+    "Mosaic base chance through Appraisal."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Tanned",
+   "type": "Event Mutations",
+   "value": 1.5,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events",
+    "Companions",
+    "Appraisal",
+    "Natural"
+   ],
+   "weather": [
+    "Tropical Sun"
+   ],
+   "companions": [
+    "Sunhat Starfish"
+   ],
+   "how": [
+    "Appraisal, during the Fischfest 2 event at a Tanned chance.",
+    "Fished up naturally at a 0.004% chance during Fischfest 2.",
+    "Fished up naturally at a 15% chance during a Tropical Sun.",
+    "Fishing with Sunhat Starfish equipped at a ~8.337% chance (~14.587% at max level)."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Negative",
+   "type": "Mutations",
+   "value": 1.3,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "how": [
+    "Fished up naturally at a 1.09% chance.",
+    "Negative base chance through Appraisal."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Translucent",
+   "type": "Mutations",
+   "value": 1.3,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Admin Events",
+    "Appraisal",
+    "Natural"
+   ],
+   "enchants": [
+    "Ghastly"
+   ],
+   "rods": {
+    "Spiritbinder": 90.0
+   },
+   "how": [
+    "Ghastly Enchantment at a 100% chance.",
+    "Spiritbinder at a 90% chance.",
+    "Fished up naturally at a 0.721% chance.",
+    "Translucent base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Fixer",
+   "type": "Event Mutations",
+   "value": 1.25,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Fixer's Rod": 10.0
+   },
+   "how": [
+    "Fixer's Rod at a 10% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Mission Specialist",
+   "type": "Event Mutations",
+   "value": 1.25,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Mission Specialist's Rod": 10.0
+   },
+   "how": [
+    "Mission Specialist's Rod at a 10% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Paleontologist",
+   "type": "Event Mutations",
+   "value": 1.25,
+   "priority": 1,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Paleontologist's Rod": 10.0
+   },
+   "how": [
+    "Paleontologist's Rod at a 10% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Amber",
+   "type": "Mutations",
+   "value": 1.2,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Appraisal",
+    "Natural"
+   ],
+   "how": [
+    "Fished up naturally in Ancient Isle at a 0.28% chance.",
+    "Amber base chance through Appraisal."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Sandy",
+   "type": "Mutations",
+   "value": 1.2,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Enchantments",
+    "Admin Events",
+    "Companions",
+    "Weather"
+   ],
+   "enchants": [
+    "Pharaohs Curse",
+    "Beached"
+   ],
+   "rods": {
+    "Sand Castle Caster": 20.0
+   },
+   "weather": [
+    "Tropical Sun"
+   ],
+   "companions": [
+    "Sunhat Starfish"
+   ],
+   "how": [
+    "Pharaohs Curse Enchantment at a 25% chance.",
+    "Beached Enchantment at a 100% chance on duplicated fish (10% chance to duplicate fish).",
+    "Sand Castle Caster at a 20% chance.",
+    "Fished up naturally at a 5% chance during a Tropical Sun.",
+    "Fishing with Sunhat Starfish equipped at a ~2.778% chance (~4.861% at max level)."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Stone",
+   "type": "Mutations",
+   "value": 1.1,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Bait"
+   ],
+   "rods": {
+    "Stone Rod": 100.0
+   },
+   "baits": [
+    "Boulder"
+   ],
+   "how": [
+    "Stone Rod at a 100% chance.",
+    "Fishing with Boulder at a 100% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Lightened",
+   "type": "Admin Mutations",
+   "value": 1.01,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Fabricated",
+   "type": "Admin Mutations",
+   "value": 1.0,
+   "priority": 5,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Neon",
+   "type": "Exclusive Mutations",
+   "value": 1.0,
+   "priority": 4,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Hourglass Bait"
+   ],
+   "how": [
+    "Fishing with Hourglass Bait at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Blue",
+   "type": "Admin Mutations",
+   "value": 1.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Female",
+   "type": "Admin Mutations",
+   "value": 1.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Green",
+   "type": "Admin Mutations",
+   "value": 1.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Pink",
+   "type": "Mutations",
+   "value": 1.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Admin Events",
+    "Bait"
+   ],
+   "baits": [
+    "Gurt Flakes"
+   ],
+   "how": [
+    "Fishing with Gurt Flakes at a 50% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Red",
+   "type": "Admin Mutations",
+   "value": 1.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Upside-Down",
+   "type": "Limited Mutations",
+   "value": 1.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Upside-Down Rod": 100.0
+   },
+   "how": [
+    "Upside-Down Rod at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Yellow",
+   "type": "Admin Mutations",
+   "value": 1.0,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Seasonal",
+   "type": "Mutations",
+   "value": 1.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Seasons Rod": 100.0
+   },
+   "how": [
+    "Seasons Rod at a 100% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Poisoned",
+   "type": "Mutations",
+   "value": 0.9,
+   "priority": 2,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Bloomspire: Twisted Toxins": 10.0
+   },
+   "how": [
+    "Bloomspire: Twisted Toxins at a 10% chance.",
+    "Fished up naturally in Lost Jungle at a 0.17% chance.",
+    "Poisoned base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Rotting",
+   "type": "Mutations",
+   "value": 0.88,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Splitbranch Twig": 35.0
+   },
+   "how": [
+    "Splitbranch Twig at a 35% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Rusty",
+   "type": "Mutations",
+   "value": 0.7,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Harpoon Guns"
+   ],
+   "rods": {
+    "Anchor n' Chain": 10.0
+   },
+   "harpoons": [
+    "Scrap-Cannon"
+   ],
+   "how": [
+    "Anchor n' Chain at a 10% chance.",
+    "Scrap-Cannon at a 30% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "67",
+   "type": "Admin Mutations",
+   "value": 0.67,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Rooted",
+   "type": "Admin Mutations",
+   "value": 0.66,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Soulless",
+   "type": "Admin Mutations",
+   "value": 0.66,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Admin Events"
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Charred",
+   "type": "Mutations",
+   "value": 0.5,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Admin Events"
+   ],
+   "rods": {
+    "Zeus Rod": 10.0
+   },
+   "how": [
+    "Fishing in Zeus Rod's \"Thunderstorm\" ability at a 10% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Unlucky",
+   "type": "Mutations",
+   "value": 0.5,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Random Rod": 50.0
+   },
+   "how": [
+    "Random Rod at a 50% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Sizes",
+   "type": "Attributes",
+   "value": 1.99,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [],
+   "group": "natural"
+  },
+  {
+   "name": "Decayed",
+   "type": "Mutations",
+   "value": 0.45,
+   "priority": 0,
+   "appraisable": true,
+   "sources": [
+    "Fishing Rods",
+    "Appraisal",
+    "Natural"
+   ],
+   "rods": {
+    "Decayed Rod": 50.0
+   },
+   "how": [
+    "Decayed Rod at a 50% chance.",
+    "Fished up in Toxic Grove at a 0.176% chance.",
+    "Decayed base chance through Appraisal."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Noxious",
+   "type": "Mutations",
+   "value": 0.3,
+   "priority": 3,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Toxinburst Rod": 35.0
+   },
+   "how": [
+    "Toxinburst Rod at a 35% chance.",
+    "Toxinburst Rod's passive at a 100% chance."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Dirty",
+   "type": "Mutations",
+   "value": 0.3,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Bait"
+   ],
+   "baits": [
+    "Earthworm"
+   ],
+   "how": [
+    "Fishing with Earthworm Bait at a 100% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Husk",
+   "type": "Mutations",
+   "value": 0.14,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "Requiem": 20.0
+   },
+   "how": [
+    "Requiem at a 20% chance.",
+    "25% when Mastery Enhancement is active."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Exploded",
+   "type": "Mutations",
+   "value": 0.1,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods"
+   ],
+   "rods": {
+    "The Boom Ball": 50.0
+   },
+   "how": [
+    "The Boom Ball at a 50% chance",
+    "100% when Mastery Enhancement is active."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Part",
+   "type": "Limited Mutations",
+   "value": 0.01,
+   "priority": 2,
+   "appraisable": false,
+   "sources": [
+    "Fishing Rods",
+    "Bait"
+   ],
+   "rods": {
+    "Part": 100.0
+   },
+   "baits": [
+    "Part"
+   ],
+   "how": [
+    "Part at a 100% chance.",
+    "Fishing with Part Bait at a 100% chance."
+   ],
+   "group": "event"
+  },
+  {
+   "name": "Unsellable",
+   "type": "Mutations",
+   "value": 0.0,
+   "priority": 5,
+   "appraisable": false,
+   "sources": [
+    "Codes",
+    "NPCs"
+   ],
+   "codes": [
+    "Fischgiving",
+    "GOODBYEFISCHMAS",
+    "ThankYouFollowers2",
+    "SorryForShutdown",
+    "Scubaaaa"
+   ],
+   "rods": {
+    "Onirifalx": null,
+    "Santa's Miracle Rod": null
+   },
+   "items": [
+    "Siren's Tear"
+   ],
+   "how": [
+    "Fischgiving awarded Bountiful Bait Crate.",
+    "GOODBYEFISCHMAS awarded Coral Geode.",
+    "ThankYouFollowers2 awarded Unique Present.",
+    "SorryForShutdown awarded Volcanic Geode.",
+    "Scubaaaa awarded Coral Geode.",
+    "Permanent quests:",
+    "The Onirifalx's first obtainment quest, which awards Floppy.",
+    "Diver Nicky's quest, which awards Pirate Captain's Goldfish.",
+    "Keeper Warden's second quest, which awards Sovereign Relic.",
+    "Lyren's second quest, which awards Rubber Ducky."
+   ],
+   "group": "rod"
+  },
+  {
+   "name": "Glitched",
+   "type": "Attributes",
+   "value": 0.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Status Effects"
+   ],
+   "items": [
+    "Glitched Potion"
+   ],
+   "how": [
+    "Duped fish from Glitched Potion at a 100% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Surreal",
+   "type": "Mutations",
+   "value": 8.0,
+   "priority": 0,
+   "appraisable": false,
+   "sources": [
+    "Admin Events",
+    "Bait"
+   ],
+   "baits": [
+    "Singularity"
+   ],
+   "how": [
+    "Fishing with Singularity Bait at a 100% chance."
+   ],
+   "group": "natural"
+  },
+  {
+   "name": "Putrid",
+   "type": "Mutations",
+   "value": 0.5,
+   "priority": 4,
+   "appraisable": false,
+   "sources": [
+    "Harpoon Guns",
+    "Enchantments",
+    "Companions"
+   ],
+   "companions": [
+    "Him"
+   ],
+   "enchants": [
+    "Putrid"
+   ],
+   "harpoons": [
+    "Clickbait Chaser"
+   ],
+   "how": [
+    "Him passive ability at a 50% chance.",
+    "Putrid Enchantment at a 2% chance.",
+    "Clickbait Chaser at a 0.1% chance."
+   ],
+   "group": "enchant"
+  }
+ ]
+}

@@ -1,0 +1,547 @@
+{
+ "source": "https://fischipedia.org/wiki/Weather",
+ "fetched": "2026-10-03",
+ "weather": [
+  {
+   "name": "Clear",
+   "group": "weather",
+   "icon_file": "Clear.png",
+   "natural": true,
+   "totem": "Clearcast Totem",
+   "lens": null,
+   "skippable": true,
+   "mutations": {},
+   "effects": [
+    "Boosts Lucid Rod Passive"
+   ],
+   "icon": "icons/weather/Clear.png"
+  },
+  {
+   "name": "Foggy",
+   "group": "weather",
+   "icon_file": "Foggy.png",
+   "natural": true,
+   "totem": "Smokescreen Totem",
+   "lens": null,
+   "skippable": true,
+   "mutations": {},
+   "effects": [],
+   "icon": "icons/weather/Foggy.png"
+  },
+  {
+   "name": "Windy",
+   "group": "weather",
+   "icon_file": "Windy.png",
+   "natural": true,
+   "totem": "Windset Totem",
+   "lens": null,
+   "skippable": true,
+   "mutations": {},
+   "effects": [
+    "Boosts Wind Elemental Passive",
+    "Boosts Breeze Caster Passive",
+    "Boosts Breeze Guster Passive"
+   ],
+   "icon": "icons/weather/Windy.png"
+  },
+  {
+   "name": "Rain",
+   "group": "weather",
+   "icon_file": "Rain.png",
+   "natural": true,
+   "totem": "Tempest Totem",
+   "lens": null,
+   "skippable": true,
+   "mutations": {},
+   "effects": [
+    "Boosts Poseidon's Lance Passive"
+   ],
+   "icon": "icons/weather/Rain.png"
+  },
+  {
+   "name": "Stormy",
+   "group": "weather",
+   "icon_file": "Stormy.png",
+   "natural": true,
+   "totem": null,
+   "lens": null,
+   "skippable": true,
+   "mutations": {
+    "Electric": 10.0
+   },
+   "effects": [
+    "+20% Lure Speed",
+    "-15% Resilience",
+    "Electric (10%)",
+    "Boosts Poseidon's Lance Passive"
+   ],
+   "icon": "icons/weather/Stormy.png"
+  },
+  {
+   "name": "Eclipse",
+   "group": "weather",
+   "icon_file": "Eclipse.png",
+   "natural": true,
+   "totem": "Eclipse Totem",
+   "lens": null,
+   "skippable": true,
+   "mutations": {
+    "Solarblaze": 10.0
+   },
+   "effects": [
+    "+4 Disturbance",
+    "Enables Fang of the Eclipse's passive",
+    "Solarblaze (10%)"
+   ],
+   "icon": "icons/weather/Eclipse.png"
+  },
+  {
+   "name": "Starfall",
+   "group": "weather",
+   "icon_file": "Starfall.png",
+   "natural": true,
+   "totem": "Starfall Totem",
+   "lens": null,
+   "skippable": false,
+   "mutations": {
+    "Nova": 10.0
+   },
+   "effects": [
+    "+10% True Progress Speed.",
+    "Fallen Stars begin to fall.",
+    "Nova (10%)",
+    "Enhances Astraeus Serenade's passive",
+    "Enhances Rod of the Cosmos's passive",
+    "Enhances Stellarwave Melody's passive"
+   ],
+   "icon": "icons/weather/Starfall.png"
+  },
+  {
+   "name": "Aurora Borealis",
+   "group": "weather",
+   "icon_file": "Aurora Borealis.png",
+   "natural": true,
+   "totem": "Aurora Totem",
+   "lens": null,
+   "skippable": false,
+   "mutations": {
+    "Aurora": 1.0
+   },
+   "effects": [
+    "7× Luck.",
+    "Enhances Aurora Rod's passive.",
+    "Enhances Stellarwave Melody's passive",
+    "Aurora (1%)"
+   ],
+   "icon": "icons/weather/Aurora_Borealis.png"
+  },
+  {
+   "name": "Rainbow",
+   "group": "weather",
+   "icon_file": "Rainbow.png",
+   "natural": true,
+   "totem": "Rainbow Totem",
+   "lens": null,
+   "skippable": false,
+   "mutations": {
+    "Mythical": 15.0,
+    "Rainbow Cluster": 5.0,
+    "Shiny": 5.0
+   },
+   "effects": [
+    "8× Luck.",
+    "Fish sell for 1.5× value.",
+    "Enhances Rainbow Cluster Rod's passive",
+    "Mythical (15%)",
+    "Rainbow Cluster (5%)",
+    "Shiny & Sparkling (+5%)"
+   ],
+   "icon": "icons/weather/Rainbow.png"
+  },
+  {
+   "name": "Raging Squall",
+   "group": "weather",
+   "icon_file": "Raging Squall.png",
+   "natural": true,
+   "totem": "Raging Squall Totem",
+   "lens": null,
+   "skippable": false,
+   "mutations": {
+    "Squalled": null
+   },
+   "effects": [
+    "4× Luck.",
+    "25% Chance for Squalled",
+    "Allows for Raging Ascension quests to be accepted",
+    "Allows for Idol Taiga to be tamed",
+    "Allows for the Ancestral Abaia to be spawned"
+   ],
+   "icon": "icons/weather/Raging_Squall.png"
+  },
+  {
+   "name": "Tropical Squall",
+   "group": "weather",
+   "icon_file": "Tropical Squall.png",
+   "natural": true,
+   "totem": "Tropical Squall Totem",
+   "lens": null,
+   "skippable": false,
+   "mutations": {
+    "Squalled": null
+   },
+   "effects": [
+    "2× Luck.",
+    "15% Chance for Squalled",
+    "Allows for Tropical Ascension quests to be accepted",
+    "Allows for Idol Taiga to be tamed",
+    "Allows for the Abaia to be spawned"
+   ],
+   "icon": "icons/weather/Tropical_Squall.png"
+  },
+  {
+   "name": "Frost Moon",
+   "group": "weather",
+   "icon_file": "Frost Moon.png",
+   "natural": false,
+   "totem": "Frost Moon Totem",
+   "lens": null,
+   "skippable": false,
+   "mutations": {
+    "Frozen": 20.0,
+    "Merry": 3.0,
+    "Peppermint": 3.0,
+    "Gingerbread": 3.0,
+    "Frostbitten": 2.0,
+    "Frostnova": 1.0,
+    "Permafrost": 0.5
+   },
+   "effects": [
+    "9× Luck.",
+    "Frozen (20%)",
+    "Merry (3%)",
+    "Peppermint (3%)",
+    "Gingerbread (3%)",
+    "Frostbitten (2%)",
+    "Frostnova (1%)",
+    "Permafrost (0.5%)"
+   ],
+   "icon": "icons/weather/Frost_Moon.png"
+  },
+  {
+   "name": "Tropical Sun",
+   "group": "weather",
+   "icon_file": "Tropical Sun.png",
+   "natural": false,
+   "totem": "Tropical Sun Totem",
+   "lens": null,
+   "skippable": false,
+   "mutations": {
+    "Tanned": 15.0,
+    "Beached": 5.0,
+    "Paradise": 5.0,
+    "Tropical": 5.0,
+    "Sandy": 5.0,
+    "Super-Tanned": 1.0
+   },
+   "effects": [
+    "9× Luck.",
+    "Tanned (15%)",
+    "Beached (5%)",
+    "Paradise (5%)",
+    "Tropical (5%)",
+    "Sandy (5%)",
+    "Super-Tanned (1%)"
+   ],
+   "icon": "icons/weather/Tropical_Sun.png"
+  },
+  {
+   "name": "Sovereign Surge",
+   "group": "sovereign",
+   "icon_file": "Sovereign Surge.png",
+   "natural": true,
+   "totem": null,
+   "lens": null,
+   "skippable": null,
+   "mutations": {
+    "Sovereign": 5.0
+   },
+   "effects": [
+    "2× Luck.",
+    "Sovereign (5%)"
+   ],
+   "icon": "icons/weather/Sovereign_Surge.png"
+  },
+  {
+   "name": "Sovereign Storm",
+   "group": "sovereign",
+   "icon_file": "Sovereign Storm.png",
+   "natural": true,
+   "totem": null,
+   "lens": null,
+   "skippable": null,
+   "mutations": {
+    "Sovereign": 5.0
+   },
+   "effects": [
+    "4× Luck.",
+    "Sovereign (5%)"
+   ],
+   "icon": "icons/weather/Sovereign_Storm.png"
+  },
+  {
+   "name": "Sovereign Reckoning",
+   "group": "sovereign",
+   "icon_file": "Sovereign Reckoning.png",
+   "natural": true,
+   "totem": null,
+   "lens": null,
+   "skippable": null,
+   "mutations": {
+    "Sovereign": 5.0
+   },
+   "effects": [
+    "8× Luck.",
+    "Sovereign (5%)"
+   ],
+   "icon": "icons/weather/Sovereign_Reckoning.png"
+  },
+  {
+   "name": "Abyssal Alignment",
+   "group": "astral",
+   "icon_file": "Abyssal Alignment.png",
+   "natural": false,
+   "totem": null,
+   "lens": "Deep Lens",
+   "skippable": null,
+   "mutations": {
+    "Abyssal": 5.0
+   },
+   "effects": [
+    "+20% Weight",
+    "Abyssal (5%)"
+   ],
+   "icon": "icons/weather/Abyssal_Alignment.png"
+  },
+  {
+   "name": "Celestial Congregation",
+   "group": "astral",
+   "icon_file": "Celestial Congregation.png",
+   "natural": false,
+   "totem": null,
+   "lens": "Stellar Lens",
+   "skippable": null,
+   "mutations": {
+    "Celestial": 5.0
+   },
+   "effects": [
+    "+25% Luck",
+    "Celestial (5%)"
+   ],
+   "icon": "icons/weather/Celestial_Congregation.png"
+  },
+  {
+   "name": "Evershifting Eclipse",
+   "group": "astral",
+   "icon_file": "Evershifting Eclipse.png",
+   "natural": false,
+   "totem": null,
+   "lens": "Seasonal Lens",
+   "skippable": null,
+   "mutations": {
+    "Solarblaze": 5.0
+   },
+   "effects": [
+    "+25% XP",
+    "Solarblaze (5%)"
+   ],
+   "icon": "icons/weather/Evershifting_Eclipse.png"
+  },
+  {
+   "name": "Lunar Eclipse",
+   "group": "astral",
+   "icon_file": "Lunar Eclipse.png",
+   "natural": false,
+   "totem": null,
+   "lens": "Moonlit Lens",
+   "skippable": null,
+   "mutations": {
+    "Aurora": 5.0,
+    "Celestial": 5.0,
+    "Lunar": 5.0,
+    "Nova": 5.0
+   },
+   "effects": [
+    "Aurora (5%)",
+    "Celestial (5%)",
+    "Lunar (5%)",
+    "Nova (5%)"
+   ],
+   "icon": "icons/weather/Lunar_Eclipse.png"
+  },
+  {
+   "name": "Meteoric Outburst",
+   "group": "astral",
+   "icon_file": "Meteoric Outburst.png",
+   "natural": false,
+   "totem": null,
+   "lens": "Experimental Lens",
+   "skippable": null,
+   "mutations": {
+    "Chaotic": 5.0
+   },
+   "effects": [
+    "Better and more loot from meteors",
+    "Chaotic (5%)"
+   ],
+   "icon": "icons/weather/Meteoric_Outburst.png"
+  },
+  {
+   "name": "Night of the Fireflies",
+   "group": "modifier",
+   "icon_file": "NightoftheFireflies.png",
+   "natural": true,
+   "totem": null,
+   "lens": null,
+   "skippable": null,
+   "mutations": {},
+   "effects": [
+    "All nocturnal fish have a 2× catch rate. 1/3 chance to occur at the start of nighttime."
+   ],
+   "icon": "icons/weather/Night_of_the_Fireflies.png"
+  },
+  {
+   "name": "Day/Night of the Luminous",
+   "group": "modifier",
+   "icon_file": "NightoftheLuminous.png",
+   "natural": true,
+   "totem": "Sparkling Totem",
+   "lens": null,
+   "skippable": null,
+   "mutations": {
+    "Sparkling": null
+   },
+   "effects": [
+    "Sparkling attribute catch and appraisal rates increased by +10%. 1/3 chance to occur at the start of nighttime or be summoned with Sparkling Totem."
+   ],
+   "icon": "icons/weather/Day_Night_of_the_Luminous.png"
+  },
+  {
+   "name": "Shiny Surge",
+   "group": "modifier",
+   "icon_file": "ShinySurge.png",
+   "natural": true,
+   "totem": "Shiny Totem",
+   "lens": null,
+   "skippable": null,
+   "mutations": {
+    "Shiny": null
+   },
+   "effects": [
+    "Shiny attribute catch and appraisal rates increased by +3%. 1/3 chance to occur at the start of daytime and 1/9 chance to occur at the start of nighttime, or be summoned with Shiny Totem."
+   ],
+   "icon": "icons/weather/Shiny_Surge.png"
+  },
+  {
+   "name": "Mutation Surge",
+   "group": "modifier",
+   "icon_file": "MutationSurge.png",
+   "natural": true,
+   "totem": "Mutation Totem",
+   "lens": null,
+   "skippable": null,
+   "mutations": {},
+   "effects": [
+    "Catch and appraisal rates for Mutated fish increased by +15%. 2/3 chance to occur at the start of daytime and 2/9 chance to occur at the start of nighttime, or be summoned with Mutation Totem."
+   ],
+   "icon": "icons/weather/Mutation_Surge.png"
+  },
+  {
+   "name": "Moonlit Mirage",
+   "group": "modifier",
+   "icon_file": null,
+   "natural": true,
+   "totem": null,
+   "lens": null,
+   "skippable": null,
+   "mutations": {
+    "Lunar": null
+   },
+   "effects": [
+    "Fish caught during a Moonlit Mirage have a chance to be mutated with Lunar, which grants one stack of Moonlit. Each stack provides +5% Fish Weight for all fish caught for the rest of the event, up to a maximum of +25%. Lunar Threads can be caught at a 0.1% chance. Moonlit Mirage has a chance to spaw"
+   ],
+   "icon": null
+  },
+  {
+   "name": "Day",
+   "group": "time",
+   "icon_file": "Day.png",
+   "natural": true,
+   "totem": "Sundial Totem",
+   "lens": null,
+   "skippable": null,
+   "mutations": {},
+   "effects": [],
+   "icon": "icons/weather/Day.png"
+  },
+  {
+   "name": "Night",
+   "group": "time",
+   "icon_file": "Night.png",
+   "natural": true,
+   "totem": "Sundial Totem",
+   "lens": null,
+   "skippable": null,
+   "mutations": {},
+   "effects": [],
+   "icon": "icons/weather/Night.png"
+  },
+  {
+   "name": "Spring",
+   "group": "season",
+   "icon_file": "Spring.png",
+   "natural": true,
+   "totem": null,
+   "lens": null,
+   "skippable": null,
+   "mutations": {},
+   "effects": [],
+   "icon": "icons/weather/Spring.png"
+  },
+  {
+   "name": "Summer",
+   "group": "season",
+   "icon_file": "Summer.png",
+   "natural": true,
+   "totem": null,
+   "lens": null,
+   "skippable": null,
+   "mutations": {},
+   "effects": [],
+   "icon": "icons/weather/Summer.png"
+  },
+  {
+   "name": "Autumn",
+   "group": "season",
+   "icon_file": "Autumn.png",
+   "natural": true,
+   "totem": null,
+   "lens": null,
+   "skippable": null,
+   "mutations": {},
+   "effects": [],
+   "icon": "icons/weather/Autumn.png"
+  },
+  {
+   "name": "Winter",
+   "group": "season",
+   "icon_file": "Winter.png",
+   "natural": true,
+   "totem": null,
+   "lens": null,
+   "skippable": null,
+   "mutations": {},
+   "effects": [],
+   "icon": "icons/weather/Winter.png"
+  }
+ ]
+}
