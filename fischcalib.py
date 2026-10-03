@@ -31,6 +31,7 @@ IDLE_FRAMES = 15
 LEARN_SAMPLES = 15
 MAX_SHIFT_PX = 25               # learned ends must be this close to the defaults (at scale 1)
 MAX_MAD_PX = 2.0                # ...and this consistent across samples
+MAX_CENTRE_OFF_PX = 3           # ...and centred on the client (at scale 1)
 MAX_DY_SHIFT_PX = 10            # learned box offset vs the default (at scale 1)
 
 
@@ -145,6 +146,14 @@ class GeometryLearner:
         x1, mad1 = stat(self.x1s)
         d0, d1 = ft.track_x(w, self.scale)
         shift = ft.px(MAX_SHIFT_PX, self.scale)
+        # The bar is centred on the client. Live (2026-10-03, Crew Rod runs) the
+        # right end was "measured" 22px out -- at a shadow past the end cap over a
+        # white wall -- and adopted, so the slider read past the track's end.
+        off_centre = abs((x0 + x1) / 2 - (w - 1) / 2)
+        if off_centre > ft.px(MAX_CENTRE_OFF_PX, self.scale):
+            self.log(f"calibration: track ends measured at x{x0}-{x1}, not centred "
+                     f"(off by {off_centre:.0f}px) -- keeping defaults {d0}-{d1}")
+            return
         if mad0 <= MAX_MAD_PX and mad1 <= MAX_MAD_PX and \
                 abs(x0 - d0) <= shift and abs(x1 - d1) <= shift:
             ft.set_geometry(track_x_frac=(x0 / w, x1 / w))

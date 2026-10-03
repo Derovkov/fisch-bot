@@ -74,8 +74,9 @@ from fischrods import (DEFAULT_ROD, ENCHANTS, RodContext, RodProfile, get_rod,
                        reel_enchants)
 from fischsession import Session
 from fischtrack import (EDGE_MIN, GEO_ROWS, HINT_Y_PAD, PROG_ROWS, TRACK_PROBE,
-                        TrackReading, current_scale, find_progress, lock_scale,
-                        locked_scale, px, read_track, scales, set_client, track_x)
+                        SkinTracker, TrackReading, current_scale, edge_scores,
+                        find_progress, lock_scale, locked_scale, px, read_track,
+                        scales, set_client, track_x)
 
 user32 = ctypes.windll.user32
 user32.SetProcessDPIAware()
@@ -105,6 +106,11 @@ START_CONFIRM_BUSY = 5
 PROG_SEARCH_PAD = 15
 # Bar reading says "inside" while progress falls for this long -> re-acquire.
 REACQUIRE_AFTER_S = 0.2
+# ...when the SkinTracker reads the bar (non-default skins): it is accurate to
+# ~1px, so a short disagreement is the fish on the slider's edge, not a bad read.
+REACQUIRE_TRACKER_S = 0.5
+# SkinTracker unable to read the bar this long: drop it, re-find the bar from scratch.
+TRACKER_GIVE_UP_S = 0.6
 TRACE_EVERY_S = 0.1
 # --trace bar crops (see FischBot._trace_crop): unreadable bars / readable bars.
 TRACE_CROP_MISS_S, TRACE_CROP_MISS_MAX = 0.5, 60
@@ -348,34 +354,46 @@ class FischBot:
         self.log(f"cast (hold {self.cfg.cast_hold_s:.2f}s)")
         self.mouse.hold(self.cfg.cast_hold_s)
 
-    def _trace(self, tag: str) -> None:
+    def _trace(self, tag: str, frame: np.ndarray, y_off: int,
+               r: Optional[TrackReading], note: str = "") -> None:
         """--trace: one numbers-only line (fischmeasure format) at most every
-        TRACE_EVERY_S, from a separate full grab. Plus small crops of just the
-        bar area (_trace_crop) -- never a full screenshot."""
+        TRACE_EVERY_S, about the frame the bot just read (`frame` may be a row
+        band starting at client row y_off). Plus small crops of just the bar
+        area (_trace_crop) -- never a full screenshot.
+
+        It used to make its own full-screen grab and full bar search every
+        0.1s: live at 1920 wide (2026-10-03) that cut the bot to 6-14 readings/s.
+        """
         if self.trace_file is None:
             return
         now = time.perf_counter()
         if now - self._trace_last < TRACE_EVERY_S:
             return
         self._trace_last = now
-        frame = self.grabber.grab()
-        s = current_scale()
-        y0, score = fischmeasure.locate_rows(frame, s)
-        r = read_track(frame)
-        geo = (f"geo=HIT slider={r.slider_x0}-{r.slider_x1} fish={r.marker_x:.0f}"
-               if r else "geo=miss")
+        s = r.scale if r is not None else current_scale()
+        if r is not None:
+            y0 = r.y0 - y_off
+            score = float(np.max(np.convolve(
+                edge_scores(frame, max(0, y0 - 2), min(frame.shape[0], r.y1 - y_off + 3), s),
+                np.ones(px(GEO_ROWS, s)) / px(GEO_ROWS, s), mode="valid"), initial=0.0))
+        else:
+            y0, score = fischmeasure.locate_rows(frame, s, y_lo=0 if y_off else None)
+        geo = (f"geo=HIT via={r.method} slider={r.slider_x0}-{r.slider_x1} "
+               f"fish={r.marker_x:.0f}" if r else "geo=miss")
         p = None
         if self.last_prog_top is not None:
-            p = find_progress(frame, *self._prog_window(self.last_prog_top, s), scale=s)
+            lo, hi = self._prog_window(self.last_prog_top, s)
+            p = find_progress(frame, lo - y_off, hi - y_off, scale=s)
         if p is None:
             p = find_progress(frame, y0 + px(20, s), y0 + px(100, s), scale=s)
-        prog = f"prog={p[0]:.3f}@{p[1]}" if p else "prog=none"
+        prog = f"prog={p[0]:.3f}@{p[1] + y_off}" if p else "prog=none"
         crop = self._trace_crop(frame, y0, s, now, readable=r is not None,
                                 bar_seen=score >= EDGE_MIN or p is not None)
         self.trace_file.write(
             f"t={now - self._trace_t0:7.2f} {tag} scale={s:.2f} "
-            f"rows={y0}-{y0 + px(GEO_ROWS, s) - 1} "
+            f"rows={y0 + y_off}-{y0 + y_off + px(GEO_ROWS, s) - 1} "
             f"edge={score:5.0f} {geo} {prog} held={self.mouse.down} "
+            + (f"why=\"{note}\" " if note else "")
             + (f"img={crop} " if crop else "")
             + f"{fischmeasure.sample(frame, y0, s)}\n")
         self.trace_file.flush()
@@ -484,6 +502,10 @@ class FischBot:
         self.rod.reset()
         self._slider_widths = []
         last_method = "colour"
+        # Non-default reel-bar skins: once the reel is on, a SkinTracker follows
+        # the bar instead of the one-frame reader (fischtrack, "Per-reel tracker").
+        tracker: Optional[SkinTracker] = None
+        tracker_ok = 0.0                 # last time it read the bar
         self.live = {"in_reel": False, "fill": None, "inside": None, "elapsed": 0.0}
 
         while self.running and time.perf_counter() < deadline:
@@ -497,9 +519,18 @@ class FischBot:
                 self.log("focus lost mid-reel -- fish almost certainly lost")
                 return False
 
-            self._trace("reel" if in_phase else "wait")
             self.state = "reeling" if in_phase else "waiting for a bite"
-            r, now, img, y_off = self._grab_and_read(hint)
+            r, now, img, y_off = self._grab_and_read(hint, tracker)
+            if tracker is not None:
+                if r is not None:
+                    tracker_ok = now
+                elif now - tracker_ok > TRACKER_GIVE_UP_S:
+                    self.log(f"  lost the bar for {TRACKER_GIVE_UP_S:.1f}s "
+                             f"({tracker.why or 'no reading'}) -- re-finding it")
+                    tracker = None
+                    hint = None
+            self._trace("reel" if in_phase else "wait", img, y_off, r,
+                        tracker.why if tracker is not None and r is None else "")
 
             # --- rod's own minigame: the bot plays it (rod.play), no human input;
             # the slider servo pauses while it is on screen ---------------------
@@ -546,13 +577,16 @@ class FischBot:
                 if verdict is False and r is not None and r.fish_inside:
                     if falling_inside_since is None:
                         falling_inside_since = now
-                    elif now - falling_inside_since > REACQUIRE_AFTER_S:
+                    elif now - falling_inside_since > (
+                            REACQUIRE_TRACKER_S if tracker is not None
+                            else REACQUIRE_AFTER_S):
                         reacquires += 1
                         if reacquires <= 3 or self.cfg.debug:
                             self.log(f"  progress falling but bar reading says inside "
                                      f"-- re-acquiring bar (#{reacquires})")
                         hint = None
                         r = None
+                        tracker = None
                         falling_inside_since = None
                 else:
                     falling_inside_since = None
@@ -566,6 +600,11 @@ class FischBot:
                     if r.method == "geo":
                         self.log("  reading this rod's bar by shape (non-default "
                                  "skin)")
+                if in_phase and tracker is None and r.method == "geo":
+                    # Re-found mid-reel (tracker gave up or was dropped): the
+                    # slider is wherever this reading says, not centred.
+                    tracker = SkinTracker(img, r, y_off, now=now, centred=False)
+                    tracker_ok = now
                 if in_phase:
                     self.learner.feed(img, y_off, r,
                                       p[1] + y_off if p is not None else None)
@@ -585,6 +624,14 @@ class FischBot:
                         self.ctl.begin(first_seen)
                         self.log(f"minigame started: track {r.track_x0}-{r.track_x1} "
                                  f"y{r.y0}-{r.y1}, slider {r.slider_width}px")
+                        if r.method == "geo":
+                            # Every reel starts with slider + fish centred; the
+                            # tracker takes it from there.
+                            tracker = SkinTracker(img, r, y_off, now=now)
+                            tracker_ok = now
+                            r = tracker.reading()
+                            self.log(f"  following this rod's bar with the skin "
+                                     f"tracker (slider {tracker.w}px)")
                     else:
                         continue
                 frames += 1
@@ -648,8 +695,10 @@ class FischBot:
         self.log(f"reel timed out: {self.ctl.stats.summary()}")
         return False
 
-    def _grab_and_read(self, hint: Optional[TrackReading]):
-        """Grab + read one frame. With a hint, grab only the rows around the bar.
+    def _grab_and_read(self, hint: Optional[TrackReading],
+                       tracker: Optional[SkinTracker] = None):
+        """Grab + read one frame. With a hint, grab only the rows around the bar;
+        with a tracker (non-default skin, reel on), let it read them.
 
         A full 1920x1009 grab + search measured ~65ms/frame live, too slow for the
         servo (sim_servo.py degrades past ~40ms). The band is ~4x fewer rows, and
@@ -659,6 +708,17 @@ class FischBot:
         so the progress box is read from the same grab.
         """
         h = self.grabber.rect.height if self.grabber.rect is not None else None
+        if tracker is not None:
+            # Same band (it also covers the progress box), read by the tracker.
+            if h is None or not hasattr(self.grabber, "grab_rows"):
+                frame = self.grabber.grab()
+                now = time.perf_counter()
+                return tracker.read(frame, 0, now=now), now, frame, 0
+            pad = px(HINT_Y_PAD + TRACK_PROBE + 20, tracker.s)
+            y_a = max(0, tracker.y0 - pad)
+            band = self.grabber.grab_rows(y_a, min(h, tracker.y1 + pad))
+            now = time.perf_counter()
+            return tracker.read(band, y_a, now=now), now, band, y_a
         exp = self._expect_w()
         if hint is None or h is None or not hasattr(self.grabber, "grab_rows"):
             frame = self.grabber.grab()

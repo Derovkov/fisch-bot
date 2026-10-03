@@ -744,6 +744,374 @@ def find_slider_geo(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int, s: fl
     return x0 + a, x0 + b - 1, float(contrast), float(dout), ci
 
 
+# --------------------------------------------------------------------------------------
+# Per-reel tracker for non-default skins (2026-10-03, second pass)
+# --------------------------------------------------------------------------------------
+#
+# Live with Duskwire / Crew Rod (saved_logs/20261003_090708..090805) the one-frame
+# geometry reader above still lost the bar: the track is TRANSLUCENT, so over the
+# user's red-floor + white-wall spot its left part read (45,27,25) and its right
+# part (61,61,61) -- a "slider" to any single-frame method; the Crew Rod's slider
+# turns translucent brown whenever the fish is outside it; and the rod's white
+# star effect crossed the bar and was taken for the fish. Every reel was lost or
+# barely won.
+#
+# What a single frame cannot know, a reel can: the scene behind the bar barely
+# changes while reeling. So the tracker learns the track's own colour, column by
+# column (from the columns the slider is not on), and the slider is the
+# slider-wide window that differs most from it -- with the slider's two edges as
+# extra evidence (rod VFX next to the slider raised the "differs" score of a
+# shifted window on Duskwire). The fish is the thin VERTICAL mark above, on and
+# below the track at one x, in the colour it had at reel start (the white star
+# lines are diagonal and white; the Crew Rod's fish is dark grey). Every reel
+# starts with the slider and fish centred, which gives the start state.
+#
+# On the user's 33 bar crops (Duskwire x2, Crew Rod x2) this read every
+# readable frame's slider to within ~5px and fish to ~1px, including the
+# translucent slider and the star VFX frames the old reader got wrong.
+
+TRK_DIFF_OK = 40            # channel-sum distance: column still the learned track
+TRK_LEARN_FAST = 0.3        # background update where the column matches it
+TRK_LEARN_SLOW = 0.03       # ... and where it does not (VFX passing or a slow change)
+TRK_EDGE_WEIGHT = 0.5       # slider-edge evidence vs the "differs from track" score
+TRK_JUMP_RATIO = 1.5        # a far window must beat the near one by this to win
+TRK_MARKER_MIN = 30         # vertical-mark score (after the colour penalty)
+TRK_MARKER_RGB_PENALTY = 0.5
+TRK_MARKER_RGB_SAMPLES = 5  # fish readings (bar settled) its colour is learned from
+TRK_SLIDER_SPEED = 1.2      # track widths / s searched (recording: p99 0.54, i.e. 420px/s)
+TRK_FISH_SPEED = 0.8        # ... for the fish (recording: max 0.31, 244px/s)
+TRK_REBASE_DY = 3           # rows moved (px at scale 1) before the background is re-learned
+TRK_START_PAIR_FRAC = 0.2 # start width: widest symmetric step pair >= this x the best
+TRK_RELEARN_AFTER_S = 0.25 # track looked different this long (edges still there): re-learn
+TRK_RELEARN_EDGE = 30       # end-edge score needed to re-learn (no bar: ~5-17)
+TRK_WIDTH_WINDOW = 9       # recent edge-to-edge slider widths kept ...
+TRK_WIDTH_MIN_N = 3         # ... and needed before the width is corrected
+
+
+class SkinTracker:
+    """Follows the slider and fish of a non-default reel-bar skin through one reel.
+
+    Built from the reel's first reading; read() then replaces read_track for the
+    rest of the reel. Frames may be row bands: pass the band's y offset."""
+
+    def __init__(self, frame: np.ndarray, r: TrackReading, y_off: int = 0,
+                 now: float = 0.0, centred: bool = True):
+        self.s = s = r.scale
+        self.x0, self.x1 = r.track_x0, r.track_x1
+        self.W = self.x1 - self.x0 + 1
+        self.y0, self.y1 = r.y0, r.y1
+        self.t = now
+        self.why = ""                   # why the last read() returned None
+        self.edge = float(EDGE_MIN)     # end-edge score at the current rows
+        self._changed_since: Optional[float] = None
+        self.relearned = 0
+        P = self._profile(frame, y_off)
+        # The one-frame reading only has to cover the centre: it read Duskwire's
+        # slider as just its dark half (centre ~30px off) at reel start.
+        tc = (self.x0 + self.x1) / 2
+        if centred and r.slider_x0 is not None \
+                and r.slider_x0 - px(10, s) <= tc <= r.slider_x1 + px(10, s):
+            a, b = self._centred_slider(P)
+        else:
+            a, b = r.slider_x0 - self.x0, r.slider_x1 - self.x0 + 1
+        self.w = b - a
+        self.c = (a + b) / 2
+        self.widths: list[int] = []
+        self._rebase(P, a, b)
+        m = self._find_marker(frame, y_off, near=(a + b) / 2, reach=px(30, s),
+                              use_rgb=False) if centred else None
+        self.m = m if m is not None else (r.marker_x - self.x0
+                                          if r.marker_x is not None else self.c)
+        # The fish's colour, from its first few readings once the bar has stopped
+        # sliding in. One sample at reel start was wrong on the recording (the
+        # bar mid-slide: (148,118,159) for the pink (232,193,209) marker), and
+        # the colour test then rejected the real fish for the whole reel.
+        self.mrgb: Optional[np.ndarray] = None
+        self._mrgb_samples: list[np.ndarray] = []
+
+    # -- state ------------------------------------------------------------------------
+    def reading(self) -> TrackReading:
+        """The current state (slider, fish) as a reading."""
+        a = int(round(self.c - self.w / 2))
+        return TrackReading(self.x0, self.x1, self.y0, self.y1, self.x0 + a,
+                            self.x0 + a + self.w - 1, self.x0 + self.m, scale=self.s,
+                            method="tracker")
+
+    def _rows(self, y_off: int) -> tuple[int, int]:
+        s = self.s
+        return self.y0 + px(6, s) - y_off, self.y1 - px(5, s) + 1 - y_off
+
+    def _profile(self, frame: np.ndarray, y_off: int) -> np.ndarray:
+        r0, r1 = self._rows(y_off)
+        return np.median(frame[r0:r1, self.x0:self.x1 + 1].astype(np.int16), axis=0)
+
+    def _rebase(self, P: np.ndarray, a: int, b: int) -> None:
+        """Learn the track from P except under the slider (+ margin), which is
+        filled in from its neighbours until the slider moves off it."""
+        self.B = P.astype(np.float64).copy()
+        self.known = np.ones(self.W, bool)
+        mg = px(8, self.s)              # a start estimate 2px narrow left white
+        self.known[max(0, a - mg):b + mg] = False     # edge columns in the fill
+        self.base_y0 = self.y0
+        self._fill_unknown()
+
+    def _fill_unknown(self) -> None:
+        k = self.known
+        if k.all() or not k.any():
+            return
+        idx = np.arange(self.W)
+        for ch in range(3):
+            self.B[~k, ch] = np.interp(idx[~k], idx[k], self.B[k, ch])
+
+    def _steps(self, P: np.ndarray, spread: int = 2, k: Optional[int] = None) -> np.ndarray:
+        """Colour-step strength (mean of k columns either side) at each column
+        boundary (0..W), max over +-spread."""
+        W = self.W
+        k = max(2, px(4, self.s)) if k is None else k
+        pc = np.vstack([np.zeros((1, 3)), np.cumsum(P, axis=0)])
+        D = np.zeros(W + 1)
+        xs = np.arange(k, W - k + 1)
+        D[xs] = np.abs((pc[xs] - pc[xs - k]) / k - (pc[xs + k] - pc[xs]) / k).sum(1)
+        if not spread:
+            return D
+        return np.maximum.reduce([np.roll(D, i) for i in range(-spread, spread + 1)])
+
+    def _measure_width(self, P: np.ndarray, diff: np.ndarray, sa: int, sb: int) -> None:
+        """Measure the slider's real width: the run of columns that differ from
+        the track like the window's do, each end snapped to the strongest colour
+        step. The start estimate can be a few px off (Crew Rod: 170 vs 176), and
+        a progress boost widens the slider (recording: 252 -> ~357px). Adopted
+        as the median of recent measurements once it clearly differs. Only when
+        neither end is against the track's own."""
+        s, W = self.s, self.W
+        r, gap = px(4, s), px(4, s)
+        thr = 0.4 * float(np.median(diff[sa:sb]))
+        if thr < TRK_DIFF_OK / 2:
+            return
+        hi_w = int(SLIDER_MAX_WIDTH_FRAC * W)
+
+        def extend(x: int, step: int) -> int:
+            """Last slider-like column going `step`-wards from x; gaps up to
+            `gap` px are bridged (the fish's line inside is no end)."""
+            last = x
+            while 0 <= x + step < W and abs(x + step - last) <= gap + 1:
+                x += step
+                if diff[x] > thr:
+                    last = x
+            return last
+        # From the window's centre outwards, so it can shrink too (the boost
+        # wears off: 405 -> 339px over ~0.4s on the recording).
+        mid = (sa + sb) // 2
+        a = extend(mid, -1)
+        b = extend(mid, 1) + 1
+        if a <= r or b >= W - r or not (GEO_SLIDER_MIN_FRAC * W <= b - a <= hi_w):
+            return
+        D = self._steps(P, spread=0)
+        a = a - r + int(np.argmax(D[a - r:a + r + 1]))
+        b = b - r + int(np.argmax(D[b - r:b + r + 1]))
+        if min(D[a], D[b]) < GEO_EDGE_MIN:
+            return
+        self.widths = (self.widths + [b - a])[-TRK_WIDTH_WINDOW:]
+        if len(self.widths) >= TRK_WIDTH_MIN_N:
+            med = float(np.median(self.widths))
+            if abs(med - self.w) >= px(3, s):
+                self.w = int(round(med))
+
+    def _centred_slider(self, P: np.ndarray) -> tuple[int, int]:
+        """The slider at reel start: centred on the track, its half-width the one
+        with the strongest PAIR of colour steps at centre +- h (Duskwire's grey
+        -> black gradient read as only its dark half by the one-frame reader).
+        The slider's own icons can make a STRONGER symmetric pair than its
+        edges (arrows: 457 vs 153 on a recoloured dark slider), but they are
+        always inside it -- so the widest pair that is still clearly a step."""
+        W = self.W
+        Dm = self._steps(P)
+        c = W / 2
+        pairs = []
+        for h in range(int(GEO_SLIDER_MIN_FRAC / 2 * W), int(SLIDER_MAX_WIDTH_FRAC / 2 * W)):
+            lo, hi = int(round(c - h)), int(round(c + h))
+            if lo < 0 or hi > W:
+                break
+            pairs.append((min(Dm[lo], Dm[hi]), h))
+        best = max(p[0] for p in pairs)
+        ok = [h for sc, h in pairs if sc >= max(2 * GEO_EDGE_MIN, TRK_START_PAIR_FRAC * best)]
+        bh = max(ok) if ok else max(pairs)[1]
+        return int(round(c - bh)), int(round(c + bh))
+
+    def _marker_rgb(self, frame: np.ndarray, y_off: int, m: float) -> np.ndarray:
+        s, h = self.s, frame.shape[0]
+        x = int(round(self.x0 + m))
+        above = frame[max(0, self.y0 - px(14, s) - y_off):
+                      max(0, self.y0 - px(5, s) - y_off), x - 1:x + 2]
+        below = frame[min(h, self.y1 + px(5, s) - y_off):
+                      min(h, self.y1 + px(13, s) - y_off), x - 1:x + 2]
+        px_ = np.vstack([above.reshape(-1, 3), below.reshape(-1, 3)])
+        return np.median(px_, 0) if len(px_) else np.zeros(3)
+
+    # -- per frame ----------------------------------------------------------------------
+    def read(self, frame: np.ndarray, y_off: int = 0,
+             now: Optional[float] = None) -> Optional[TrackReading]:
+        s, W = self.s, self.W
+        dt = 0.05 if now is None else max(0.0, now - self.t)
+        y_before = self.y0
+        self._follow_rows(frame, y_off)
+        P = self._profile(frame, y_off)
+        if self.y0 - self.base_y0 and abs(self.y0 - self.base_y0) >= px(TRK_REBASE_DY, s):
+            # The bar moved (its entrance slide): the scene behind it changed.
+            a = int(round(self.c - self.w / 2))
+            self._rebase(P, max(0, a), min(W, a + self.w))
+        diff = np.abs(P - self.B).sum(1)
+
+        # Slider: the w-wide window that differs most from the learned track,
+        # minus its stronger flank, plus the weaker of its two edge steps.
+        w = int(round(self.w))
+        cs = np.concatenate([[0.0], np.cumsum(diff)])
+        a = np.arange(0, W - w + 1)
+        inside = (cs[a + w] - cs[a]) / w
+        f = px(12, s)
+        lf = np.where(a >= f, (cs[a] - cs[np.maximum(0, a - f)]) / f, 0.0)
+        rf = np.where(a + w + f <= W, (cs[np.minimum(W, a + w + f)] - cs[a + w]) / f, 0.0)
+        Dm = self._steps(P)
+        el, er = Dm[a], Dm[a + w]
+        el = np.where(a == 0, er, el)           # pinned against an end: that end
+        er = np.where(a + w >= W, el, er)       # is the track's, not the slider's
+        score = inside - np.maximum(lf, rf) + TRK_EDGE_WEIGHT * np.minimum(el, er)
+        near = np.abs(a + w / 2 - self.c) <= px(40, s) + TRK_SLIDER_SPEED * W * dt
+        i_all = int(np.argmax(score))
+        i = int(np.argmax(np.where(near, score, -1e9))) if near.any() else i_all
+        if score[i_all] > TRK_JUMP_RATIO * max(score[i], 1.0):
+            i = i_all
+        if inside[i] < TRK_DIFF_OK:
+            self.why = f"no slider (best differs {inside[i]:.0f})"
+            return None
+        sa, sb = int(a[i]), int(a[i]) + w
+
+        mk = self._find_marker(frame, y_off, near=self.m,
+                               reach=px(40, s) + TRK_FISH_SPEED * W * dt)
+        if mk is None:
+            self.why = "no fish"
+            return None
+
+        # Still the bar: the track outside the slider and fish must look like
+        # the learned one (the bar fading out, or a catch message over it, does not).
+        out = np.ones(W, bool)
+        mg = px(6, s)
+        out[max(0, sa - mg):sb + mg] = False
+        out[max(0, int(mk) - mg):int(mk) + mg] = False
+        if out.sum() >= 0.15 * W and float(np.median(diff[out])) > TRK_DIFF_OK:
+            self.why = f"track changed (median {np.median(diff[out]):.0f})"
+            # A progress boost recolours the whole track (recording: the reel
+            # went unread from the boost on). If it STAYS changed while the
+            # track's end edges are still there, re-learn it, the slider placed
+            # by the one-frame reader near where it was. The bar gone (edges
+            # ~5-17) or a catch message over it never re-learns.
+            t_now = self.t + dt
+            if self._changed_since is None:
+                self._changed_since = t_now
+            elif t_now - self._changed_since >= TRK_RELEARN_AFTER_S \
+                    and self.edge >= TRK_RELEARN_EDGE:
+                # No width prior: the boost that recoloured the track also
+                # widened the slider (recording: 252 -> ~400px).
+                sg = find_slider_geo(frame, self.x0, self.x1, self.y0 - y_off,
+                                     self.y1 - y_off, s, marker_x=self.x0 + self.m,
+                                     expect_c=self.x0 + self.c)
+                a0 = int(round(self.c - self.w / 2))
+                b0 = a0 + self.w
+                if sg is not None:
+                    a0, b0 = sg[0] - self.x0, sg[1] - self.x0 + 1
+                self._rebase(P, max(0, a0), min(W, b0))
+                self.c, self.w = (a0 + b0) / 2, b0 - a0
+                self.widths = []
+                self._changed_since = None
+                self.relearned += 1
+                self.why += " -- re-learned the track"
+            return None
+        self._changed_since = None
+        self.why = ""
+
+        upd = out & self.known & (diff < TRK_DIFF_OK)
+        slow = out & self.known & (diff >= TRK_DIFF_OK)
+        new = out & ~self.known
+        self.B[upd] += TRK_LEARN_FAST * (P[upd] - self.B[upd])
+        self.B[slow] += TRK_LEARN_SLOW * (P[slow] - self.B[slow])
+        self.B[new] = P[new]
+        if new.any():
+            self.known |= new
+            self._fill_unknown()
+        self._measure_width(P, diff, sa, sb)
+        if self.mrgb is None and self.y0 == y_before:
+            self._mrgb_samples.append(self._marker_rgb(frame, y_off, mk))
+            if len(self._mrgb_samples) >= TRK_MARKER_RGB_SAMPLES:
+                self.mrgb = np.median(self._mrgb_samples, axis=0)
+        self.c, self.m, self.t = (sa + sb) / 2, mk, (self.t if now is None else now)
+        return TrackReading(self.x0, self.x1, self.y0, self.y1, self.x0 + sa,
+                            self.x0 + sb - 1, self.x0 + mk, scale=s, method="tracker")
+
+    def _follow_rows(self, frame: np.ndarray, y_off: int) -> None:
+        """Re-find the rows by the track's end edges, within the bar's entrance
+        slide of the current ones (~90px up over ~0.5s on the recording). Stay
+        unless another position is clearly stronger (a window 6px off the true
+        rows scores ~0.8 of it; 1px off, ~0.97): live, the edge score at the
+        RIGHT rows dipped to 38-50 over the red floor -- under EDGE_MIN."""
+        s, h = self.s, frame.shape[0]
+        rows_n = self.y1 - self.y0 + 1
+        pad = px(HINT_Y_PAD, s)
+        lo = max(0, self.y0 - pad - y_off)
+        hi = min(h, self.y1 + 1 + pad - y_off)
+        if hi - lo < rows_n:
+            return
+        win = np.convolve(edge_scores(frame, lo, hi, s), np.ones(rows_n) / rows_n,
+                          mode="valid")
+        k = int(np.argmax(win))
+        here = self.y0 - y_off - lo
+        self.edge = float(win[here]) if 0 <= here < len(win) else 0.0
+        if win[k] < EDGE_MIN or (0 <= here < len(win) and win[here] >= 0.87 * win[k]):
+            return
+        self.y0 = lo + k + y_off
+        self.y1 = self.y0 + rows_n - 1
+        self.edge = float(win[k])
+
+    def _find_marker(self, frame: np.ndarray, y_off: int, near: float, reach: float,
+                     use_rgb: bool = True) -> Optional[float]:
+        """Fish x (track coords): the column that stands out from its neighbours
+        above the track, below it AND on it -- one straight vertical mark -- in
+        the fish's colour. Searched within `reach` of `near` first."""
+        s, W, h = self.s, self.W, frame.shape[0]
+        r = px(20, s)
+        lo = max(0, int(near - reach) - r)
+        hi = min(W, int(near + reach) + r + 1)
+        if hi - lo < 2 * r + 2:
+            lo, hi = 0, W
+
+        def band(ya: int, yb: int):
+            ya, yb = max(0, ya - y_off), min(h, yb - y_off)
+            if yb - ya < 1:
+                return None, None
+            C = np.median(frame[ya:yb, self.x0 + lo:self.x0 + hi].astype(np.int16), axis=0)
+            return np.abs(C - _sliding_median(C, r)).sum(1), C
+
+        cA, A = band(self.y0 - px(14, s), self.y0 - px(5, s))
+        cB, B = band(self.y1 + px(5, s), self.y1 + px(13, s))
+        cT1, _ = band(self.y0 + px(2, s), self.y0 + px(10, s))
+        cT2, _ = band(self.y1 - px(9, s), self.y1 - px(1, s))
+        if cA is None or cB is None or cT1 is None or cT2 is None:
+            return None
+        sc = np.minimum.reduce([cA, cB, np.maximum(cT1, cT2)])
+        if use_rgb and self.mrgb is not None:
+            sc = sc - TRK_MARKER_RGB_PENALTY * np.abs((A + B) / 2 - self.mrgb).sum(1)
+        k = max(1, px(3, s))
+        sc = np.convolve(sc, np.ones(k) / k, mode="same")
+        idx = np.arange(lo, hi)
+        ok = np.abs(idx - near) <= reach
+        i = int(np.argmax(np.where(ok, sc, -1e9)))
+        if sc[i] < TRK_MARKER_MIN:
+            return None
+        a, b = max(0, i - px(12, s)), min(len(sc), i + px(12, s) + 1)
+        seg = sc[a:b]
+        wts = np.where(seg >= 0.5 * sc[i], seg, 0.0)
+        return lo + a + float(np.arange(len(seg)) @ wts / wts.sum())
+
+
 # ======================================================================================
 # Progress bar (2026-10-02)
 # ======================================================================================

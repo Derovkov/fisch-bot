@@ -36,13 +36,17 @@ FLANK_GAP = 18                    # skip the end-cap triangles
 TRACK_ROWS = ft.GEO_ROWS
 
 
-def locate_rows(frame: np.ndarray, s: Optional[float] = None) -> tuple[int, float]:
+def locate_rows(frame: np.ndarray, s: Optional[float] = None,
+                y_lo: Optional[int] = None) -> tuple[int, float]:
     """(y0, score): the track-height row window with the strongest edges at the
-    track's two ends (fischtrack.edge_scores). `s` defaults to the current scale."""
+    track's two ends (fischtrack.edge_scores). `s` defaults to the current scale;
+    `y_lo` to the reader's search top (pass 0 for a band already around the bar)."""
     s = ft.current_scale() if s is None else s
     h = frame.shape[0]
-    y_lo = ft.search_top(h, s)
+    y_lo = ft.search_top(h, s) if y_lo is None else y_lo
     rows = ft.px(TRACK_ROWS, s)
+    if h - y_lo < rows:
+        return y_lo, 0.0
     win = np.convolve(ft.edge_scores(frame, y_lo, h, s), np.ones(rows) / rows,
                       mode="valid")
     k = int(np.argmax(win))
