@@ -1,0 +1,17 @@
+# Local settings and run output
+fischbot_settings.json
+*.log
+tmp/
+temp/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

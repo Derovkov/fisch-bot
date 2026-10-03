@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fisch bot</title>
+<style>
+:root{
+  --bg:#0c0d10; --shell:#141519; --side:#111216;
+  --card:rgba(255,255,255,.035); --card2:rgba(255,255,255,.06);
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.13);
+  --text:#eceef3; --muted:#9a9faa; --faint:#62666f;
+  --cyan:#36c5ff; --blue:#4a8dff; --green:#3fcf6e; --red:#ff5a5f; --amber:#ffb547; --violet:#8b7bff;
+  --grad:linear-gradient(90deg,#4a8dff,#36c5ff);
+  --r-xl:24px; --r-lg:18px; --r-md:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-size:14px;
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit}
+.app{display:flex;height:100vh;padding:14px;gap:14px;
+  background:radial-gradient(1200px 600px at 85% -10%,rgba(74,141,255,.10),transparent 60%),
+             radial-gradient(900px 500px at -10% 110%,rgba(54,197,255,.06),transparent 60%),var(--bg)}
+
+/* ---------- sidebar ---------- */
+.side{width:268px;flex:none;display:flex;flex-direction:column;background:var(--side);
+  border:1px solid var(--line);border-radius:var(--r-xl);padding:18px 12px 12px}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 10px 18px}
+.brand .logo{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;
+  box-shadow:0 0 22px rgba(54,197,255,.35)}
+.brand b{font-size:16px;font-weight:600;letter-spacing:.2px}
+.brand small{display:block;color:var(--faint);font-size:11px;margin-top:1px}
+.nav{display:flex;flex-direction:column;gap:3px}
+.nav button{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:1px solid transparent;
+  border-radius:var(--r-md);background:none;cursor:pointer;color:var(--muted);font-size:14.5px;text-align:left}
+.nav button:hover{background:var(--card);color:var(--text)}
+.nav button.on{background:var(--card2);border-color:var(--line);color:var(--text)}
+.nav svg{width:19px;height:19px;flex:none}
+.live-pill{margin-left:auto;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:999px;color:#fff;
+  background:var(--grad);box-shadow:0 0 14px rgba(54,197,255,.45);display:none}
+.running .live-pill{display:inline-block}
+.sec{display:flex;justify-content:space-between;align-items:center;color:var(--faint);font-size:12px;
+  padding:20px 12px 8px;border-top:1px solid var(--line);margin-top:14px}
+.runs{flex:1;overflow:auto;padding:0 2px}
+.run{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:var(--text)}
+.run:hover{background:var(--card)}
+.run .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
+.run .n{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.run .a{color:var(--faint);font-size:12px;width:30px;text-align:right}
+.run .dot{width:7px;height:7px;border-radius:50%;background:var(--faint);flex:none}
+.run.active .dot{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.empty{color:var(--faint);font-size:12.5px;padding:8px 12px}
+.settings-btn{display:flex;align-items:center;gap:12px;margin-top:10px;padding:13px 16px;border-radius:16px;
+  background:var(--card);border:1px solid var(--line);cursor:pointer;color:var(--text);font-size:14.5px;width:100%}
+.settings-btn:hover,.settings-btn.on{background:var(--card2);border-color:var(--line2)}
+.settings-btn .chev{margin-left:auto;color:var(--muted)}
+
+/* ---------- main ---------- */
+.main{flex:1;min-width:0;overflow:auto;padding:14px 18px 18px}
+.view{display:none}.view.on{display:block}
+.head{display:flex;align-items:flex-start;gap:16px;margin-bottom:22px}
+.head h1{font-size:30px;font-weight:600;margin:0 0 6px;letter-spacing:-.3px}
+.head .sub{color:var(--muted);font-size:15px}
+.chips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;background:var(--card2);
+  border:1px solid var(--line);color:var(--muted);font-size:12.5px}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.head .actions{margin-left:auto;display:flex;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:14px;padding:11px 22px;
+  font-weight:600;font-size:14px;cursor:pointer;transition:transform .08s, box-shadow .2s, opacity .2s}
+.btn:active{transform:scale(.97)}
+.btn.go{background:var(--grad);color:#fff;box-shadow:0 6px 24px rgba(54,197,255,.30)}
+.btn.go:hover{box-shadow:0 6px 30px rgba(54,197,255,.5)}
+.btn.halt{background:rgba(255,90,95,.12);color:var(--red);border:1px solid rgba(255,90,95,.35)}
+.btn.halt:hover{background:rgba(255,90,95,.2)}
+.btn[disabled]{opacity:.35;cursor:default;box-shadow:none}
+
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018));border:1px solid var(--line);
+  border-radius:var(--r-xl);padding:22px 24px;position:relative}
+.tile{min-height:118px}
+.tile .num{font-size:36px;font-weight:500;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.tile .lab{display:flex;align-items:center;gap:8px;color:var(--text);margin-top:10px;font-size:14.5px}
+.tile .lab i{width:8px;height:8px;border-radius:50%}
+.big{min-height:220px;display:flex;flex-direction:column}
+.big .top{display:flex;align-items:flex-start;gap:12px}
+.big h2{font-size:24px;font-weight:500;margin:0}
+.big .s{color:var(--muted);font-size:15px;margin-top:6px}
+.pct{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:40px;font-weight:300;color:var(--cyan);
+  font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.pct .ok{width:20px;height:20px;border-radius:50%;background:var(--cyan);display:grid;place-items:center}
+.pct.dim{color:var(--faint)} .pct.dim .ok{background:var(--faint)}
+.pct.bad{color:var(--red)} .pct.bad .ok{background:var(--red)}
+.track{height:18px;border-radius:999px;background:rgba(255,255,255,.05);margin-top:26px;overflow:hidden}
+.fill{height:100%;width:0;border-radius:999px;background:var(--grad);box-shadow:0 0 18px rgba(54,197,255,.55);
+  transition:width .25s ease}
+.fill.bad{background:linear-gradient(90deg,#ff5a5f,#ff8a6a);box-shadow:0 0 18px rgba(255,90,95,.45)}
+.big .foot{margin-top:auto;display:flex;justify-content:space-between;color:var(--muted);font-size:14.5px}
+
+.act .ahead{display:flex;gap:24px;align-items:flex-start}
+.act h3{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:500;margin:0}
+.act .desc{color:var(--muted);font-size:14.5px;margin-top:8px;max-width:340px;line-height:1.45}
+.kpis{margin-left:auto;display:flex;gap:44px;text-align:right}
+.kpis span{display:block;color:var(--muted);font-size:13px;letter-spacing:.3px}
+.kpis b{display:block;font-size:24px;font-weight:400;margin-top:6px;font-variant-numeric:tabular-nums}
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,16px);gap:5px;margin-top:22px;overflow:hidden}
+.heat div{width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.03)}
+.heat .l1{background:#1b3a6b}.heat .l2{background:#2563c9}.heat .l3{background:#3a8bf0}.heat .l4{background:#36c5ff;box-shadow:0 0 8px rgba(54,197,255,.5)}
+.heat .x{background:rgba(255,90,95,.75)}
+.legend{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;margin-top:14px}
+.legend em{width:14px;height:14px;border-radius:4px;display:inline-block}
+
+/* ---------- rods ---------- */
+.rodbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.rodbar h1{font-size:26px;font-weight:600;margin:0 6px 0 0}
+.unlock{font-size:15px;color:var(--text);font-weight:600;padding:5px 12px;border-radius:999px;background:var(--card2);border:1px solid var(--line)}
+.unlock b{background:var(--grad);-webkit-background-clip:text;color:transparent}
+.rodbar .grow{flex:1}
+.search{position:relative}
+.search input{width:240px;text-align:left;padding-left:34px;border-radius:12px}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.seg.icons button{padding:6px 9px;display:grid;place-items:center}
+.rodwrap{position:relative}
+.carousel{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 14px;scroll-behavior:smooth}
+.carousel .rc{flex:0 0 292px;scroll-snap-align:start}
+.gridview{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;padding-bottom:14px}
+.arrow{position:absolute;top:44%;z-index:3;width:38px;height:38px;border-radius:50%;border:1px solid var(--line2);
+  background:rgba(20,21,25,.9);color:var(--text);cursor:pointer;font-size:20px;line-height:1}
+.arrow:hover{border-color:var(--cyan)}.arrow.l{left:-8px}.arrow.r{right:-8px}
+.gridmode .arrow{display:none}
+.rc{position:relative;height:452px;border-radius:var(--r-lg);border:1px solid var(--line);overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015)),#121318;display:flex;flex-direction:column;
+  transition:border-color .15s, box-shadow .15s}
+.rc:hover{border-color:var(--line2)}
+.rc.sel{border-color:rgba(54,197,255,.65);box-shadow:0 0 0 1px rgba(54,197,255,.3) inset,0 0 26px rgba(54,197,255,.12)}
+.rc-art{position:absolute;inset:0 0 150px 0;display:grid;place-items:center;pointer-events:none}
+.rc-art img{max-width:78%;max-height:88%;object-fit:contain;opacity:.92;filter:drop-shadow(0 8px 24px rgba(0,0,0,.6))}
+.rc-art .fb{font-size:84px;font-weight:700;color:rgba(255,255,255,.06)}
+.rc-stats{position:relative;z-index:1;padding:14px 14px 0;font-size:12.5px;line-height:1.75;color:#d9dce3;
+  text-shadow:0 1px 3px #000,0 0 8px #000;max-width:82%}
+.rc-stats em{font-style:normal;color:var(--amber)}
+.rc-stats .neg{color:#ff8a8a}
+.rc-stats .dim{color:var(--muted)}
+.rc-icons{position:absolute;right:10px;top:10px;z-index:2;display:flex;flex-direction:column;gap:6px}
+.ic{width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:rgba(12,13,16,.7);color:var(--faint);
+  cursor:pointer;display:grid;place-items:center;font-size:15px}
+.ic:hover{color:var(--text);border-color:var(--line2)}
+.ic.fav.on{color:#ffc53d;border-color:rgba(255,197,61,.45)}
+.ic.own.on{color:var(--green);border-color:rgba(63,207,110,.45)}
+.rc-foot{margin-top:auto;position:relative;z-index:1;padding:10px 14px 14px;text-align:center;
+  background:linear-gradient(180deg,transparent,rgba(10,11,14,.92) 30%)}
+.rc-ench{font-weight:700;font-size:15px;color:#c9b6ff;text-shadow:0 0 12px rgba(139,123,255,.75)}
+.rc-ench2{font-size:12.5px;color:#ffb38a;margin-top:1px}
+.rc-name{color:#ffc53d;font-weight:600;font-size:14px;margin-top:6px}
+.rc-src{color:var(--muted);font-size:11.5px;margin-top:3px;min-height:30px;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rc-badges{display:flex;justify-content:center;gap:6px;margin-top:4px;min-height:18px}
+.tag{font-size:11px;padding:2px 9px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--muted);font-weight:500}
+.tag.warn{color:var(--amber);border-color:rgba(255,181,71,.35)}
+.rc-equip{margin-top:10px;width:100%;padding:9px;border-radius:10px;border:1px solid rgba(63,207,110,.55);background:rgba(63,207,110,.08);
+  color:#7ee2a0;font-weight:600;cursor:pointer}
+.rc-equip:hover{background:rgba(63,207,110,.16)}
+.rc.sel .rc-equip{border-color:var(--line);background:var(--card);color:var(--faint);cursor:default}
+.credit{color:var(--faint);font-size:12px;margin-top:4px}
+.credit a{color:var(--muted)}
+/* enchant editor */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;z-index:50}
+.modal-bg.on{display:grid}
+.modal{width:min(760px,92vw);max-height:84vh;display:flex;flex-direction:column;background:#16171c;border:1px solid var(--line2);
+  border-radius:var(--r-xl);padding:22px 24px;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.modal h2{margin:0;font-size:20px;font-weight:600}
+.modal .sub{color:var(--muted);margin:4px 0 14px}
+.chosen{display:flex;gap:8px;flex-wrap:wrap;min-height:30px;margin-bottom:12px}
+.chosen span{background:rgba(139,123,255,.16);border:1px solid rgba(139,123,255,.5);color:#d5cbff;padding:4px 10px;border-radius:999px;font-size:12.5px;cursor:pointer}
+.chosen span:hover{border-color:var(--red);color:#ffb3b5}
+.elist{overflow:auto;border-top:1px solid var(--line);padding-top:6px}
+.egroup{color:var(--faint);font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin:12px 0 4px}
+.eitem{display:flex;gap:12px;align-items:flex-start;padding:9px 10px;border-radius:10px;cursor:pointer}
+.eitem:hover{background:var(--card)}
+.eitem.on{background:rgba(139,123,255,.12)}
+.eitem b{min-width:150px;font-weight:600}
+.eitem span{color:var(--muted);font-size:12.5px;line-height:1.45;flex:1}
+.eitem i{font-style:normal;font-size:10.5px;color:var(--cyan);border:1px solid rgba(54,197,255,.4);border-radius:999px;padding:1px 7px;white-space:nowrap}
+.modal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+/* ---------- log / settings ---------- */
+.logbox{font-family:"Cascadia Mono",Consolas,monospace;font-size:12.5px;line-height:1.65;height:calc(100vh - 190px);
+  overflow:auto;white-space:pre-wrap;word-break:break-word;color:var(--muted)}
+.logbox .good{color:var(--green)}.logbox .bad{color:var(--red)}.logbox .note{color:var(--amber)}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.form .card h3{margin:0 0 14px;font-size:17px;font-weight:500}
+.row{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row label:not(.sw){flex:1;display:flex;align-items:center;gap:8px;font-size:14.5px}
+.help{width:18px;height:18px;border-radius:50%;border:1px solid var(--line2);color:var(--muted);font-size:11px;
+  font-weight:700;display:inline-grid;place-items:center;cursor:help;flex:none}
+.help:hover{color:#fff;border-color:var(--cyan);background:rgba(54,197,255,.15)}
+input[type=number],select{background:rgba(255,255,255,.05);border:1px solid var(--line2);color:var(--text);
+  border-radius:10px;padding:8px 10px;font:inherit;width:110px;text-align:center;outline:none}
+select{width:auto;text-align:left;min-width:240px}
+input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,197,255,.15)}
+.seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid var(--line2);border-radius:12px;padding:3px}
+.seg button{border:0;background:none;padding:7px 12px;border-radius:9px;color:var(--muted);cursor:pointer;font-size:13px}
+.seg button.on{background:var(--card2);color:var(--text);box-shadow:0 0 0 1px var(--line2) inset}
+.sw{position:relative;width:44px;height:26px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;border-radius:999px;background:rgba(255,255,255,.1);transition:.2s;cursor:pointer}
+.sw span:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}
+.sw input:checked+span{background:var(--grad);box-shadow:0 0 12px rgba(54,197,255,.4)}
+.sw input:checked+span:before{transform:translateX(18px)}
+.note-line{color:var(--faint);font-size:12.5px;margin-top:10px;line-height:1.5}
+.err{color:var(--red);font-size:13px;margin-top:8px;min-height:18px}
+#tip{position:fixed;z-index:99;max-width:310px;padding:11px 13px;border-radius:12px;background:#1d1f25;
+  border:1px solid var(--line2);color:var(--text);font-size:12.5px;line-height:1.5;pointer-events:none;
+  box-shadow:0 12px 34px rgba(0,0,0,.5);opacity:0;transition:opacity .12s}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:10px;border:3px solid transparent;background-clip:content-box}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 12c-1.8 3.2-5 5-8.5 5-1.6 0-3-.5-4-1.2C5 13.9 6.5 12 6.5 12S5 10.1 4 8.2C5 7.5 6.4 7 8 7c3.5 0 6.7 1.8 8.5 5Z"/><path d="M16.5 12 21 8.5v7z"/><circle cx="8.5" cy="11" r=".6" fill="#fff"/></svg></div>
+      <div><b>Fisch bot</b><small>Auto cast · lure · reel</small></div>
+    </div>
+    <nav class="nav">
+      <button data-view="dash" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Dashboard<span class="live-pill">Live</span></button>
+      <button data-view="rods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 18 6"/><path d="M18 6V3M18 6h3"/><path d="M18 6c0 5-2 9-5 11"/><circle cx="13" cy="18.5" r="1.5"/></svg>Rods</button>
+      <button data-view="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Log</button>
+    </nav>
+    <div class="sec">Runs this session</div>
+    <div class="runs" id="runs"><div class="empty">No runs yet — press Start.</div></div>
+    <button class="settings-btn" data-view="settings"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>Settings<span class="chev">›</span></button>
+  </aside>
+
+  <main class="main">
+    <!-- dashboard -->
+    <section class="view on" id="v-dash">
+      <div class="head">
+        <div>
+          <h1>Fishing</h1>
+          <div class="sub" id="subline">Ready</div>
+          <div class="chips">
+            <span class="chip" id="chip-state"><i></i><span>Idle</span></span>
+            <span class="chip" id="chip-cal"><i></i><span>Calibrates on start</span></span>
+            <span class="chip" id="chip-focus">Keep Roblox in front</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn go" id="start">▶&nbsp; Start</button>
+          <button class="btn halt" id="stop" disabled>■&nbsp; Stop <small style="opacity:.6;font-weight:500">F9</small></button>
+        </div>
+      </div>
+      <div class="err" id="err"></div>
+
+      <div class="grid4">
+        <div class="card tile"><div class="num" id="n-caught">0</div><div class="lab"><i style="background:var(--green)"></i>Caught</div></div>
+        <div class="card tile"><div class="num" id="n-lost">0</div><div class="lab"><i style="background:var(--red)"></i>Missed</div></div>
+        <div class="card tile"><div class="num" id="n-casts">0</div><div class="lab"><i style="background:var(--blue)"></i>Casts</div></div>
+        <div class="card tile"><div class="num" id="n-rate">–</div><div class="lab"><i style="background:var(--violet)"></i>Catch rate</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card big">
+          <div class="top">
+            <div><h2>Current reel</h2><div class="s" id="reel-sub">Waiting to start</div></div>
+            <div class="pct dim" id="reel-pct"><span class="ok"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0c0d10" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span><span id="reel-num">0%</span></div>
+          </div>
+          <div class="track"><div class="fill" id="reel-fill"></div></div>
+          <div class="foot"><span id="reel-time">No reel in progress</span><span>From the game's progress bar</span></div>
+        </div>
+        <div class="card big">
+          <div class="top">
+            <div><h2>Run goal</h2><div class="s" id="goal-sub">Set in Settings</div></div>
+            <div class="pct dim" id="goal-pct"><span class="ok"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0c0d10" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span><span id="goal-num">0%</span></div>
+          </div>
+          <div class="track"><div class="fill" id="goal-fill"></div></div>
+          <div class="foot"><span id="goal-left">–</span><span id="goal-elapsed">Not started</span></div>
+        </div>
+      </div>
+
+      <div class="card act">
+        <div class="ahead">
+          <div>
+            <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="10" y="3" width="5" height="5" rx="1"/><rect x="17" y="3" width="4" height="5" rx="1"/><rect x="3" y="10" width="5" height="5" rx="1"/><rect x="10" y="10" width="5" height="5" rx="1"/><rect x="17" y="10" width="4" height="5" rx="1"/><rect x="3" y="17" width="5" height="4" rx="1"/><rect x="10" y="17" width="5" height="4" rx="1"/></svg>Reel activity</h3>
+            <div class="desc">Every reel this run, in order. Brighter means the fish stayed inside the slider more of the time.</div>
+          </div>
+          <div class="kpis">
+            <div><span>Avg reel</span><b id="k-avg">–</b></div>
+            <div><span>Kept inside</span><b id="k-inside">–</b></div>
+            <div><span>Readings / s</span><b id="k-rate">–</b></div>
+          </div>
+        </div>
+        <div class="heat" id="heat"></div>
+        <div class="legend">Less <em style="background:#1b3a6b"></em><em style="background:#2563c9"></em><em style="background:#3a8bf0"></em><em style="background:#36c5ff"></em> More
+          <span style="margin-left:18px;display:inline-flex;align-items:center;gap:6px"><em style="background:rgba(255,90,95,.75)"></em>Escaped</span></div>
+      </div>
+    </section>
+
+    <!-- rods -->
+    <section class="view" id="v-rods">
+      <div class="rodbar">
+        <h1>Fishing Rods</h1>
+        <span class="unlock" id="unlock"><b>0%</b> Unlocked</span>
+        <div class="seg" id="rod-filter"><button data-v="all">All</button><button data-v="owned">Owned</button><button data-v="favs">Favourites</button><button data-v="obtainable">Obtainable</button></div>
+        <span class="grow"></span>
+        <button class="btn go" id="scan" style="padding:8px 16px;font-size:13px" title="Read your rods and enchants from the rod screen open in Roblox">⟳&nbsp; Scan from game</button>
+        <select id="rod-sort"><option value="name">Sort: Name</option><option value="luck">Sort: Luck</option><option value="lure">Sort: Lure speed</option><option value="control">Sort: Control</option><option value="resilience">Sort: Resilience</option></select>
+        <div class="seg icons" id="rod-layout">
+          <button data-v="carousel" title="Scroll through"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="6" height="14" rx="1.5"/><rect x="9" y="5" width="6" height="14" rx="1.5"/><rect x="16" y="5" width="6" height="14" rx="1.5"/></svg></button>
+          <button data-v="grid" title="Grid"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></button>
+        </div>
+        <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="rod-search" type="text" placeholder="Search rods…"></label>
+      </div>
+      <div class="rodwrap" id="rodwrap">
+        <button class="arrow l" id="arr-l" aria-label="Scroll left">‹</button>
+        <div id="rodlist" class="carousel"></div>
+        <button class="arrow r" id="arr-r" aria-label="Scroll right">›</button>
+      </div>
+      <div class="credit" id="rodcount"></div>
+      <div class="credit">Rod and enchant data and images: <a href="https://fischipedia.org/wiki/Fishing_Rods" target="_blank">Fischipedia</a>, the official Fisch wiki (fetched 2026-10-02).</div>
+    </section>
+    <div class="modal-bg" id="scan-modal">
+      <div class="modal">
+        <h2>Rods found in the game</h2>
+        <div class="sub" id="scan-sub">Untick anything that was read wrong, then Apply. You can still edit any rod's enchants with ✎ afterwards.</div>
+        <div class="elist" id="scan-list"></div>
+        <div class="actions"><button class="btn halt" id="scan-cancel" style="padding:9px 18px">Cancel</button><button class="btn go" id="scan-apply" style="padding:9px 22px">Apply</button></div>
+      </div>
+    </div>
+    <div class="modal-bg" id="ench-modal">
+      <div class="modal">
+        <h2 id="ench-title">Enchants</h2>
+        <div class="sub">Pick the enchants on this rod (up to 3). Ones marked <i style="font-style:normal;font-size:10.5px;color:var(--cyan);border:1px solid rgba(54,197,255,.4);border-radius:999px;padding:1px 7px">changes the reel</i> affect the minigame itself.</div>
+        <div class="chosen" id="ench-chosen"></div>
+        <label class="search" style="margin-bottom:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="ench-search" type="text" placeholder="Search enchants…" style="width:100%"></label>
+        <div class="elist" id="ench-list"></div>
+        <div class="actions"><button class="btn halt" id="ench-clear" style="padding:9px 18px">Clear</button><button class="btn go" id="ench-done" style="padding:9px 22px">Done</button></div>
+      </div>
+    </div>
+
+    <!-- log -->
+    <section class="view" id="v-log">
+      <div class="head"><div><h1>Log</h1><div class="sub">This app session. Cleared when the app closes.</div></div></div>
+      <div class="card"><div class="logbox" id="logbox"></div></div>
+    </section>
+
+    <!-- settings -->
+    <section class="view" id="v-settings">
+      <div class="head"><div><h1>Settings</h1><div class="sub">Applied the next time you press Start. Hover <span class="help" style="vertical-align:-3px">?</span> for what each one does.</div></div></div>
+      <div class="form">
+        <div class="card">
+          <h3>Fishing</h3>
+          <div class="row"><label>Rod <span class="help" data-help="rod">?</span></label>
+            <div style="text-align:right"><div id="s-rodname" style="color:#ffc53d;font-weight:600"></div><div id="s-rodench" style="color:#c9b6ff;font-size:12.5px"></div></div>
+            <button class="btn halt" style="padding:7px 14px;color:var(--text);background:var(--card2);border-color:var(--line2)" data-view="rods" id="s-rodgo">Change</button></div>
+          <div class="row"><label>Fish to catch <span class="help" data-help="fish">?</span></label><input type="number" id="s-max_fish" min="0" step="1"></div>
+          <div class="row"><label>Focus <span class="help" data-help="focus">?</span></label>
+            <div class="seg" id="s-focus"><button data-v="pin">Keep Roblox in front</button><button data-v="yield">Pause when I switch</button></div></div>
+          <div class="note-line">Fish to catch: 0 keeps fishing until you press Stop.</div>
+        </div>
+        <div class="card">
+          <h3>Logs</h3>
+          <div class="row"><label>Detailed log <span class="help" data-help="debug">?</span></label><label class="sw"><input type="checkbox" id="s-debug"><span></span></label></div>
+          <div class="row"><label>Record measurements <span class="help" data-help="trace">?</span></label><label class="sw"><input type="checkbox" id="s-trace"><span></span></label></div>
+          <div class="row"><label>Keep logs after stopping <span class="help" data-help="keep">?</span></label><label class="sw"><input type="checkbox" id="s-keep"><span></span></label></div>
+          <div class="note-line">Everything a run writes goes to a temporary folder that is deleted when it stops.</div>
+        </div>
+        <div class="card">
+          <h3>Advanced</h3>
+          <div class="row"><label>Lookahead (s) <span class="help" data-help="lookahead">?</span></label><input type="number" id="s-lookahead" min="0" max="1.5" step="0.05"></div>
+          <div class="row"><label>Deadband <span class="help" data-help="deadband">?</span></label><input type="number" id="s-deadband" min="0" max="0.3" step="0.01"></div>
+          <div class="row"><label>Bite timeout (s) <span class="help" data-help="bite">?</span></label><input type="number" id="s-bite" min="5" max="120" step="5"></div>
+          <div class="note-line"><a href="#" id="reset" style="color:var(--cyan);text-decoration:none">Reset to defaults</a></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="tip"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const STATE = {idle:["Idle","var(--faint)"], starting:["Starting","var(--blue)"], calibrating:["Calibrating","var(--amber)"],
+  casting:["Casting","var(--blue)"], luring:["Luring","var(--blue)"], "waiting for a bite":["Waiting for a bite","var(--blue)"],
+  reeling:["Reeling","var(--green)"], "rod minigame":["Rod minigame","var(--amber)"], stopped:["Stopped","var(--faint)"]};
+let META = null, S = {}, seq = 0, running = false;
+
+/* ---------- navigation ---------- */
+document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => show(b.dataset.view));
+function show(v){
+  document.querySelectorAll(".view").forEach(x => x.classList.toggle("on", x.id === "v-" + v));
+  document.querySelectorAll("[data-view]").forEach(x => x.classList.toggle("on", x.dataset.view === v));
+}
+
+/* ---------- tooltips ---------- */
+const tip = $("#tip");
+document.addEventListener("mouseover", e => {
+  const h = e.target.closest(".help[data-help]"); if (!h || !META) return;
+  tip.textContent = META.help[h.dataset.help]; tip.style.opacity = 1;
+  const r = h.getBoundingClientRect(), w = 310;
+  let x = r.right + 10; if (x + w > innerWidth - 10) x = r.left - w - 10;
+  tip.style.left = x + "px"; tip.style.top = Math.min(r.top - 6, innerHeight - tip.offsetHeight - 10) + "px";
+});
+document.addEventListener("mouseout", e => { if (e.target.closest(".help")) tip.style.opacity = 0; });
+
+/* ---------- settings ---------- */
+function loadSettings(){
+  S = Object.assign({}, META.defaults, META.saved || {});
+  if (!META.rods.some(r => r.name === S.rod)) S.rod = META.defaults.rod;
+  S.rod_enchants = Object.assign({}, S.rod_enchants || {});
+  S.owned = (S.owned || []).slice(); S.favs = (S.favs || []).slice();
+}
+function saveSettings(){ pywebview.api.save_settings(JSON.stringify(S)); }
+function paintSettings(){
+  $("#s-rodname").textContent = "[" + S.rod + "]";
+  $("#s-rodench").textContent = (S.rod_enchants[S.rod] || []).join(", ") || "No enchants";
+  for (const k of ["max_fish","lookahead","deadband","bite"]) $("#s-"+k).value = S[k];
+  for (const k of ["debug","trace","keep"]) $("#s-"+k).checked = !!S[k];
+  document.querySelectorAll("#s-focus button").forEach(b => b.classList.toggle("on", b.dataset.v === S.focus));
+  $("#chip-focus").textContent = S.focus === "pin" ? "Keep Roblox in front" : "Pause when I switch";
+  paintRods(); paintSub();
+}
+for (const k of ["max_fish","lookahead","deadband","bite"]) $("#s-"+k).onchange = e => {
+  const v = parseFloat(e.target.value);
+  if (isFinite(v) && v >= +e.target.min && (!e.target.max || v <= +e.target.max)) { S[k] = k==="max_fish" ? Math.round(v) : v; saveSettings(); }
+  e.target.value = S[k]; paintSub();
+};
+for (const k of ["debug","trace","keep"]) $("#s-"+k).onchange = e => { S[k] = e.target.checked; saveSettings(); };
+document.querySelectorAll("#s-focus button").forEach(b => b.onclick = () => { S.focus = b.dataset.v; saveSettings(); paintSettings(); });
+$("#reset").onclick = e => {
+  e.preventDefault();
+  const keep = {rod: S.rod, rod_enchants: S.rod_enchants, owned: S.owned, favs: S.favs, rod_layout: S.rod_layout};
+  S = Object.assign({}, META.defaults, keep); saveSettings(); paintSettings();
+};
+
+/* ---------- rods page ---------- */
+let rodFilter = "all", rodSort = "name", rodQuery = "", editRod = null, editSel = [];
+const STAT_RE = /([+-]?\s?[\d.,]+|\+?inf)\s*(%|kg)?\s*(Lure Speed|Luck|Resilience|Progress Speed|Control|Disturbance|Max Kg)/gi;
+const STAT_KEY = {"lure speed":"lure","luck":"luck","resilience":"resilience","progress speed":"progress","control":"control","disturbance":"disturbance","max kg":"max_kg"};
+function enchantBonus(names){
+  // Sum each enchant's FIRST stated bonus per stat (conditional enchants list
+  // several variants; the first is the always-on one).
+  const tot = {};
+  for (const n of names) {
+    const e = META.enchants[n]; if (!e) continue;
+    const seen = new Set();
+    for (const m of e.effect.matchAll(STAT_RE)) {
+      const k = STAT_KEY[m[3].toLowerCase()]; if (seen.has(k)) continue; seen.add(k);
+      const v = /inf/i.test(m[1]) ? Infinity : parseFloat(m[1].replace(/[\s,]/g, ""));
+      if (isFinite(v) || v === Infinity) tot[k] = (tot[k] || 0) + v;
+    }
+  }
+  return tot;
+}
+function sv(base, add, unit, dec){
+  const f = v => v === Infinity ? "inf" : (dec ? v.toFixed(dec).replace(/\.?0+$/, "") || "0" : Math.round(v)) + unit;
+  let s = base == null ? '<span class="dim">–</span>' : f(base);
+  if (add) s += ` <em class="${add < 0 ? "neg" : ""}">(${add > 0 ? "+" : ""}${f(add)})</em>`;
+  return s;
+}
+function rodCard(r){
+  const sel = r.name === S.rod, ench = S.rod_enchants[r.name] || [], b = enchantBonus(ench);
+  const fav = S.favs.includes(r.name), own = S.owned.includes(r.name);
+  const img = r.img ? r.img.replace(/\/\d+px-/, "/250px-") : null;
+  return `<div class="rc${sel?" sel":""}" data-rod="${esc(r.name)}">
+    <div class="rc-art">${img ? `<img loading="lazy" src="${esc(img)}" alt="" onerror="this.outerHTML='<div class=fb>${esc(r.name[0])}</div>'">` : `<div class="fb">${esc(r.name[0])}</div>`}</div>
+    <div class="rc-icons">
+      <button class="ic fav${fav?" on":""}" data-act="fav" title="Favourite">★</button>
+      <button class="ic own${own?" on":""}" data-act="own" title="I own this rod">✓</button>
+      <button class="ic" data-act="ench" title="Edit enchants">✎</button></div>
+    <div class="rc-stats">
+      <div>Lure Speed: ${sv(r.lure, b.lure, "%")}</div>
+      <div>Luck: ${sv(r.luck, b.luck, "%")}</div>
+      <div>Control: ${sv(r.control, b.control, "", 2)}</div>
+      <div>Resilience: ${sv(r.resilience, b.resilience, "%")}</div>
+      <div>Max KG: ${r.max_kg == null ? "inf" : Math.round(r.max_kg).toLocaleString()}kg</div>
+      ${b.progress ? `<div>Progress Speed: <em>+${Math.round(b.progress)}%</em></div>` : ""}
+      ${b.disturbance ? `<div>Disturbance: <em>+${b.disturbance}</em></div>` : ""}
+      <div class="dim">${esc(r.location || "")}${r.stage ? " · Stage " + esc(r.stage) : ""}</div>
+    </div>
+    <div class="rc-foot">
+      ${ench.length ? `<div class="rc-ench">◆ ${esc(ench[0])} ◆</div>${ench.length > 1 ? `<div class="rc-ench2">${esc(ench.slice(1).join(", "))}</div>` : ""}` : ""}
+      <div class="rc-name">[${esc(r.name)}]</div>
+      <div class="rc-src">${esc(r.source || "")}</div>
+      <div class="rc-badges">${r.extra ? '<span class="tag">Own minigame</span>' : ""}${r.obtainable ? "" : '<span class="tag warn">No longer obtainable</span>'}</div>
+      <button class="rc-equip" data-act="equip">${sel ? "Equipped" : "Equip"}</button>
+    </div></div>`;
+}
+function paintRods(){
+  const q = rodQuery.trim().toLowerCase();
+  let list = META.rods.filter(r =>
+    (rodFilter === "all" || (rodFilter === "owned" && S.owned.includes(r.name)) ||
+     (rodFilter === "favs" && S.favs.includes(r.name)) || (rodFilter === "obtainable" && r.obtainable)) &&
+    (!q || (r.name + " " + r.location + " " + r.source + " " + (S.rod_enchants[r.name] || []).join(" ")).toLowerCase().includes(q)));
+  list.sort((a, b) => rodSort === "name" ? a.name.localeCompare(b.name) : (b[rodSort] ?? -1e9) - (a[rodSort] ?? -1e9));
+  // equipped first, then favourites, keeping the chosen order within each
+  const rank = r => (r.name === S.rod ? 0 : S.favs.includes(r.name) ? 1 : 2);
+  list.sort((a, b) => rank(a) - rank(b));
+  const box = $("#rodlist");
+  box.className = S.rod_layout === "grid" ? "gridview" : "carousel";
+  $("#rodwrap").classList.toggle("gridmode", S.rod_layout === "grid");
+  box.innerHTML = list.length ? list.map(rodCard).join("") : '<div class="empty" style="padding:30px">No rods match.</div>';
+  const owned = S.owned.filter(n => META.rods.some(r => r.name === n)).length;
+  const pc = 100 * owned / META.rods.length;
+  $("#unlock").innerHTML = `<b>${pc > 0 && pc < 10 ? pc.toFixed(1) : Math.round(pc)}%</b> Unlocked`;
+  $("#rodcount").textContent = `${list.length} of ${META.rods.length} rods shown · ${owned} owned · mark rods you own with ✓`;
+  document.querySelectorAll("#rod-filter button").forEach(b => b.classList.toggle("on", b.dataset.v === rodFilter));
+  document.querySelectorAll("#rod-layout button").forEach(b => b.classList.toggle("on", b.dataset.v === S.rod_layout));
+}
+$("#rodlist").addEventListener("click", e => {
+  const btn = e.target.closest("[data-act]"), card = e.target.closest(".rc"); if (!btn || !card) return;
+  const name = card.dataset.rod, act = btn.dataset.act;
+  const toggle = (arr, n) => arr.includes(n) ? arr.filter(x => x !== n) : arr.concat(n);
+  if (act === "fav") S.favs = toggle(S.favs, name);
+  if (act === "own") S.owned = toggle(S.owned, name);
+  if (act === "equip") { S.rod = name; if (!S.owned.includes(name)) S.owned = S.owned.concat(name); }
+  if (act === "ench") return openEnchants(name);
+  saveSettings(); paintSettings();
+});
+$("#rodlist").addEventListener("wheel", e => {
+  if (S.rod_layout !== "grid" && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); $("#rodlist").scrollLeft += e.deltaY * 1.2; }
+}, {passive: false});
+$("#arr-l").onclick = () => $("#rodlist").scrollBy({left: -620});
+$("#arr-r").onclick = () => $("#rodlist").scrollBy({left: 620});
+document.querySelectorAll("#rod-filter button").forEach(b => b.onclick = () => { rodFilter = b.dataset.v; paintRods(); });
+document.querySelectorAll("#rod-layout button").forEach(b => b.onclick = () => { S.rod_layout = b.dataset.v; saveSettings(); paintRods(); });
+$("#rod-sort").onchange = e => { rodSort = e.target.value; paintRods(); };
+$("#rod-search").oninput = e => { rodQuery = e.target.value; paintRods(); };
+
+/* scan from game */
+let scanCards = [];
+$("#scan").onclick = async () => {
+  const b = $("#scan"); b.disabled = true; b.textContent = "Reading…";
+  try {
+    const r = await pywebview.api.scan_rods();
+    if (!r.ok) { alertErr(r.error); return; }
+    scanCards = r.cards.map(c => Object.assign({use: true}, c));
+    $("#scan-sub").textContent = `${scanCards.length} rod(s) read from the screen. Untick anything that was read wrong, then Apply. You can still edit any rod's enchants with ✎ afterwards.`;
+    paintScan(); $("#scan-modal").classList.add("on");
+  } finally { b.disabled = false; b.innerHTML = "⟳&nbsp; Scan from game"; }
+};
+function paintScan(){
+  $("#scan-list").innerHTML = scanCards.map((c, i) => `
+    <div class="eitem${c.use ? " on" : ""}" data-i="${i}">
+      <b style="color:#ffc53d">[${esc(c.rod)}]</b>
+      <span>${c.enchants.length ? esc(c.enchants.join(", ")) : "No enchants read"}${S.owned.includes(c.rod) ? "" : " · <em style='font-style:normal;color:var(--green)'>new</em>"}</span>
+      ${c.equipped ? "<i>equipped</i>" : ""}<span style="flex:none;color:var(--text)">${c.use ? "✓" : "–"}</span></div>`).join("");
+}
+$("#scan-list").onclick = e => { const it = e.target.closest("[data-i]"); if (it) { const c = scanCards[+it.dataset.i]; c.use = !c.use; paintScan(); } };
+$("#scan-cancel").onclick = () => $("#scan-modal").classList.remove("on");
+$("#scan-apply").onclick = () => {
+  const ench = Object.assign({}, S.rod_enchants);
+  for (const c of scanCards.filter(c => c.use)) {
+    if (!S.owned.includes(c.rod)) S.owned = S.owned.concat(c.rod);
+    ench[c.rod] = c.enchants.slice(0, 3);
+    if (c.equipped) S.rod = c.rod;
+  }
+  S.rod_enchants = ench; saveSettings(); paintSettings();
+  $("#scan-modal").classList.remove("on");
+};
+function alertErr(msg){ $("#rodcount").innerHTML = `<span style="color:var(--red)">${esc(msg)}</span>`; }
+
+/* enchant editor */
+function openEnchants(name){
+  editRod = name; editSel = (S.rod_enchants[name] || []).slice();
+  $("#ench-title").textContent = `Enchants · ${name}`; $("#ench-search").value = "";
+  paintEnchants(); $("#ench-modal").classList.add("on"); $("#ench-search").focus();
+}
+function paintEnchants(){
+  $("#ench-chosen").innerHTML = editSel.length ? editSel.map(n => `<span data-n="${esc(n)}" title="Remove">${esc(n)} ✕</span>`).join("")
+    : '<span style="background:none;border-color:var(--line);color:var(--faint);cursor:default">No enchants</span>';
+  const q = $("#ench-search").value.trim().toLowerCase(), groups = {};
+  for (const [n, e] of Object.entries(META.enchants))
+    if (!q || (n + " " + e.effect).toLowerCase().includes(q)) (groups[e.group] = groups[e.group] || []).push([n, e]);
+  $("#ench-list").innerHTML = Object.keys(groups).sort().map(g => `<div class="egroup">${esc(g)}</div>` +
+    groups[g].sort((a, b) => a[0].localeCompare(b[0])).map(([n, e]) => `
+      <div class="eitem${editSel.includes(n) ? " on" : ""}" data-n="${esc(n)}"><b>${esc(n)}</b><span>${esc(e.effect)}</span>${e.affects_reel ? "<i>changes the reel</i>" : ""}</div>`).join("")).join("")
+    || '<div class="empty">No enchants match.</div>';
+}
+$("#ench-list").onclick = e => {
+  const it = e.target.closest(".eitem"); if (!it) return; const n = it.dataset.n;
+  if (editSel.includes(n)) editSel = editSel.filter(x => x !== n); else if (editSel.length < 3) editSel.push(n);
+  paintEnchants();
+};
+$("#ench-chosen").onclick = e => { const s = e.target.closest("[data-n]"); if (s) { editSel = editSel.filter(x => x !== s.dataset.n); paintEnchants(); } };
+$("#ench-search").oninput = paintEnchants;
+$("#ench-clear").onclick = () => { editSel = []; paintEnchants(); };
+function closeEnchants(save){
+  if (save) { S.rod_enchants = Object.assign({}, S.rod_enchants, {[editRod]: editSel}); saveSettings(); paintSettings(); }
+  $("#ench-modal").classList.remove("on");
+}
+$("#ench-done").onclick = () => closeEnchants(true);
+$("#ench-modal").onclick = e => { if (e.target.id === "ench-modal") closeEnchants(true); };
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#ench-modal").classList.contains("on")) closeEnchants(false); });
+function paintSub(){
+  const goal = S.max_fish > 0 ? `${S.max_fish} casts` : "fishing until stopped";
+  if (!running) $("#subline").textContent = `${S.rod} · ${goal}`;
+}
+
+/* ---------- start / stop ---------- */
+$("#start").onclick = async () => {
+  $("#err").textContent = "";
+  const r = await pywebview.api.start(JSON.stringify(S));
+  if (!r.ok) $("#err").textContent = r.error;
+};
+$("#stop").onclick = () => pywebview.api.stop();
+
+/* ---------- polling ---------- */
+async function poll(){
+  try { paint(await pywebview.api.get_state(seq)); } catch(e) {}
+  setTimeout(poll, 200);
+}
+function paint(st){
+  running = st.running;
+  $("#app").classList.toggle("running", running);
+  $("#start").disabled = running; $("#stop").disabled = !running;
+
+  const [label, col] = STATE[st.state] || [st.state, "var(--blue)"];
+  $("#chip-state span").textContent = label; $("#chip-state i").style.background = col;
+  $("#chip-state i").style.boxShadow = running ? `0 0 8px ${col}` : "none";
+  $("#chip-cal span").textContent = st.calibrated ? "Calibrated for this area" : (running ? "Calibrating…" : "Calibrates on start");
+  $("#chip-cal i").style.background = st.calibrated ? "var(--green)" : "var(--faint)";
+
+  $("#n-caught").textContent = st.caught; $("#n-lost").textContent = st.lost; $("#n-casts").textContent = st.casts;
+  $("#n-rate").textContent = st.casts ? Math.round(100 * st.caught / st.casts) + "%" : "–";
+  if (running) $("#subline").textContent = `${S.rod} · run in progress`;
+
+  // current reel
+  const lv = st.live, inReel = running && lv && lv.in_reel;
+  const fill = inReel && lv.fill != null ? lv.fill : 0;
+  $("#reel-num").textContent = Math.round(fill * 100) + "%";
+  $("#reel-fill").style.width = (fill * 100).toFixed(1) + "%";
+  const outside = inReel && lv.inside === false;
+  $("#reel-pct").className = "pct" + (!inReel ? " dim" : outside ? " bad" : "");
+  $("#reel-fill").classList.toggle("bad", outside);
+  $("#reel-sub").textContent = !running ? "Waiting to start" : inReel ? (outside ? "Fish outside the slider" : "Fish inside the slider") : label;
+  $("#reel-time").textContent = inReel ? `Reel time ${lv.elapsed.toFixed(1)}s` : "No reel in progress";
+
+  // goal
+  const goal = st.max_fish;
+  const gp = goal > 0 ? Math.min(1, st.casts / goal) : 0;
+  $("#goal-num").textContent = goal > 0 ? Math.round(gp * 100) + "%" : "∞";
+  $("#goal-fill").style.width = (gp * 100).toFixed(1) + "%";
+  $("#goal-pct").className = "pct" + (running || st.casts ? "" : " dim");
+  $("#goal-sub").textContent = goal > 0 ? `${st.casts} of ${goal} casts` : "Fishing until stopped";
+  const el = st.started ? (running ? st.now - st.started : null) : null;
+  $("#goal-elapsed").textContent = el != null ? `Running ${fmt(el)}` : (st.casts ? "Finished" : "Not started");
+  if (goal > 0 && running && st.casts > 0 && el) $("#goal-left").textContent = `≈ ${fmt((goal - st.casts) * el / st.casts)} left`;
+  else $("#goal-left").textContent = goal > 0 ? `${Math.max(0, goal - st.casts)} to go` : "–";
+
+  // activity
+  const h = st.history, n = Math.max(7 * 34, Math.ceil(h.length / 7) * 7);
+  let cells = "";
+  for (let i = 0; i < n; i++) {
+    const r = h[i];
+    if (!r) { cells += "<div></div>"; continue; }
+    const f = r.filling == null ? 0.5 : r.filling;
+    const cls = !r.caught ? "x" : f >= .97 ? "l4" : f >= .9 ? "l3" : f >= .75 ? "l2" : "l1";
+    cells += `<div class="${cls}" title="Reel ${i+1}: ${r.caught?"caught":"escaped"} · inside ${Math.round(f*100)}% · ${r.duration}s"></div>`;
+  }
+  $("#heat").innerHTML = cells;
+  const avg = a => a.length ? a.reduce((x,y)=>x+y,0) / a.length : null;
+  const ad = avg(h.map(r => r.duration)), ai = avg(h.filter(r => r.filling != null).map(r => r.filling)), ar = avg(h.map(r => r.readings));
+  $("#k-avg").textContent = ad == null ? "–" : ad.toFixed(1) + "s";
+  $("#k-inside").textContent = ai == null ? "–" : Math.round(ai * 100) + "%";
+  $("#k-rate").textContent = ar == null ? "–" : Math.round(ar);
+
+  // runs list
+  $("#runs").innerHTML = st.runs.length ? st.runs.map((r, i) => `
+    <div class="run${i===0&&running?" active":""}"><span class="dot"></span>
+      <span class="t">Run ${r.n} · ${esc(r.rod)}</span><span class="n">${r.caught}/${r.casts}</span>
+      <span class="a">${ago(st.now - r.started)}</span></div>`).join("") : '<div class="empty">No runs yet — press Start.</div>';
+
+  // log
+  if (st.logs.length) {
+    const box = $("#logbox"), atEnd = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
+    for (const [s, line] of st.logs) {
+      const d = document.createElement("div"), low = line.toLowerCase();
+      d.className = /escaped\?|error|focus lost|no bar within/.test(low) ? "bad"
+                  : /\| caught|deleted/.test(low) ? "good" : /calibration|warning/.test(low) ? "note" : "";
+      d.textContent = line; box.appendChild(d); seq = s;
+      if (low.startsWith("error")) $("#err").textContent = line;
+    }
+    while (box.childElementCount > 1000) box.firstChild.remove();
+    if (atEnd) box.scrollTop = box.scrollHeight;
+  }
+}
+const fmt = s => s < 60 ? `${Math.round(s)}s` : s < 3600 ? `${Math.floor(s/60)}m ${Math.round(s%60)}s` : `${Math.floor(s/3600)}h ${Math.round(s%3600/60)}m`;
+const ago = s => s < 60 ? "now" : s < 3600 ? Math.floor(s/60) + "m" : Math.floor(s/3600) + "h";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+window.addEventListener("pywebviewready", async () => {
+  META = await pywebview.api.get_meta();
+  loadSettings(); paintSettings(); poll();
+});
+</script>
+</body>
+</html>
