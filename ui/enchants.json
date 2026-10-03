@@ -1,0 +1,624 @@
+{
+ "source": "https://fischipedia.org/wiki/Enchantments",
+ "fetched": "2026-10-02",
+ "enchants": {
+  "Abyssal": {
+   "group": "General",
+   "effect": "• 20% chance for Abyssal (5.5×) • 80% chance for +30% Fish Weight • 20% chance for -40% Fish Weight",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Blessed": {
+   "group": "General",
+   "effect": "• +5% increased chance for Shiny / Sparkling (1.85×) • +5% Lure Speed • +5% Progress Speed",
+   "stats": {
+    "lure": "5"
+   },
+   "affects_reel": false
+  },
+  "Breezed": {
+   "group": "General",
+   "effect": "Outside of Windy : • +50% Luck • +20% Lure Speed • +10% Progress Speed During Windy : • +100% Luck • +40% Lure Speed • +20% Progress Speed",
+   "stats": {
+    "lure": "40",
+    "luck": "100"
+   },
+   "affects_reel": false
+  },
+  "Chaotic": {
+   "group": "General",
+   "effect": "• 15% chance per fish movement to slash for +6% progress, stunning the fish for 0.35 seconds. • 12% chance for Chaotic (6.2×)",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Chronos": {
+   "group": "General",
+   "effect": "50% chance per fish movement to freeze the fish for 3 seconds, with a cooldown of 2.5 seconds.",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Clever": {
+   "group": "General",
+   "effect": "×2.25 XP from all catches",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Controlled": {
+   "group": "General",
+   "effect": "+0.15 Control",
+   "stats": {
+    "control": "0.15"
+   },
+   "affects_reel": true
+  },
+  "Divine": {
+   "group": "General",
+   "effect": "• +50% Luck • +20% Resilience • +25% Lure Speed",
+   "stats": {
+    "lure": "25",
+    "luck": "50",
+    "resilience": "20"
+   },
+   "affects_reel": false
+  },
+  "Flashline": {
+   "group": "General",
+   "effect": "• 25% chance for +100% Progress Speed • 75% chance for +15% Progress Speed",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Ghastly": {
+   "group": "General",
+   "effect": "• 100% chance for Translucent (1.3×) • 10% chance to duplicate caught fish",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Hasty": {
+   "group": "General",
+   "effect": "+55% Lure Speed",
+   "stats": {
+    "lure": "55"
+   },
+   "affects_reel": false
+  },
+  "Hunter": {
+   "group": "General",
+   "effect": "+2 Disturbance",
+   "stats": {
+    "disturbance": "+2"
+   },
+   "affects_reel": false
+  },
+  "Insight": {
+   "group": "General",
+   "effect": "• ×1.5 XP from all catches • +30% Lure Speed • 30% chance for Purified (2.5×)",
+   "stats": {
+    "lure": "30"
+   },
+   "affects_reel": false
+  },
+  "Long": {
+   "group": "General",
+   "effect": "• +150 Line Distance • +35% Resilience • +15% Progress Speed",
+   "stats": {
+    "resilience": "35",
+    "line": "+150"
+   },
+   "affects_reel": false
+  },
+  "Lucky": {
+   "group": "General",
+   "effect": "• +25% Luck • +15% Lure Speed • +50% chance for Mutation",
+   "stats": {
+    "lure": "15",
+    "luck": "25"
+   },
+   "affects_reel": false
+  },
+  "Momentum": {
+   "group": "General",
+   "effect": "Every perfect catch increases the following stats by 2% : • Lure Speed • Resilience • Progress Speed Regular catch reduces this by 4% each. Goes up to 40% .",
+   "stats": {
+    "lure": "0 to 40",
+    "resilience": "0 to 40"
+   },
+   "affects_reel": false
+  },
+  "Mutated": {
+   "group": "General",
+   "effect": "+90% Natural Mutation chance",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Noir": {
+   "group": "General",
+   "effect": "• 50% chance for Albino (1.5×) • 50% chance for Darkened (1.5×) • +20% Fish Weight",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Quality": {
+   "group": "General",
+   "effect": "• +20% Luck • +10% Resilience • +20% Lure Speed • +5% Progress Speed",
+   "stats": {
+    "lure": "20",
+    "luck": "20",
+    "resilience": "10"
+   },
+   "affects_reel": false
+  },
+  "Resilient": {
+   "group": "General",
+   "effect": "+35% Resilience • +10% Fish Weight",
+   "stats": {
+    "resilience": "35"
+   },
+   "affects_reel": false
+  },
+  "Sacrificial": {
+   "group": "General",
+   "effect": "Sacrifice health for a health-dependant chance for Sanguine (5×).",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Scavenger": {
+   "group": "General",
+   "effect": "3× chance for Rare Finds 3× chance for Enchant Relics 1.75× chance for Exalted Relics",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Scrapper": {
+   "group": "General",
+   "effect": "• 60% chance for Bait Preservation • +25% Bait Effectiveness",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Sea King": {
+   "group": "General",
+   "effect": "+30% Fish Weight",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Steady": {
+   "group": "General",
+   "effect": "+20% Progress Speed • +0.05 Control",
+   "stats": {
+    "control": "0.05"
+   },
+   "affects_reel": true
+  },
+  "Storming": {
+   "group": "General",
+   "effect": "Outside of Rain and Stormy : • +50% Luck • +25% Lure Speed • 25% chance for Electric (2.1×) During Rain : +100% Luck • +50% Lure Speed • 50% chance for Electric (2.1×) During Stormy : +150% Luck • +75% Lure Speed • 75% chance for Electric (2.1×)",
+   "stats": {
+    "lure": "75",
+    "luck": "150"
+   },
+   "affects_reel": false
+  },
+  "Swift": {
+   "group": "General",
+   "effect": "• +30% Lure Speed • +10% Progress Speed",
+   "stats": {
+    "lure": "30"
+   },
+   "affects_reel": false
+  },
+  "Unbreakable": {
+   "group": "General",
+   "effect": "• +10,000 Max Kg • +0.1 Control • +50 Durability",
+   "stats": {
+    "control": "0.1",
+    "max_kg": "+10,000kg"
+   },
+   "affects_reel": true
+  },
+  "Wormhole": {
+   "group": "General",
+   "effect": "80% chance to catch Fish from a random location • Excludes most hunt fish, Limited fish, or Special fish. Small chance to apply any location-specific natural Mutation on every cast.",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Anomalous": {
+   "group": "Exalted Relic",
+   "effect": "20% chance to catch a duplicate fish with Anomalous (5.55×)",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Ferocious": {
+   "group": "Exalted Relic",
+   "effect": "+4 Disturbance",
+   "stats": {
+    "disturbance": "+4"
+   },
+   "affects_reel": false
+  },
+  "Herculean": {
+   "group": "Exalted Relic",
+   "effect": "• +25,000 Max Kg • +0.2 Control • +10% Progress Speed",
+   "stats": {
+    "control": "0.2",
+    "max_kg": "+25,000kg"
+   },
+   "affects_reel": true
+  },
+  "Immortal": {
+   "group": "Exalted Relic",
+   "effect": "• +75% Luck • +30% Progress Speed",
+   "stats": {
+    "luck": "75"
+   },
+   "affects_reel": false
+  },
+  "Mystical": {
+   "group": "Exalted Relic",
+   "effect": "• +25% Luck • +45% Resilience • +15% Lure Speed • +10% Progress Speed",
+   "stats": {
+    "lure": "15",
+    "luck": "25",
+    "resilience": "45"
+   },
+   "affects_reel": false
+  },
+  "Piercing": {
+   "group": "Exalted Relic",
+   "effect": "• 30% chance per fish movement to slash for +6% progress, stunning the fish for 0.35 seconds. • +15% Progress Speed",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Quantum": {
+   "group": "Exalted Relic",
+   "effect": "• +15% Resilience • 25% chance for Subspace (6.4×) Perfect Casting grants: • +10% extra chance for Subspace • +10% Initial Progress",
+   "stats": {
+    "resilience": "15"
+   },
+   "affects_reel": true
+  },
+  "Sea Overlord": {
+   "group": "Exalted Relic",
+   "effect": "+40% Fish Weight",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Cryogenic": {
+   "group": "Cosmic Relic",
+   "effect": "20% chance to fully freeze a lured fish in the first second.",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Glittered": {
+   "group": "Cosmic Relic",
+   "effect": "+3% increased chance for Shiny / Sparkling",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Overclocked": {
+   "group": "Cosmic Relic",
+   "effect": "+5% Forced Progress Speed",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Sea Prince": {
+   "group": "Cosmic Relic",
+   "effect": "+15% Fish Weight",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Tenacity": {
+   "group": "Cosmic Relic",
+   "effect": "+20% Progress Speed for every snapped reel, stacks to inf .",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Tryhard": {
+   "group": "Cosmic Relic",
+   "effect": "• +30% Progress Speed • -0.1 Control • +50,000 Max Kg",
+   "stats": {
+    "control": "-0.1",
+    "max_kg": "+50,000kg"
+   },
+   "affects_reel": true
+  },
+  "Vicious": {
+   "group": "Cosmic Relic",
+   "effect": "• +1 Disturbance • +10% Progress Speed",
+   "stats": {
+    "disturbance": "+1"
+   },
+   "affects_reel": false
+  },
+  "Wise": {
+   "group": "Cosmic Relic",
+   "effect": "×1.2 XP from all catches",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Fractured": {
+   "group": "Twisted Relic",
+   "effect": "• +50% Progress Speed • -0.1 Control",
+   "stats": {
+    "control": "-0.1"
+   },
+   "affects_reel": true
+  },
+  "Greed": {
+   "group": "Twisted Relic",
+   "effect": "• +50% Fish Weight • -30% Lure Speed • -5% Progress Speed",
+   "stats": {
+    "lure": "-30"
+   },
+   "affects_reel": false
+  },
+  "Putrid": {
+   "group": "Twisted Relic",
+   "effect": "• -10% Luck • 2% chance for Putrid (-0.5×)",
+   "stats": {
+    "luck": "-10"
+   },
+   "affects_reel": false
+  },
+  "Pharaohs Curse": {
+   "group": "Twisted Relic",
+   "effect": "25% chance for Sandy (1.2×)",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Rage": {
+   "group": "Twisted Relic",
+   "effect": "• 25% chance per fish movement to slash for +8% progress, stunning the fish for 0.25 seconds • -50% Luck • -20% Resilience",
+   "stats": {
+    "luck": "-50",
+    "resilience": "-20"
+   },
+   "affects_reel": true
+  },
+  "Weak": {
+   "group": "Twisted Relic",
+   "effect": "-10% Max Kg",
+   "stats": {
+    "max_kg": "-10% Max kg"
+   },
+   "affects_reel": false
+  },
+  "Wobbly": {
+   "group": "Twisted Relic",
+   "effect": "-0.05 Control",
+   "stats": {
+    "control": "-0.05"
+   },
+   "affects_reel": true
+  },
+  "Crested": {
+   "group": "Miscellaneous",
+   "effect": "• -30% Fish Movement Speed • -15% Fish Movement Speed if the rod has a form of slash penalty",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Empyrean": {
+   "group": "Miscellaneous",
+   "effect": "• +10% Forced Progress Speed • +10% True Progress Speed • +30% Progress Speed • 15% chance to duplicate caught fish with Empyrean • 30% chance every 0.45 seconds to slash for 0.25% – 3% progress, scaling with Progress Speed.‍ [ verification needed ]",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Steady Crown": {
+   "group": "Sovereign",
+   "effect": "• +25% Resilience • +0.1 Control • +25% Progress Speed",
+   "stats": {
+    "control": "0.1",
+    "resilience": "25"
+   },
+   "affects_reel": true
+  },
+  "Glimmering Crown": {
+   "group": "Sovereign",
+   "effect": "• +10% increased chance for Shiny / Sparkling (1.85×) • +20% chance to all Mutations",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Stonewake Crown": {
+   "group": "Sovereign",
+   "effect": "• +35% Resilience • +20% Fish Weight • Reduces Fish Movement",
+   "stats": {
+    "resilience": "35"
+   },
+   "affects_reel": true
+  },
+  "Immortal Might": {
+   "group": "Sovereign",
+   "effect": "• +90% Luck • +30% Lure Speed • +35% Progress Speed",
+   "stats": {
+    "lure": "30",
+    "luck": "90"
+   },
+   "affects_reel": false
+  },
+  "Magnitude Might": {
+   "group": "Sovereign",
+   "effect": "• +25% Fish Weight • +0.25 Control • +35% Resilience",
+   "stats": {
+    "control": "0.25",
+    "resilience": "35"
+   },
+   "affects_reel": true
+  },
+  "Swift Might": {
+   "group": "Sovereign",
+   "effect": "• +55% Lure Speed • +50% Progress Speed • +10% Forced Progress Speed",
+   "stats": {
+    "lure": "55"
+   },
+   "affects_reel": true
+  },
+  "Menacing Spirit": {
+   "group": "Sovereign",
+   "effect": "• +7 Disturbance • +20% Progress Speed • 30% chance per fish movement to slash for +6% progress, stunning the fish for 0.35 seconds.",
+   "stats": {
+    "disturbance": "+7"
+   },
+   "affects_reel": true
+  },
+  "Starforged Spirit": {
+   "group": "Sovereign",
+   "effect": "• +15% Resilience • +5% Forced Progress Speed • +65% Fish Weight",
+   "stats": {
+    "resilience": "15"
+   },
+   "affects_reel": true
+  },
+  "Propensity Spirit": {
+   "group": "Sovereign",
+   "effect": "• +15% chance to fully freeze a lured fish • +15% chance to catch a duplicate fish with Sovereign (8.5×) • Every 0.8 seconds 35% chance to slash for +5% progress, stunning the fish for 0.2 seconds.",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Frightful": {
+   "group": "Sovereign",
+   "effect": "• +20% Progress Speed • -10% Resilience • 10% chance for Frightful (6×)",
+   "stats": {
+    "resilience": "-20"
+   },
+   "affects_reel": false
+  },
+  "Spooky": {
+   "group": "Sovereign",
+   "effect": "• +0.05 Control • 10% chance for Spooky (6×)",
+   "stats": {
+    "control": "0.1"
+   },
+   "affects_reel": true
+  },
+  "Eerie": {
+   "group": "Sovereign",
+   "effect": "• +5% Progress Speed • +5% Fish Weight • 10% chance for Eerie (6×)",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Festive": {
+   "group": "Sovereign",
+   "effect": "• +10% Lure Speed • +10% Luck • +5% Fish Weight • 10% chance to give one of the following Mutations : • Merry (5×) • Gingerbread (5×) • Peppermint (5×)",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Santa": {
+   "group": "Sovereign",
+   "effect": "• +10% Fish Weight • +15% Progress Speed • 10% chance to give one of the following Mutations : • Santa (8.5×) • Jingle Bell (8×) • Merry (5×) • Gingerbread (5×) • Peppermint (5×)",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Cupid": {
+   "group": "Sovereign",
+   "effect": "• +5% Progress speed • +5% Lure Speed • 10% chance for Sweet (7×)",
+   "stats": {
+    "lure": "25"
+   },
+   "affects_reel": false
+  },
+  "Valentine's": {
+   "group": "Sovereign",
+   "effect": "• +15% Progress Speed • +5% Resilience • 10% chance to give one of the following Mutations : • Lovely (8×). • Sweet (7×). • Candy (2×).",
+   "stats": {
+    "resilience": "10"
+   },
+   "affects_reel": false
+  },
+  "Paradise": {
+   "group": "Sovereign",
+   "effect": "• +15% Luck • +5% Fish Weight • 10% chance for Paradise (8×)",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Beached": {
+   "group": "Sovereign",
+   "effect": "• 10% chance for Beached (6×) • +10% Progress Speed",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Tropical": {
+   "group": "Sovereign",
+   "effect": "• +5% Forced Progress Speed • 10% chance for Tropical (7×)",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Sanctified": {
+   "group": "Sovereign",
+   "effect": "• +10% Progress Speed • +10% True Progress Speed",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Twisted": {
+   "group": "Sovereign",
+   "effect": "• +30% Progress Speed • -0.1 Control",
+   "stats": {
+    "control": "-0.1"
+   },
+   "affects_reel": true
+  },
+  "Sifting": {
+   "group": "Sovereign",
+   "effect": "• +inf Max Kg • Allows fishing in Drylands sand.",
+   "stats": {
+    "max_kg": "+infkg"
+   },
+   "affects_reel": false
+  },
+  "Unshakeable": {
+   "group": "Sovereign",
+   "effect": "• +inf Max Kg • +200 Durability",
+   "stats": {
+    "max_kg": "+infkg",
+    "durability": "+200"
+   },
+   "affects_reel": false
+  },
+  "Blessed Song": {
+   "group": "Quest",
+   "effect": "• +20% True Progress Speed • +20% Progress Speed",
+   "stats": {},
+   "affects_reel": true
+  },
+  "Dune": {
+   "group": "Quest",
+   "effect": "• +inf Max Kg • Allows fishing in Drylands Sand. • +5% Chance to duplicate with Dune (6×)",
+   "stats": {
+    "max_kg": "+infkg"
+   },
+   "affects_reel": false
+  },
+  "Invincible": {
+   "group": "Quest",
+   "effect": "• +inf Max Kg • +200 Durability .",
+   "stats": {
+    "max_kg": "+infkg",
+    "durability": "+200"
+   },
+   "affects_reel": false
+  },
+  "Restricted": {
+   "group": "Quest",
+   "effect": "• Can block Shiny , Sparkling , and Mutations from applying. • Prevents Enchanting . • Restricts fishing to specific locations / events.",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Gingerbread": {
+   "group": "Limited",
+   "effect": "• 10% chance for Gingerbread (5×) • +40% Fish Weight • +10% Progress Speed",
+   "stats": {},
+   "affects_reel": false
+  },
+  "Merry": {
+   "group": "Limited",
+   "effect": "• 10% chance for Merry (5×) • +35% Progress Speed • 35% Lure Speed",
+   "stats": {
+    "lure": "35"
+   },
+   "affects_reel": false
+  },
+  "Peppermint": {
+   "group": "Limited",
+   "effect": "• 10% chance for Peppermint (5×) • 40% chance per fish movement to slash for +1% progress, stunning the fish for 0.1 seconds. • +25% Luck",
+   "stats": {
+    "luck": "25"
+   },
+   "affects_reel": true
+  }
+ }
+}

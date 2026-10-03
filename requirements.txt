@@ -1,0 +1,13 @@
+numpy>=2.0
+opencv-python>=4.9
+mss>=9.0
+pywebview>=5.0
+keyboard>=0.13
+winrt-runtime>=2.0
+winrt-Windows.Foundation>=2.0
+winrt-Windows.Foundation.Collections>=2.0
+winrt-Windows.Globalization>=2.0
+winrt-Windows.Graphics.Imaging>=2.0
+winrt-Windows.Media.Ocr>=2.0
+winrt-Windows.Storage>=2.0
+winrt-Windows.Storage.Streams>=2.0
