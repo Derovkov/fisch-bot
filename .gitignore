@@ -1,5 +1,6 @@
 # Local settings and run output
 fischbot_settings.json
+saved_logs/
 *.log
 tmp/
 temp/

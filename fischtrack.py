@@ -159,6 +159,8 @@ class TrackReading:
     slider_x1: Optional[int]
     marker_x: Optional[float]
     scale: float = 1.0              # UI scale the bar was read at
+    method: str = "colour"          # "geo" if the colour-agnostic detectors read it
+    slider_rgb: Optional[tuple] = None   # geo slider's median colour (next frame's prior)
 
     @property
     def slider_centre(self) -> Optional[float]:
@@ -412,24 +414,27 @@ def edge_scores(frame: np.ndarray, y_lo: int, y_hi: int,
 
 
 def read_track(frame: np.ndarray, hint: Optional[TrackReading] = None,
-               scale: Optional[float] = None) -> Optional[TrackReading]:
+               scale: Optional[float] = None,
+               expect_w: Optional[float] = None) -> Optional[TrackReading]:
     """Read the minigame from one RGB frame, or None if it is not on screen.
 
     `hint` (the previous reading) narrows the row search to around it and fixes
     the scale to the one it was read at. Without one, `scale` if given, else
     every scale in scales() is tried and the best-fitting reading is kept.
+    `expect_w` (recent slider width, px) steadies the geometry slider reading.
     """
     if hint is not None:
-        return _read_track_at(frame, hint.scale, hint)[0]
+        return _read_track_at(frame, hint.scale, hint, expect_w)[0]
     best, best_edge = None, -1.0
     for s in ([scale] if scale is not None else scales()):
-        r, edge = _read_track_at(frame, s, None)
+        r, edge = _read_track_at(frame, s, None, expect_w)
         if r is not None and edge > best_edge:
             best, best_edge = r, edge
     return best
 
 
-def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading]
+def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading],
+                   expect_w: Optional[float] = None
                    ) -> tuple[Optional[TrackReading], float]:
     """(reading or None, edge score of the track's rows) at scale s."""
     h, w = frame.shape[:2]
@@ -450,7 +455,8 @@ def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading]
                       mode="valid")
     k = int(np.argmax(win))
     edge = float(win[k])
-    if edge >= EDGE_MIN:
+    anchored = edge < EDGE_MIN          # rows from the progress box, not the edges
+    if not anchored:
         y0 = y_lo + k
     else:
         # Fallback anchor: the progress box, which sits exactly PROG_TOP_DY below
@@ -467,8 +473,57 @@ def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading]
             return None, 0.0
     y1 = y0 + rows_n - 1
 
-    # Slider: per row, pixels above the midpoint between that row's dark level
-    # (track) and bright level (slider), excluding green rod VFX.
+    # Slider and marker: the colour methods first (proven on the Fabulous Rod's
+    # white-pink skin), then the colour-agnostic geometry methods for other skins
+    # (2026-10-03: Duskwire = black gradient slider + white marker line; Crew Rod =
+    # light grey slider + dark grey marker). Each falls back on its own: the Crew
+    # Rod's slider reads by colour, its marker only by geometry.
+    method = "colour"
+    slider_rgb = None
+    marker = find_marker(frame, x0, x1, y0, y1, s)
+    if marker is None:
+        mg = find_marker_geo(frame, x0, x1, y0, y1, s)
+        if mg is None:
+            return None, 0.0
+        marker, method = mg[0], "geo"
+    slider = _slider_colour(frame, x0, x1, y0, y1, s)
+    if slider is None:
+        # Without a previous reading, the track centre: every reel starts with
+        # the slider there.
+        centre = hint.slider_centre if hint is not None and hint.slider_centre \
+            is not None else (x0 + x1) / 2
+        sg = find_slider_geo(frame, x0, x1, y0, y1, s, marker_x=marker,
+                             expect_w=expect_w, expect_c=centre,
+                             expect_rgb=hint.slider_rgb if hint is not None else None)
+        if sg is None:
+            return None, 0.0
+        slider, method, slider_rgb = (sg[0], sg[1]), "geo", sg[4]
+    if method == "geo":
+        # The pink marker colour no longer vouches for this being the minigame.
+        # Two checks instead, measured on the recording: the track outside the
+        # slider must be ONE even colour (real bars: median 15, 95% <= 27, the
+        # new skins 8-27; the catch message + power bar between reels, which read
+        # as a "bar" for 16 frames in a row: >= 63), and the progress box must
+        # be under the track. And the rows must come from the track's end edges,
+        # not the progress-box fallback: a catch message over the power bar
+        # passed both other checks with an edge of 5 (real bars: >= 69 on the
+        # recording, 106-241 for Duskwire / Crew Rod live).
+        if anchored:
+            return None, 0.0
+        if _track_unevenness(frame, x0, x1, y0, y1, s, slider) > GEO_TRACK_MAX_UNEVEN:
+            return None, 0.0
+        if find_progress(frame, y1 + dy - px(6, s), y1 + dy + px(PROG_ROWS + 6, s),
+                         scale=s) is None:
+            return None, 0.0
+    return TrackReading(x0, x1, y0, y1, slider[0], slider[1], marker, scale=s,
+                        method=method, slider_rgb=slider_rgb), edge
+
+
+def _slider_colour(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int,
+                   s: float) -> Optional[tuple[int, int]]:
+    """Slider by colour: per row, pixels above the midpoint between that row's
+    dark level (track) and bright level (slider), excluding green rod VFX. Only
+    works for a slider much brighter than the track (the Fabulous Rod's skin)."""
     spans = []
     rows = range(y0 + px(6, s), y1 - px(5, s))
     for y in rows:
@@ -484,7 +539,7 @@ def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading]
             a, b = max(runs, key=lambda r: r[1] - r[0])
             spans.append((x0 + a, x0 + b))
     if len(spans) < len(rows) // 2:
-        return None, 0.0
+        return None
     sx0 = int(np.median([sp[0] for sp in spans]))
     sx1 = int(np.median([sp[1] for sp in spans]))
     if not (SLIDER_MIN_WIDTH_FRAC * (x1 - x0) <= sx1 - sx0 + 1
@@ -492,14 +547,201 @@ def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading]
         # Too wide: live (2026-10-02, 17:28) a "slider" of 667-764px was read --
         # most likely a bright background showing through the translucent
         # track, so the whole row split as bright. Widest real one: ~431px.
-        return None, 0.0
+        return None
+    return sx0, sx1
 
-    # The marker is required: its colour is constant at every spot measured, and
-    # bar-shaped impostors never carried one.
-    marker = find_marker(frame, x0, x1, y0, y1, s)
-    if marker is None:
-        return None, 0.0
-    return TrackReading(x0, x1, y0, y1, sx0, sx1, marker, scale=s), edge
+
+# --------------------------------------------------------------------------------------
+# Colour-agnostic slider / marker (2026-10-03)
+# --------------------------------------------------------------------------------------
+#
+# Rods have their own reel-bar skins. Measured from the user's bar crops at UI
+# scale 0.44 (saved_logs/20261003_083155 Duskwire, 20261003_083231 Crew Rod):
+#   * Duskwire: slider is a grey -> black gradient (its left third is nearly the
+#     track's colour), 58px = 15% of the track (low Control: -0.2 +0.05); marker
+#     is a thin WHITE line with a music note.
+#   * Crew Rod: light grey slider, 92px; marker is a DARK grey capsule.
+# So: the slider is found by colour STEPS along the track, the marker as a thin
+# column that stands out both above AND below the track. On the Fabulous Rod
+# recording the geometry marker agrees with the colour one to 0.1px (median,
+# 245 frames, none off by >8px).
+
+GEO_SLIDER_MIN_FRAC = 0.06      # Duskwire's slider is 0.15 of the track
+GEO_EDGE_MIN = 25               # colour step (channel-sum) that can be a slider edge
+GEO_SLIDER_MIN_CONTRAST = 40    # mean inside-vs-track distance minus outside's
+GEO_WIDEST_WITHIN = 0.9         # see find_slider_geo
+GEO_NEAR_WITHIN = 0.6           # candidates considered for continuity (x top score)
+GEO_RGB_PENALTY = 0.5           # score lost per unit of colour change vs last frame
+GEO_MARKER_MIN = 50             # marker column contrast, above AND below the track
+GEO_TRACK_MAX_UNEVEN = 45       # see _track_unevenness / the "geo" checks
+
+
+def _track_unevenness(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int,
+                      s: float, slider: tuple[int, int]) -> float:
+    """Mean distance (channel sum) of the track's columns OUTSIDE the slider from
+    their median colour. A real track is one translucent colour even over busy
+    scenery; text and scenery that only look bar-shaped are not."""
+    band = frame[y0 + px(6, s):y1 - px(5, s) + 1, x0:x1 + 1].astype(np.int16)
+    if band.shape[0] < 1:
+        return 1e9
+    P = np.median(band, axis=0)
+    m = max(2, px(4, s))
+    a, b = slider[0] - x0, slider[1] - x0 + 1
+    outside = np.vstack([P[:max(0, a - m)], P[min(len(P), b + m):]])
+    if len(outside) < 0.1 * len(P):
+        return 1e9
+    return float(np.abs(outside - np.median(outside, 0)).sum(1).mean())
+
+
+def _sliding_median(a: np.ndarray, r: int) -> np.ndarray:
+    """Per-row median over [i-r, i+r] (edge-padded). a: (W, 3)."""
+    pad = np.pad(a, ((r, r), (0, 0)), mode="edge")
+    win = np.lib.stride_tricks.sliding_window_view(pad, 2 * r + 1, axis=0)
+    return np.median(win, axis=2)
+
+
+def find_marker_geo(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int,
+                    s: float) -> Optional[tuple[float, float]]:
+    """(x, score) of the fish marker by shape, whatever its colour: the one thin
+    column that differs from its surroundings in a band just ABOVE the track and
+    in a band just BELOW it (the marker overhangs the track by ~15px at scale 1;
+    rod VFX and text usually cover only one side)."""
+    h = frame.shape[0]
+    a0, a1 = max(0, y0 - px(14, s)), max(0, y0 - px(6, s))
+    b0, b1 = min(h, y1 + px(5, s)), min(h, y1 + px(12, s))
+    if a1 - a0 < 1 or b1 - b0 < 1:
+        return None
+    A = np.median(frame[a0:a1 + 1, x0:x1 + 1].astype(np.int16), axis=0)
+    B = np.median(frame[b0:b1 + 1, x0:x1 + 1].astype(np.int16), axis=0)
+    r = px(20, s)
+    cA = np.abs(A - _sliding_median(A, r)).sum(1)
+    cB = np.abs(B - _sliding_median(B, r)).sum(1)
+    sc = np.minimum(cA, cB)
+    k = max(1, px(3, s))
+    sc = np.convolve(sc, np.ones(k) / k, mode="same")
+    i = int(np.argmax(sc))
+    if sc[i] < GEO_MARKER_MIN:
+        return None
+    lo, hi = max(0, i - px(12, s)), min(len(sc), i + px(12, s) + 1)
+    seg = sc[lo:hi]
+    wts = np.where(seg >= 0.5 * sc[i], seg, 0)
+    if (wts > 0).sum() > px(MARKER_MAX_WIDTH, s):
+        return None                                  # too wide to be the marker
+    return x0 + lo + float(np.arange(len(seg)) @ wts / wts.sum()), float(sc[i])
+
+
+def find_slider_geo(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int, s: float,
+                    min_frac: float = GEO_SLIDER_MIN_FRAC,
+                    max_frac: float = SLIDER_MAX_WIDTH_FRAC,
+                    marker_x: Optional[float] = None,
+                    expect_w: Optional[float] = None,
+                    expect_c: Optional[float] = None,
+                    expect_rgb: Optional[tuple[float, float, float]] = None
+                    ) -> Optional[tuple[int, int, float, float, tuple]]:
+    """(x0, x1, contrast) of the slider by colour steps, whatever its colour.
+
+    Candidate edges are the strongest colour steps along the track's middle
+    rows (plus the track's ends, for a slider pinned against one). Each pair of
+    plausible width is scored by how far every inside column is from the track
+    colour (the median outside), minus how far the outside columns are from it
+    -- a mean, so a gradient slider still scores. Steps at the fish marker are
+    ignored: on Duskwire its white line was the strongest step and split the
+    slider in two.
+
+    `expect_w` (the recent slider width) is preferred: a much NARROWER free
+    reading is part of a slider (Duskwire's dark half), a clearly better WIDER
+    one is a progress boost (Fabulous Rod 252 -> 437px).
+
+    `expect_c` (the previous slider centre, or the track centre at reel start,
+    where the slider always begins) picks between good candidates.
+
+    `expect_rgb` (the previous reading's slider colour) penalises candidates
+    that look different: a skin's slider keeps its colour all reel. Rod VFX over
+    one end of the track (the user's white star effect, brightening it to
+    ~225) read as a "slider" of Duskwire's width ~150px from the real near-black
+    one until this was added.
+
+    Returns (x0, x1, contrast, outside spread, inside median colour)."""
+    if expect_w:
+        span = x1 - x0 + 1
+        free = find_slider_geo(frame, x0, x1, y0, y1, s, min_frac, max_frac, marker_x,
+                               None, expect_c, expect_rgb)
+        tol = max(px(5, s), 0.12 * expect_w)
+        con = find_slider_geo(frame, x0, x1, y0, y1, s,
+                              max(min_frac, (expect_w - tol) / span),
+                              min(max_frac, (expect_w + tol) / span), marker_x,
+                              None, expect_c, expect_rgb)
+        if con is None or free is None:
+            return con or free
+        if free[1] - free[0] + 1 < expect_w - tol:
+            return con
+        return free if con[2] < 0.8 * free[2] else con
+
+    band = frame[y0 + px(6, s):y1 - px(5, s) + 1, x0:x1 + 1].astype(np.int16)
+    if band.shape[0] < 2:
+        return None
+    P = np.median(band, axis=0)                       # (W, 3) column colours
+    W = P.shape[0]
+    k = max(2, px(5, s))
+    cs = np.cumsum(np.vstack([np.zeros((1, 3)), P]), axis=0)
+    xs = np.arange(k, W - k)
+    D = np.abs((cs[xs] - cs[xs - k]) / k - (cs[xs + k] - cs[xs]) / k).sum(1)
+    # Steps at the fish marker are NOT masked: the fish often sits on a slider
+    # edge, which then is the only step there (Duskwire, 5.66s in the user's
+    # crops). Continuity, colour and width priors stop its line from splitting
+    # the slider instead.
+    peaks = [(D[i], int(xs[i])) for i in range(1, len(D) - 1)
+             if D[i] >= GEO_EDGE_MIN and D[i] >= D[i - 1] and D[i] >= D[i + 1]]
+    bounds = sorted(set([x for _, x in sorted(peaks, reverse=True)[:14]] + [0, W]))
+    m = max(2, px(4, s))
+    cols = np.arange(W)
+    scored = []
+    for i, a in enumerate(bounds):
+        for b in bounds[i + 1:]:
+            if not (min_frac * W <= b - a <= max_frac * W):
+                continue
+            inside = P[a + m:b - m]
+            if marker_x is not None:
+                keep = np.abs(cols[a + m:b - m] - (marker_x - x0)) > px(6, s)
+                inside = inside[keep]
+            outside = np.vstack([P[:max(0, a - m)], P[min(W, b + m):]])
+            if len(inside) < 3 or len(outside) < 0.15 * W:
+                continue
+            co = np.median(outside, 0)
+            # Median, not mean: rod VFX glowing over part of the track (the
+            # user's star effect brightened its right fifth from ~88 to ~225)
+            # must not sink the real slider's score.
+            dout = float(np.median(np.abs(outside - co).sum(1)))
+            contrast = np.abs(inside - co).sum(1).mean() - dout
+            ci = np.median(inside, 0)
+            score = contrast
+            if expect_rgb is not None:
+                score -= GEO_RGB_PENALTY * float(np.abs(ci - np.asarray(expect_rgb)).sum())
+            scored.append((score, a, b, dout, contrast, tuple(float(v) for v in ci)))
+    if not scored:
+        return None
+    if max(t[4] for t in scored) < GEO_SLIDER_MIN_CONTRAST:
+        return None
+    top = max(t[0] for t in scored)
+    if top <= 0:
+        # every candidate looks unlike the slider of the previous frame
+        return None
+    if expect_c is not None:
+        # Continuity: among good candidates, the one nearest where the slider
+        # was (it moves a few px per frame); widest breaks near-ties, so a
+        # gradient slider is still read whole.
+        c = expect_c - x0
+        pool = [t for t in scored if t[0] >= GEO_NEAR_WITHIN * top]
+        near = min(abs((t[1] + t[2]) / 2 - c) for t in pool)
+        pool = [t for t in pool if abs((t[1] + t[2]) / 2 - c) <= near + px(12, s)]
+        best = max(pool, key=lambda t: (t[2] - t[1], t[0]))
+    else:
+        # A gradient slider scores slightly better as just its dark half; the
+        # whole slider is the WIDEST pair that scores close to the best.
+        best = max((t for t in scored if t[0] >= GEO_WIDEST_WITHIN * top),
+                   key=lambda t: (t[2] - t[1], t[0]))
+    _, a, b, dout, contrast, ci = best
+    return x0 + a, x0 + b - 1, float(contrast), float(dout), ci
 
 
 # ======================================================================================

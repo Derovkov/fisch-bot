@@ -42,9 +42,10 @@ HELP = {
              "Roblox isn't in front, and a reel in progress is lost.",
     "debug": "Adds a log line about every 0.3s while reeling: slider position, fish "
              "position, the gap between them, and whether the button is held.",
-    "trace": "Records numbers (no images) about what the bot sees, 10 times a second, "
-             "to troubleshoot an area where it struggles. Deleted when the run stops "
-             "unless Keep logs is on.",
+    "trace": "Records what the bot sees, to troubleshoot an area or a rod where it "
+             "struggles: numbers 10 times a second, plus small snapshots of just the "
+             "reel bar (never the whole screen) when the bar can't be read. Deleted "
+             "when the run stops unless Keep logs is on.",
     "keep": "Copies this run's logs to the saved_logs folder before the temporary "
             "folder is deleted. Leave off to keep your storage clean.",
     "lookahead": "How many seconds ahead the bot predicts where the fish and slider "

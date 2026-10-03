@@ -62,6 +62,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
+
 from fastcap import FastGrabber, WinRect, find_roblox_window, focus_window
 from typing import Callable
 
@@ -71,9 +73,9 @@ from fischcontrol import ControlConfig, ReelController
 from fischrods import (DEFAULT_ROD, ENCHANTS, RodContext, RodProfile, get_rod,
                        reel_enchants)
 from fischsession import Session
-from fischtrack import (GEO_ROWS, HINT_Y_PAD, PROG_ROWS, TRACK_PROBE, TrackReading,
-                        current_scale, find_progress, lock_scale, locked_scale, px,
-                        read_track, scales, set_client)
+from fischtrack import (EDGE_MIN, GEO_ROWS, HINT_Y_PAD, PROG_ROWS, TRACK_PROBE,
+                        TrackReading, current_scale, find_progress, lock_scale,
+                        locked_scale, px, read_track, scales, set_client, track_x)
 
 user32 = ctypes.windll.user32
 user32.SetProcessDPIAware()
@@ -104,6 +106,11 @@ PROG_SEARCH_PAD = 15
 # Bar reading says "inside" while progress falls for this long -> re-acquire.
 REACQUIRE_AFTER_S = 0.2
 TRACE_EVERY_S = 0.1
+# --trace bar crops (see FischBot._trace_crop): unreadable bars / readable bars.
+TRACE_CROP_MISS_S, TRACE_CROP_MISS_MAX = 0.5, 60
+TRACE_CROP_HIT_S, TRACE_CROP_HIT_MAX = 3.0, 10
+# Recent slider widths whose median steadies the colour-agnostic slider reading.
+SLIDER_W_WINDOW = 15
 # Progress peak that counts as a landed fish (box fill quantised to ~1/415).
 CAUGHT_PEAK = 0.95
 
@@ -305,10 +312,13 @@ class FischBot:
         self.last_prog_top: Optional[int] = None    # progress box row, client coords
         self.trace_file = None
         self._trace_t0 = self._trace_last = time.perf_counter()
+        self._slider_widths: list[int] = []     # this reel's slider widths (px)
+        self._crop_n = {"hit": 0, "miss": 0}
+        self._crop_last = {"hit": -1e9, "miss": -1e9}
         if cfg.trace:
             path = self.session.path(f"trace_{datetime.now():%Y%m%d_%H%M%S}.txt")
             self.trace_file = path.open("w", encoding="utf-8")
-            self.log("tracing numbers (no images) to the session folder")
+            self.log("tracing to the session folder (numbers + bar-area crops)")
 
     def log(self, msg: str) -> None:
         line = f"[{datetime.now():%H:%M:%S}] {msg}"
@@ -340,7 +350,8 @@ class FischBot:
 
     def _trace(self, tag: str) -> None:
         """--trace: one numbers-only line (fischmeasure format) at most every
-        TRACE_EVERY_S, from a separate full grab. No images are written."""
+        TRACE_EVERY_S, from a separate full grab. Plus small crops of just the
+        bar area (_trace_crop) -- never a full screenshot."""
         if self.trace_file is None:
             return
         now = time.perf_counter()
@@ -359,12 +370,49 @@ class FischBot:
         if p is None:
             p = find_progress(frame, y0 + px(20, s), y0 + px(100, s), scale=s)
         prog = f"prog={p[0]:.3f}@{p[1]}" if p else "prog=none"
+        crop = self._trace_crop(frame, y0, s, now, readable=r is not None,
+                                bar_seen=score >= EDGE_MIN or p is not None)
         self.trace_file.write(
             f"t={now - self._trace_t0:7.2f} {tag} scale={s:.2f} "
             f"rows={y0}-{y0 + px(GEO_ROWS, s) - 1} "
             f"edge={score:5.0f} {geo} {prog} held={self.mouse.down} "
-            f"{fischmeasure.sample(frame, y0, s)}\n")
+            + (f"img={crop} " if crop else "")
+            + f"{fischmeasure.sample(frame, y0, s)}\n")
         self.trace_file.flush()
+
+    def _trace_crop(self, frame, y0: int, s: float, now: float, readable: bool,
+                    bar_seen: bool) -> Optional[str]:
+        """Save a small PNG of just the bar area (track, marker overhang, progress
+        box) into the session folder, for working out rods whose reel bar uses a
+        different skin. Added 2026-10-03: with Duskwire and Crew Rod the bar and
+        progress box were found but never read -- the slider where the white one
+        should be measured dark red (45,24,24) -- and the numbers-only trace
+        cannot show what the skin looks like.
+
+        Unreadable bars are saved every TRACE_CROP_MISS_S (max TRACE_CROP_MISS_MAX
+        per run), readable ones every TRACE_CROP_HIT_S (max TRACE_CROP_HIT_MAX)
+        for comparison. Like the rest of the session folder, they are deleted
+        when the run stops unless "Keep logs" is on."""
+        if not bar_seen:
+            return None
+        kind = "hit" if readable else "miss"
+        every, cap = ((TRACE_CROP_HIT_S, TRACE_CROP_HIT_MAX) if readable
+                      else (TRACE_CROP_MISS_S, TRACE_CROP_MISS_MAX))
+        if self._crop_n[kind] >= cap or now - self._crop_last[kind] < every:
+            return None
+        import cv2
+
+        h, w = frame.shape[:2]
+        x0, x1 = track_x(w, s)
+        rows = px(GEO_ROWS, s)
+        ya, yb = max(0, y0 - px(50, s)), min(h, y0 + rows + px(70, s))
+        xa, xb = max(0, x0 - px(60, s)), min(w, x1 + px(60, s))
+        name = f"bar_{now - self._trace_t0:07.2f}_{kind}.png"
+        cv2.imwrite(str(self.session.path(name)),
+                    cv2.cvtColor(frame[ya:yb, xa:xb], cv2.COLOR_RGB2BGR))
+        self._crop_n[kind] += 1
+        self._crop_last[kind] = now
+        return name
 
     @staticmethod
     def _prog_window(top: int, s: float) -> tuple[int, int]:
@@ -434,6 +482,8 @@ class FischBot:
         reacquires = 0
         rod_active = False
         self.rod.reset()
+        self._slider_widths = []
+        last_method = "colour"
         self.live = {"in_reel": False, "fill": None, "inside": None, "elapsed": 0.0}
 
         while self.running and time.perf_counter() < deadline:
@@ -510,6 +560,12 @@ class FischBot:
             if r is not None:
                 hint = r
                 last_seen = now
+                self._slider_widths.append(r.slider_width)
+                if r.method != last_method:
+                    last_method = r.method
+                    if r.method == "geo":
+                        self.log("  reading this rod's bar by shape (non-default "
+                                 "skin)")
                 if in_phase:
                     self.learner.feed(img, y_off, r,
                                       p[1] + y_off if p is not None else None)
@@ -603,19 +659,28 @@ class FischBot:
         so the progress box is read from the same grab.
         """
         h = self.grabber.rect.height if self.grabber.rect is not None else None
+        exp = self._expect_w()
         if hint is None or h is None or not hasattr(self.grabber, "grab_rows"):
             frame = self.grabber.grab()
-            return read_track(frame, hint=hint), time.perf_counter(), frame, 0
+            return (read_track(frame, hint=hint, expect_w=exp), time.perf_counter(),
+                    frame, 0)
         pad = px(HINT_Y_PAD + TRACK_PROBE + 20, hint.scale)   # covers the progress box too
         y_a = max(0, hint.y0 - pad)
         y_b = min(h, hint.y1 + pad)
         band = self.grabber.grab_rows(y_a, y_b)
         now = time.perf_counter()
         local = replace(hint, y0=hint.y0 - y_a, y1=hint.y1 - y_a)
-        r = read_track(band, hint=local)
+        r = read_track(band, hint=local, expect_w=exp)
         if r is not None:
             r = replace(r, y0=r.y0 + y_a, y1=r.y1 + y_a)
         return r, now, band, y_a
+
+    def _expect_w(self) -> Optional[float]:
+        """Median slider width of this reel's recent readings, once there are a
+        few. Steadies the colour-agnostic slider reading (fischtrack
+        find_slider_geo): mid-reel the width only changes with a boost."""
+        w = self._slider_widths[-SLIDER_W_WINDOW:]
+        return float(np.median(w)) if len(w) >= 3 else None
 
     # -- main -----------------------------------------------------------------------
     def run(self) -> None:
@@ -778,8 +843,9 @@ def main(argv: Optional[list[str]] = None) -> int:
                     help="decide but never send input")
     ap.add_argument("--debug", action="store_true")
     ap.add_argument("--trace", action="store_true",
-                    help="log bar/progress measurements (numbers only) ~10x/s to "
-                         "the session folder, for diagnosing new spots")
+                    help="log bar/progress measurements ~10x/s, plus small crops of "
+                         "the bar area when it can't be read, to the session folder, "
+                         "for diagnosing new spots and rods")
     ap.add_argument("--rod", default=DEFAULT_ROD,
                     help="equipped rod, as named on the wiki (decides how its own "
                          "minigame is played)")
