@@ -55,6 +55,7 @@ from __future__ import annotations
 import argparse
 import ctypes
 import ctypes.wintypes as wintypes
+import json
 import random
 import time
 from dataclasses import dataclass, replace
@@ -70,6 +71,8 @@ from typing import Callable
 import fischmeasure
 from fischcalib import GeometryLearner, precheck
 from fischcatch import CatchNotice, CatchWatch
+import fischnoise  # noqa: F401  -- registers Noiseform's zone minigame (fischrods.SPECIAL)
+import fischlullaby  # noqa: F401  -- registers Lullaby's metronome timing
 from fischcontrol import ControlConfig, ReelController
 from fischrods import (DEFAULT_ROD, ENCHANTS, RodContext, RodProfile, get_rod,
                        reel_enchants)
@@ -77,6 +80,7 @@ from fischsession import Session
 from fischtrack import (EDGE_MIN, GEO_ROWS, HINT_Y_PAD, PROG_ROWS, TRACK_PROBE,
                         ProgressPolarity, SkinTracker, TrackReading, current_scale, edge_scores,
                         find_progress, lock_scale, locked_scale, prog_top_dy, px,
+                        set_scene_clear,
                         read_track, scales, set_client, track_x)
 
 user32 = ctypes.windll.user32
@@ -116,6 +120,11 @@ TRACE_EVERY_S = 0.1
 # --trace bar crops (see FischBot._trace_crop): unreadable bars / readable bars.
 TRACE_CROP_MISS_S, TRACE_CROP_MISS_MAX = 0.5, 60
 TRACE_CROP_HIT_S, TRACE_CROP_HIT_MAX = 3.0, 10
+# --trace bar recordings (see FischBot._record_bar): the bar strip of the first
+# reels, every frame, for replaying skinned bars offline (dev_tests/replay_skin.py).
+# Single crops seconds apart could not show how a skinned slider moves.
+REC_REELS, REC_MAX_S, REC_JPEG_Q = 2, 8.0, 90
+PROG_MISS_SPARSE, PROG_SPARSE_EVERY = 10, 4
 # Recent slider widths whose median steadies the colour-agnostic slider reading.
 SLIDER_W_WINDOW = 15
 SLIDER_LEARN_FILL = 0.95   # a reel this clean teaches the rod's slider width (fischbot.slider_w)
@@ -279,6 +288,19 @@ class MacroConfig:
     diagnose: bool = False
     debug: bool = False
     trace: bool = False
+    # Fast cast (Settings > Fishing): shorter waits between reels -- see the
+    # FAST_* constants below.
+    fast_cast: bool = False
+
+
+# Fast cast. Live (2026-10-04) most of the ~9s between a catch and the next cast
+# went to waiting for the old catch message to fade (3-6s) and to the quest +
+# weather reads (2-3s). The fade wait is not needed for correctness: CatchWatch
+# only counts a message seen after a clear screen, so a stale one can't confirm
+# the next fish. 1s still covers the catch flash that can look like a bar.
+FAST_CATCH_WAIT_S = 1.0
+FAST_CAST_PAUSE_S = 0.6        # hold released -> first shake (normal: cast_pause_s)
+FAST_READ_EVERY = 3            # quest tracker / weather HUD: every Nth cast
 
 
 class FischBot:
@@ -307,6 +329,10 @@ class FischBot:
         self.quests: list = []
         self.quest_view: Optional[dict] = None   # for the UI's Quests tab
         self._quest_state: Optional[dict] = None
+        # "Default reel skin" (Settings): put each rod on its Default skin through
+        # the bag once per run -- the default bar reads far better than skins.
+        self.default_skin = False
+        self._skin_done: set[str] = set()
         self.learner = GeometryLearner(self.log)
         self.start_confirm = START_CONFIRM
         self.cfg = cfg
@@ -355,6 +381,9 @@ class FischBot:
         self._trace_t0 = self._trace_last = time.perf_counter()
         self._slider_widths: list[int] = []     # this reel's slider widths (px)
         self._crop_n = {"hit": 0, "miss": 0}
+        self._rec: list = []             # this reel's recorded bar strips
+        self._rec_centre: list = []      # ... and screen centres (Noiseform zones)
+        self._rec_n = 0                  # reels recorded so far
         self._crop_last = {"hit": -1e9, "miss": -1e9}
         if cfg.trace:
             path = self.session.path(f"trace_{datetime.now():%Y%m%d_%H%M%S}.txt")
@@ -378,10 +407,15 @@ class FischBot:
         self.mouse.release()
 
     # -- phases ---------------------------------------------------------------------
+    def _fast(self) -> bool:
+        """Fast cast on (a bare test bot may have no cfg)."""
+        return getattr(getattr(self, "cfg", None), "fast_cast", False) is True
+
     def cast(self) -> bool:
         # Catch VFX can look like a reel. Let the old caption clear before the
         # next attempt; a fresh notification then belongs to this fish only.
-        if not self._wait_catch_clear():
+        # Fast cast waits only for the flash (FAST_CATCH_WAIT_S).
+        if not self._wait_catch_clear(FAST_CATCH_WAIT_S if self._fast() else None):
             return False
         # Never cast into a running minigame. Live (2026-10-02) a reel was declared
         # over while it was still on screen, and the next cast's 0.65s hold plus
@@ -430,10 +464,12 @@ class FischBot:
                      f"({self.catch_watch.error})")
         return notice
 
-    def _wait_catch_clear(self) -> bool:
+    def _wait_catch_clear(self, limit: Optional[float] = None) -> bool:
+        """Wait for the previous catch message to clear (up to 8s, then retry the
+        cycle). With `limit` (fast cast), go ahead after that long anyway."""
         self.mouse.release()
-        deadline = time.perf_counter() + 8
-        waited = False
+        deadline = time.perf_counter() + (limit if limit is not None else 8)
+        waited = limit is not None              # fast cast: nothing to announce
         while self.running and time.perf_counter() < deadline:
             if not self.focus.ready():
                 return False
@@ -446,7 +482,7 @@ class FischBot:
                 waited = True
             self._sample_catch(now)
             time.sleep(.02)
-        return False
+        return limit is not None and self.running and self.focus.ready()
 
     def _check_catch_after_reel(self, first_seen: float) -> Optional[CatchNotice]:
         # Allow a delayed caption / in-flight OCR result to confirm the catch.
@@ -463,8 +499,26 @@ class FischBot:
             time.sleep(.02)
         return self._poll_catch(time.perf_counter(), first_seen)
 
+    def _rod_summary(self) -> None:
+        if hasattr(getattr(self, "rod", None), "summary"):
+            self.log(f"  {self.rod.name} {self.rod.summary()}")
+
+    def _loop_timing(self) -> None:
+        """Detailed log / Record measurements: where this reel's frames went."""
+        lt = getattr(self, "_loop_t", None)
+        if not lt or not lt["n"] or not (self.cfg.trace or self.cfg.debug):
+            return
+        n, ms = lt["n"], lambda k: lt[k] / lt["n"] * 1000
+        other = ms("frame") - ms("read") - ms("follow") - ms("catch") - ms("progress")
+        self.log(f"  reel loop: {n / max(lt['frame'], 1e-6):.0f} frames/s, per frame "
+                 f"{ms('frame'):.1f}ms = grab+read {ms('read'):.1f} + follower {ms('follow'):.1f} "
+                 f"+ catch text/record {ms('catch'):.1f} + progress box {ms('progress'):.1f} "
+                 f"+ rest {other:.1f}")
+
     def _finish_reel(self, first_seen: float, last_seen: float,
                      trend: ProgressTrend, notice: Optional[CatchNotice] = None) -> bool:
+        self._loop_timing()
+        self._rod_summary()
         self.ctl.step(None, now=time.perf_counter())
         self.mouse.release()
         s = self.ctl.stats
@@ -577,6 +631,125 @@ class FischBot:
             + f"{fischmeasure.sample(frame, y0, s)}\n")
         self.trace_file.flush()
 
+    def _rod_aim(self, img, y_off: int, r: TrackReading, now: float) -> TrackReading:
+        """Rods that move the target during the reel (Noiseform's zones): the
+        reading to steer by -- the fish swapped for the zone to reach."""
+        rod = self.rod
+        if not hasattr(rod, "see_bar"):
+            return r
+        # The warning flashes BEFORE the zones appear (user's recording,
+        # 2026-10-05): watch the screen centre the whole reel, every 2nd frame.
+        self._aim_n = getattr(self, "_aim_n", 0) + 1
+        if self._aim_n % 2 == 0:
+            box = self._grab_centre()
+            if box is not None:
+                shape = rod.see_centre(box, now)
+                if shape and (shape, int(now)) != getattr(self, "_warn_logged", None):
+                    self._warn_logged = (shape, int(now))
+                    self.log(f"  {rod.name}: warning -- {shape}")
+                self._record_centre(box, now)
+        rod.see_bar(img, y_off, r, now)
+        zones = rod.zones
+        if zones:
+            key = (tuple(sh for _, _, sh in zones), rod.want)
+            if key != getattr(self, "_zones_logged", None):
+                self._zones_logged = key
+                self.log(f"  {rod.name}: zones up -- " + ", ".join(
+                    f"{sh or '?'} at {(a + b) // 2}" for a, b, sh in zones)
+                    + (f"; steering to the {rod.want} zone"
+                       + (" (no circle/triangle warning seen: square)" if rod.guessed else "")
+                       if rod.want else ""))
+        else:
+            self._zones_logged = None
+        target = rod.aim(now)
+        return r if target is None else replace(r, marker_x=float(target))
+
+    def _rod_gate(self, r: TrackReading, now: float, want: Optional[bool]):
+        """Rods whose clicks matter (Lullaby's metronome): (input, tap?)."""
+        rod = self.rod
+        if not hasattr(rod, "gate") or self.mouse.dry_run:
+            return want, False
+        from fischlullaby import METRO_ABOVE
+        W = r.track_x1 - r.track_x0
+        y_a = max(0, int(r.y0 - METRO_ABOVE * W))
+        region = self.grabber.grab_rows(y_a, r.y0 + 2) if hasattr(self.grabber, "grab_rows") else None
+        if region is None:
+            return want, False
+        return rod.gate(region, r.track_x0, r.track_x1, r.y0 - y_a, now, want, self.mouse.down)
+
+    def _grab_centre(self):
+        """The box at the client's centre where Noiseform's warning shows."""
+        from fischnoise import warn_box
+
+        rect = self.grabber.rect
+        if rect is None or not hasattr(self.grabber, "grab_rows"):
+            return None
+        x0, y0, x1, y1 = warn_box(rect.height, rect.width)
+        return self.grabber.grab_rows(max(0, y0), min(rect.height, y1))[:, max(0, x0):x1]
+
+    def _record_centre(self, region, now: float) -> None:
+        """Record measurements (approved by the user 2026-10-05 for this):
+        the box at the centre during Noiseform reels, scaled to 300px, so
+        the warning reader can be checked on real footage."""
+        if not self.cfg.trace or self._rec_n >= REC_REELS:
+            return
+        import cv2
+
+        small = cv2.resize(region, (300, 300), interpolation=cv2.INTER_AREA)
+        ok, jpg = cv2.imencode(".jpg", cv2.cvtColor(small, cv2.COLOR_RGB2BGR),
+                               [cv2.IMWRITE_JPEG_QUALITY, 85])
+        if ok:
+            self._rec_centre.append((now, jpg))
+
+    def _record_bar(self, img, y_off: int, now: float, r: Optional[TrackReading]) -> None:
+        """--trace: keep this frame's bar strip (track, fish overhang, progress
+        box -- same area as _trace_crop) in RAM, JPEG-encoded, with the time,
+        the mouse state and our reading. Only the first REC_REELS reels, at
+        most REC_MAX_S each. Saved by _save_recording at the reel's end."""
+        if not self.cfg.trace or self._rec_n >= REC_REELS or r is None:
+            return
+        if self._rec and now - self._rec[0][0] > REC_MAX_S:
+            return
+        import cv2
+
+        s = r.scale
+        h, w = img.shape[:2]
+        ya, yb = max(0, r.y0 - px(50, s) - y_off), min(h, r.y1 + px(70, s) - y_off)
+        xa, xb = max(0, r.track_x0 - px(60, s)), min(w, r.track_x1 + px(60, s))
+        if yb - ya < 10:
+            return
+        ok, jpg = cv2.imencode(".jpg", cv2.cvtColor(img[ya:yb, xa:xb], cv2.COLOR_RGB2BGR),
+                               [cv2.IMWRITE_JPEG_QUALITY, REC_JPEG_Q])
+        if ok:
+            self._rec.append((now, ya + y_off, xa, bool(self.mouse.down), jpg,
+                              (r.track_x0, r.track_x1, r.y0, r.y1, r.slider_x0, r.slider_x1,
+                               r.marker_x, r.scale, r.method)))
+
+    def _save_recording(self) -> None:
+        """Write the recorded reel (if any) as rec_NN.npz in the session folder.
+        Bar strips only, like the other crops; deleted at Stop unless Keep logs."""
+        rec, self._rec = self._rec, []
+        centre, self._rec_centre = getattr(self, "_rec_centre", []), []
+        if len(rec) < 10:
+            return
+        self._rec_n += 1
+        name = f"rec_{self._rec_n:02d}.npz"
+        try:
+            t0 = rec[0][0]
+            np.savez_compressed(
+                self.session.path(name),
+                t=np.array([x[0] - t0 for x in rec]),
+                y=np.array([x[1] for x in rec]), x=np.array([x[2] for x in rec]),
+                held=np.array([x[3] for x in rec]),
+                jpg=np.array([x[4].tobytes() for x in rec], dtype=object),
+                reading=np.array([json.dumps(x[5]) for x in rec]),
+                centre_t=np.array([c[0] - t0 for c in centre]),
+                centre_jpg=np.array([c[1].tobytes() for c in centre], dtype=object),
+                rod=self.rod.name, enchants=json.dumps(self.enchants))
+            self.log(f"recorded {len(rec)} bar frames of this reel to {name}")
+        except Exception as exc:
+            self.log(f"could not save the bar recording ({exc!r})")
+
     def _trace_crop(self, frame, y0: int, s: float, now: float, readable: bool,
                     bar_seen: bool) -> Optional[str]:
         """Save a small PNG of just the bar area (track, marker overhang, progress
@@ -666,6 +839,7 @@ class FischBot:
         inside-fraction estimate if progress could not be read.
         """
         self.log("reeling: waiting for the bar")
+        self._reel_started = False
         t0 = time.perf_counter()
         deadline = t0 + self.cfg.reel_timeout_s
         bite_deadline = t0 + self.cfg.bite_timeout_s
@@ -686,7 +860,13 @@ class FischBot:
         # Non-default reel-bar skins: once the reel is on, a SkinTracker follows
         # the bar instead of the one-frame reader (fischtrack, "Per-reel tracker").
         tracker: Optional[SkinTracker] = None
+        # ... and a BarFollower on top of it: the slider's own look + a motion
+        # model, bridging the frames the shape reader can't read (fischfollow).
+        follower = None
         tracker_ok = 0.0                 # last time it read the bar
+        prog_miss = 0                    # progress-box searches failed in a row
+        self._loop_t = dict(last=0.0, n=0, frame=0.0, read=0.0, follow=0.0, catch=0.0,
+                            progress=0.0)
         self.live = {"in_reel": False, "fill": None, "inside": None, "elapsed": 0.0}
 
         while self.running and time.perf_counter() < deadline:
@@ -703,19 +883,40 @@ class FischBot:
                 return False
 
             self.state = "reeling" if in_phase else "waiting for a bite"
+            # Uneven (art-covered) tracks only count once no catch message is up.
+            set_scene_clear(getattr(self.catch_watch, "clear_ready", False)
+                            and not getattr(self.catch_watch, "error", None))
+            lt = self._loop_t if in_phase else None       # where a reel frame's time goes
+            t_a = time.perf_counter()
+            if lt is not None and lt["last"]:
+                lt["frame"] += t_a - lt["last"]
+                lt["n"] += 1
             r, now, img, y_off = self._grab_and_read(hint, tracker)
-            notice = self._poll_catch(now, first_seen if in_phase else None)
+            t_b = time.perf_counter()
+            if follower is not None:
+                r = follower.update(img, y_off, now, self.mouse.down, r)
+                if r is None:
+                    tracker.why = follower.why
+            t_c = time.perf_counter()
             if in_phase:
-                if notice is not None:
-                    return self._finish_reel(first_seen, last_seen, trend, notice)
-                self._sample_catch(now, img, y_off)
+                self._record_bar(img, y_off, now, r or hint)
+            notice = self._poll_catch(now, first_seen if in_phase else None)
+            if in_phase and notice is not None:
+                return self._finish_reel(first_seen, last_seen, trend, notice)
+            # Also while waiting: keeps clear_ready current for set_scene_clear.
+            self._sample_catch(now, img, y_off)
+            if lt is not None:
+                lt["read"] += t_b - t_a
+                lt["follow"] += t_c - t_b
+                lt["catch"] += time.perf_counter() - t_c
+                lt["last"] = t_a
             if tracker is not None:
                 if r is not None:
                     tracker_ok = now
                 elif now - tracker_ok > TRACKER_GIVE_UP_S:
                     self.log(f"  lost the bar for {TRACKER_GIVE_UP_S:.1f}s "
                              f"({tracker.why or 'no reading'}) -- re-finding it")
-                    tracker = None
+                    tracker = follower = None
                     hint = None
                     self.ctl.reset_motion()
             self._trace("reel" if in_phase else "wait", img, y_off, r,
@@ -740,6 +941,7 @@ class FischBot:
                     self.log(f"  {self.rod.name}: rod minigame over -- resuming reel")
 
             # --- progress box: the game's own inside/outside verdict ----------
+            t_p = time.perf_counter()
             p = None
             scale = r.scale if r is not None else current_scale()
             if r is not None:
@@ -750,12 +952,17 @@ class FischBot:
                 p_top = self.last_prog_top
             else:
                 p_lo = None
+            # A box this reel can't find (skinned bars, 2026-10-05) cost ~16ms a
+            # frame for nothing: after PROG_MISS_SPARSE misses, look every Nth frame.
+            if p_lo is not None and in_phase and prog_miss >= PROG_MISS_SPARSE                     and frames % PROG_SPARSE_EVERY:
+                p_lo = None
             if p_lo is not None:
                 # p_top: where the box must be, for light scenes where its
                 # borders do not stand out (fischtrack._box_near)
                 p = find_progress(img, p_lo - y_off, p_hi - y_off, scale=scale,
                                   polarity=self.progress_polarity,
                                   expect_top=p_top - y_off)
+                prog_miss = 0 if p is not None else prog_miss + 1
                 if p is not None:
                     self.last_prog_top = p[1] + y_off
                     last_prog = now
@@ -763,6 +970,8 @@ class FischBot:
                         trend.add(now, p[0])
                         self.live["fill"] = p[0]
 
+            if lt is not None:
+                lt["progress"] += time.perf_counter() - t_p
             if in_phase:
                 verdict = trend.verdict()
                 self.ctl.stats.note_game(verdict)
@@ -781,7 +990,7 @@ class FischBot:
                                      f"-- re-acquiring bar (#{reacquires})")
                         hint = None
                         r = None
-                        tracker = None
+                        tracker = follower = None
                         self.ctl.reset_motion()
                         falling_inside_since = None
                 else:
@@ -801,6 +1010,7 @@ class FischBot:
                     # slider is wherever this reading says, not centred.
                     tracker = SkinTracker(img, r, y_off, now=now, centred=False,
                                           expect_w=self.slider_w)
+                    follower = self._follower(img, tracker, y_off, now)
                     tracker_ok = now
                 if in_phase:
                     self.learner.feed(img, y_off, r,
@@ -811,6 +1021,7 @@ class FischBot:
                         first_seen = now
                     if streak >= self.start_confirm:
                         in_phase = True
+                        self._reel_started = True
                         if locked_scale() is None:
                             # The first reel decides the UI scale for the run.
                             lock_scale(r.scale)
@@ -829,6 +1040,7 @@ class FischBot:
                             # tracker takes it from there.
                             tracker = SkinTracker(img, r, y_off, now=now,
                                                   expect_w=self.slider_w)
+                            follower = self._follower(img, tracker, y_off, now)
                             tracker_ok = now
                             r = tracker.reading()
                             self.log(f"  following this rod's bar with the skin "
@@ -838,9 +1050,12 @@ class FischBot:
                 frames += 1
                 self.live.update(in_reel=True, inside=bool(r.fish_inside),
                                  elapsed=now - first_seen)
-                want = self.ctl.step(r, now=now)
+                want = self.ctl.step(self._rod_aim(img, y_off, r, now), now=now)
+                want, tap = self._rod_gate(r, now, want)
                 if want is not None:
                     self.mouse.set_down(want)
+                if tap:
+                    self.mouse.click()
                 if self.cfg.debug and frames % 20 == 0:
                     self.log(f"  slider {r.slider_x0}..{r.slider_x1} fish "
                              f"{r.marker_x:.0f} err {r.error:+.0f} "
@@ -870,10 +1085,24 @@ class FischBot:
         # Without a minigame the stats are still the previous cast's (live log,
         # 2026-10-03: "reel timed out: ... filling 246/246 (100%)" after a cast
         # made with no rod in hand) -- say what happened instead.
-        self.log("reel timed out: " + (self.ctl.stats.summary() if in_phase
-                                       else "no minigame appeared (no bite, or no rod in hand?)"))
+        if not self.running:                     # Stop / F9, not a timeout
+            self.log("stopped while " + ("reeling" if in_phase else "waiting for a bite"))
+        else:
+            self.log("reel timed out: " + (self.ctl.stats.summary() if in_phase
+                                           else "no minigame appeared (no bite, or no rod in hand?)"))
         self.catch_watch.end_attempt()
         return False
+
+    def _follower(self, img, tracker: SkinTracker, y_off: int, now: float):
+        """A BarFollower for this reel, from the tracker's view of the bar;
+        None (logged) if it can't be built -- the tracker then works alone."""
+        try:
+            from fischfollow import BarFollower
+            return BarFollower(img, tracker.reading(), y_off, now=now,
+                               find_fish=tracker._find_marker)
+        except Exception as exc:
+            self.log(f"  slider follower unavailable ({exc!r}) -- shape reader only")
+            return None
 
     def _grab_and_read(self, hint: Optional[TrackReading],
                        tracker: Optional[SkinTracker] = None):
@@ -928,6 +1157,8 @@ class FischBot:
         need a mutation. Never fails the run: a reading error turns it off."""
         if not self.track_quests:
             return
+        if self._fast() and self.cycles % FAST_READ_EVERY and self._quest_state is not None:
+            return                               # fast cast: every Nth cast
         from fischquest import find_open_chat, plan, read_tracker
 
         try:
@@ -1005,6 +1236,7 @@ class FischBot:
             with EquipmentMenu(self.grabber.grab, self.rect, self.log,
                                cancelled=lambda: not self.running) as menu:
                 result = menu.equip(name)
+                self._skin_in_bag(menu, name)
             self.log(f"  {name}: " + ("already equipped in the bag"
                                       if result == "already" else "equipped in the bag"))
             # Check the held frame first so an already-held rod isn't toggled
@@ -1023,6 +1255,7 @@ class FischBot:
                                          WinInput(), self._input_ready, self.log)
             if outcome in ("failed", "cancelled"):
                 return False
+            self._rod_unverified = outcome == "unverified"
             self._held_rod = name if outcome in ("held", "restored") else None
             if outcome in ("held", "restored"):
                 self._rod_check_failed = False
@@ -1038,6 +1271,55 @@ class FischBot:
             self.state = prev_state
             # Failed switches retain the immediate-check deadline, since
             # opening/closing the bag can leave the previous rod out of hand.
+            self.recentre()
+            time.sleep(0.2)
+
+    def _skin_in_bag(self, menu, name: str) -> None:
+        """With "Default reel skin" on: Default skin for `name`, in an open bag.
+        Tried once per rod per run; a failure is logged, never fatal."""
+        from fischequip import MenuError
+
+        if not getattr(self, "default_skin", False) or name in self._skin_done:
+            return
+        self._skin_done.add(name)
+        try:
+            res = menu.default_skin(name)
+            self.log(f"  {name}: " + ("already on its Default skin" if res == "already"
+                                      else "switched to its Default skin (reads better)"))
+            if res != "already":
+                # The old skin's track length / slider width no longer apply.
+                from fischtrack import set_skin_track_k
+                set_skin_track_k(None)
+                self.slider_w = None
+        except MenuError as exc:
+            self.log(f"  {name}: could not switch to the Default skin -- {exc}")
+
+    def use_default_skin(self) -> None:
+        """Run start / a rod in hand not yet checked: open the bag only for the
+        skin, close it, make sure the rod is still held."""
+        from fischequip import EquipmentMenu, MenuError, WinInput, ensure_rod_held
+
+        name = self.rod.name
+        if not self.running or not self.focus.ready() or not self._refresh_window():
+            return
+        self.mouse.release()
+        prev_state, self.state = self.state, "setting the default skin"
+        self.log(f"default reel skin: checking {name} (Equipment Bag)")
+        try:
+            with EquipmentMenu(self.grabber.grab, self.rect, self.log,
+                               cancelled=lambda: not self.running) as menu:
+                self._skin_in_bag(menu, name)
+            time.sleep(0.3)                      # the bag's close animation
+            ensure_rod_held(self.grabber.grab, name, [], self.enchants,
+                            WinInput(), self._input_ready, self.log)
+        except MenuError as exc:
+            self._skin_done.add(name)
+            self.log(f"  {name}: could not check the skin -- {exc}")
+        except Exception as exc:          # OCR missing etc.: never kill the run
+            self._skin_done.add(name)
+            self.log(f"  {name}: could not check the skin -- {exc!r}")
+        finally:
+            self.state = prev_state
             self.recentre()
             time.sleep(0.2)
 
@@ -1078,16 +1360,29 @@ class FischBot:
         try:
             outcome = ensure_rod_held(self.grabber.grab, self.rod.name,
                                      self.owned_rods, self.enchants, WinInput(),
-                                     self._input_ready, self.log)
+                                     self._input_ready, self.log, snap=self._snap_hotbar)
         except Exception as exc:
             self.log(f"rod check: unreadable ({exc!r}); no further input")
             outcome = "unknown"
         self._rod_check_failed = outcome in ("failed", "cancelled") or (
             self._rod_check_failed and outcome == "unknown")
         self._next_rod_check = now + (5 if self._rod_check_failed else 120)
+        # "unverified": a key was pressed but the held frame can't be seen. The
+        # next cast tells: no reel -> check (and press) again right away.
+        self._rod_unverified = outcome == "unverified"
         if outcome in ("held", "restored"):
             self._held_rod = self.rod.name
         return not self._rod_check_failed
+
+    def _snap_hotbar(self, band) -> None:
+        """Record measurements: the hotbar strip when the held frame wasn't seen."""
+        if not self.cfg.trace or getattr(self, "_hotbar_snaps", 0) >= 5:
+            return
+        import cv2
+        self._hotbar_snaps = getattr(self, "_hotbar_snaps", 0) + 1
+        name = f"hotbar_{time.perf_counter() - self._trace_t0:07.2f}.png"
+        cv2.imwrite(str(self.session.path(name)), cv2.cvtColor(band, cv2.COLOR_RGB2BGR))
+        self.log(f"  saved the hotbar as {name} (held frame not seen)")
 
     def _prime_skin(self) -> None:
         """The rod's last skin primes the track search and the slider width."""
@@ -1123,12 +1418,17 @@ class FischBot:
             # A due totem may already be blocked by an active effect. Do not
             # force tooltip hovers each cast just because it remains due.
             # Useables confirms again only immediately before an eligible use.
-            weather = self.weather.refresh(self)
-            key = weather.names, weather.complete
-            if key != self._weather_logged:
-                self.log("weather: " + (", ".join(weather.names) or "unreadable")
-                         + ("" if weather.complete else " -- incomplete; totems deferred"))
-                self._weather_logged = key
+            # Fast cast reads the weather every Nth cast -- but always when a
+            # totem is due, which needs a fresh reading (fischweather.MAX_AGE_S).
+            skip = (self._fast() and self.cycles % FAST_READ_EVERY
+                    and not (u is not None and u.wants_weather(self)))
+            if not skip:
+                weather = self.weather.refresh(self)
+                key = weather.names, weather.complete
+                if key != self._weather_logged:
+                    self.log("weather: " + (", ".join(weather.names) or "unreadable")
+                             + ("" if weather.complete else " -- incomplete; totems deferred"))
+                    self._weather_logged = key
             if u is not None and u.active and self.running and self.focus.ready():
                 u.between_casts(self)
         except Exception as exc:
@@ -1157,13 +1457,21 @@ class FischBot:
         if changed and getattr(self, "skins", None) is not None:
             self._prime_skin()
         self.catch_watch.rod = rod.name
+        self._rod_geometry()
         self.session.keep_logs = keep
         self.last_prog_top = None
         self.pending_hint = None
         self.ctl.reset_motion()
 
+    def _rod_geometry(self) -> None:
+        """The widest slider to accept follows the rod's Control (Lullaby's ~81%)."""
+        from fischrods import slider_frac_for
+        from fischtrack import set_slider_max_frac
+        set_slider_max_frac(slider_frac_for(self.rod.name, self.enchants) + 0.12)
+
     def run(self) -> None:
         self.running = True
+        self._rod_geometry()
         self.mouse.place_cursor(self.rect)
         if self.cfg.diagnose:
             return self.diagnose_loop()
@@ -1190,6 +1498,10 @@ class FischBot:
         else:
             self.log("focus mode YIELD: you can use other tabs. The macro pauses "
                      "when you take focus, so fish will be lost mid-reel.")
+        if self.cfg.fast_cast:
+            self.log(f"fast cast ON: recasts {FAST_CATCH_WAIT_S:g}s after a catch, shakes "
+                     f"{FAST_CAST_PAUSE_S:g}s after casting, quests/weather every "
+                     f"{FAST_READ_EVERY} casts")
 
         try:
             while self.running:
@@ -1208,15 +1520,24 @@ class FischBot:
                 if not self._check_rod():
                     time.sleep(.25)
                     continue
+                if self.default_skin and self.rod.name not in self._skin_done:
+                    self.use_default_skin()
+                    continue
 
                 if not self.cast():
                     continue
-                time.sleep(self.cfg.cast_pause_s)
+                time.sleep(FAST_CAST_PAUSE_S if self._fast() else self.cfg.cast_pause_s)
                 self.lure()
                 if self.reel():
                     self.caught += 1
                 else:
                     self.lost += 1
+                self._save_recording()
+                if getattr(self, "_rod_unverified", False):
+                    self._rod_unverified = False
+                    if not self._reel_started:       # no reel at all: rod not in hand?
+                        self.log("rod check: that cast got no reel -- checking the rod again")
+                        self._next_rod_check = 0.0
                 self.cycles += 1
                 self.log(f"cycle {self.cycles} done: {self.caught} caught, "
                          f"{self.lost} lost")

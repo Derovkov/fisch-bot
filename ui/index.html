@@ -6,6 +6,7 @@
 <title>Fisch bot</title>
 <style>
 :root{
+  color-scheme:dark;
   --bg:#0c0d10; --shell:#141519; --side:#111216;
   --card:rgba(255,255,255,.035); --card2:rgba(255,255,255,.06);
   --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.13);
@@ -119,8 +120,11 @@ button{font:inherit;color:inherit}
 .unlock b{background:var(--grad);-webkit-background-clip:text;color:transparent}
 .rodbar .grow{flex:1}
 .search{position:relative}
-.search input{width:240px;text-align:left;padding-left:34px;border-radius:12px}
-.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.search input[type=text]{width:240px;text-align:left;padding-left:34px;border-radius:12px}
+input[type=text]{background:rgba(255,255,255,.05);border:1px solid var(--line2);color:var(--text);
+  border-radius:10px;padding:8px 10px;font:inherit;outline:none}
+input[type=text]::placeholder{color:var(--muted)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);z-index:1;pointer-events:none}
 .seg.icons button{padding:6px 9px;display:grid;place-items:center}
 .rodwrap{position:relative}
 .carousel{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 14px;scroll-behavior:smooth}
@@ -185,7 +189,7 @@ button{font:inherit;color:inherit}
 .eitem i{font-style:normal;font-size:10.5px;color:var(--cyan);border:1px solid rgba(54,197,255,.4);border-radius:999px;padding:1px 7px;white-space:nowrap}
 .modal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
 /* ---------- log / settings ---------- */
-.logbox{font-family:"Cascadia Mono",Consolas,monospace;font-size:12.5px;line-height:1.65;height:calc(100vh - 190px);
+.logbox{font-family:"Cascadia Mono",Consolas,monospace;font-size:12.5px;line-height:1.65;height:calc(100vh - 236px);
   overflow:auto;white-space:pre-wrap;word-break:break-word;color:var(--muted)}
 .logbox .good{color:var(--green)}.logbox .bad{color:var(--red)}.logbox .note{color:var(--amber)}
 .form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
@@ -199,7 +203,7 @@ button{font:inherit;color:inherit}
 input[type=number],select{background:rgba(255,255,255,.05);border:1px solid var(--line2);color:var(--text);
   border-radius:10px;padding:8px 10px;font:inherit;width:110px;text-align:center;outline:none}
 select{width:auto;text-align:left;min-width:240px}
-input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,197,255,.15)}
+input[type=text]:focus,input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,197,255,.15)}
 .seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid var(--line2);border-radius:12px;padding:3px}
 .seg button{border:0;background:none;padding:7px 12px;border-radius:9px;color:var(--muted);cursor:pointer;font-size:13px}
 .seg button.on{background:var(--card2);color:var(--text);box-shadow:0 0 0 1px var(--line2) inset}
@@ -220,6 +224,8 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
 <link rel="stylesheet" href="extras.css">
 <link rel="stylesheet" href="useables.css">
 <link rel="stylesheet" href="skins.css">
+<link rel="stylesheet" href="picker.css">
+<link rel="stylesheet" href="rotations.css">
 </head>
 <body>
 <div class="app" id="app">
@@ -302,9 +308,11 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
         <details class="recent-details"><summary id="recent-summary">Latest reel details</summary><div class="recent-reels" id="recent-reels"><div class="subtle" style="padding-top:12px">Your latest three reels will appear here.</div></div></details>
       </div>
       <div class="card configuration-card">
-        <div class="section-title"><h3>Quick switch <span class="help" data-help="profiles" tabindex="0" aria-label="About configurations">?</span></h3><button class="mini-button accent" id="config-save-new" title="Save your current rod and settings as a new setup">+ New setup</button></div>
+        <div class="section-title"><h3>Quick switch <span class="help" data-help="profiles" tabindex="0" aria-label="About configurations" id="qs-help">?</span></h3><button class="mini-button accent" id="config-save-new" title="Save your current rod and settings as a new setup">+ New setup</button><button class="mini-button accent" id="rot-new" title="Pick rods and how long to fish with each" hidden>+ New rotation</button></div>
+        <div class="seg qs-kind" id="qs-kind"><button data-v="setups" class="on">Setups</button><button data-v="rotations">Rotations</button></div>
         <div class="current-config"><span class="eyebrow" id="config-status">Selected setup</span><strong id="config-name">Custom setup</strong><div class="subtle" id="config-detail"></div></div>
         <div class="config-list" id="config-list"></div>
+        <div class="config-list" id="rot-list" hidden></div>
         <div class="pending-note" id="config-pending" hidden><span></span><button class="mini-button" id="config-cancel">Cancel</button></div>
         <div class="row" style="margin:8px 0 2px"><label>Equip rod in game <span class="help" data-help="auto_equip" tabindex="0">?</span></label><label class="sw"><input type="checkbox" id="s-auto_equip"><span></span></label></div>
         <div class="config-footer"><span class="subtle" id="config-hint">Saved locally · ready for next Start</span><button class="mini-button" id="config-apply">Edit setup</button></div>
@@ -325,7 +333,7 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
           <button data-v="carousel" title="Scroll through"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="6" height="14" rx="1.5"/><rect x="9" y="5" width="6" height="14" rx="1.5"/><rect x="16" y="5" width="6" height="14" rx="1.5"/></svg></button>
           <button data-v="grid" title="Grid"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></button>
         </div>
-        <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="rod-search" type="text" placeholder="Search rods…"></label>
+        <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="rod-search" type="text" placeholder="Search rods… (Ctrl+F)"></label>
       </div>
       <div class="rodwrap" id="rodwrap">
         <button class="arrow l" id="arr-l" aria-label="Scroll left">‹</button>
@@ -385,13 +393,13 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
       <div class="u-grid">
         <div class="card">
           <div class="section-title"><h3>Totems <span class="help" data-help="useables_totems" tabindex="0">?</span></h3>
-            <div class="u-add"><select id="u-totem-add"></select><button class="mini-button accent" id="u-totem-addbtn">+ Add</button></div></div>
+            <div class="u-add" id="u-totem-add"></div></div>
           <div id="u-totems"></div>
           <div class="u-now" id="u-weather-now" aria-live="polite">Weather: read between casts.</div>
         </div>
         <div class="card">
           <div class="section-title"><h3>Baits <span class="help" data-help="useables_baits" tabindex="0">?</span></h3>
-            <div class="u-add"><select id="u-bait-add"></select><button class="mini-button accent" id="u-bait-addbtn">+ Add</button></div></div>
+            <div class="u-add" id="u-bait-add"></div></div>
           <div class="row"><label>Manage my bait</label><label class="sw"><input type="checkbox" id="u-bait-manage"><span></span></label></div>
           <div class="row"><label>When every bait is at its limit</label><div class="seg" id="u-bait-out"><button data-v="stop">Stop the bot</button><button data-v="continue">Keep fishing</button></div></div>
           <div class="u-now" id="u-bait-now"></div>
@@ -405,10 +413,10 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
     <section class="view" id="v-index">
       <div class="head"><div><h1>Index</h1><div class="sub">From Fischipedia, the official Fisch wiki. Refresh with <code>python fischwiki.py all</code> after game updates.</div></div></div>
       <div class="rodbar" style="margin-bottom:12px">
-        <div class="seg" id="ix-kind"><button data-v="mutations" class="on">Mutations</button><button data-v="weather">Weather</button><button data-v="totems">Totems</button><button data-v="quests">Quest givers</button><button data-v="fish">Fish</button></div>
+        <div class="seg" id="ix-kind"><button data-v="mutations" class="on">Mutations</button><button data-v="weather">Weather</button><button data-v="totems">Totems</button><button data-v="quests">Quest givers</button><button data-v="fish">Fish</button><button data-v="baits">Baits</button></div>
         <div class="seg" id="ix-filter"></div>
         <span class="grow"></span>
-        <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="ix-search" type="text" placeholder="Search…"></label>
+        <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="ix-search" type="text" placeholder="Search… (Ctrl+F)"></label>
       </div>
       <div class="card ix-card"><div id="ix-count" class="subtle" style="margin-bottom:8px"></div><div id="ix-list" class="ix-list"></div></div>
     </section>
@@ -416,7 +424,7 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
     <!-- log -->
     <section class="view" id="v-log">
       <div class="head"><div><h1>Log</h1><div class="sub">This app session. Cleared when the app closes.</div></div></div>
-      <div class="card"><div class="logbox" id="logbox"></div></div>
+      <div class="card"><div class="log-tools"><label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="log-search" type="text" placeholder="Filter the log… (Ctrl+F)"></label><span class="subtle" id="log-count"></span></div><div class="logbox" id="logbox"></div></div>
     </section>
 
     <!-- settings -->
@@ -466,6 +474,8 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
             <div style="text-align:right"><div id="s-rodname" style="color:#ffc53d;font-weight:600"></div><div id="s-rodench" style="color:#c9b6ff;font-size:12.5px"></div></div>
             <button class="btn halt" style="padding:7px 14px;color:var(--text);background:var(--card2);border-color:var(--line2)" data-view="rods" id="s-rodgo">Change</button></div>
           <div class="row"><label>Cast limit <span class="help" data-help="fish">?</span></label><input type="number" id="s-max_fish" min="0" step="1"></div>
+          <div class="row"><label>Fast cast <span class="help" data-help="fast_cast">?</span></label><label class="sw"><input type="checkbox" id="s-fast_cast"><span></span></label></div>
+          <div class="row"><label>Default reel skin <span class="help" data-help="default_skin">?</span></label><label class="sw"><input type="checkbox" id="s-default_skin"><span></span></label></div>
           <div class="row"><label>Focus <span class="help" data-help="focus">?</span></label>
             <div class="seg" id="s-focus"><button data-v="pin">Keep Roblox in front</button><button data-v="yield">Pause when I switch</button></div></div>
           <div class="note-line">Cast limit: 0 keeps fishing until you press Stop.</div>
@@ -501,6 +511,18 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(54,1
     <div class="config-preview" id="config-preview"></div>
     <div class="err" id="config-error" role="status"></div>
     <div class="actions"><button class="btn halt delete" id="config-delete">Delete</button><button class="mini-button" id="config-modal-cancel">Cancel</button><button class="mini-button" id="config-save-copy">Save a copy</button><button class="btn go" id="config-save">Save setup</button></div>
+  </div>
+</div>
+<div class="modal-bg" id="rot-modal">
+  <div class="modal rot-modal" role="dialog" aria-modal="true" aria-labelledby="rot-modal-title">
+    <h2 id="rot-modal-title">New rotation <span class="help" data-help="rotations" tabindex="0">?</span></h2>
+    <div class="sub">Pick the rods to rotate and how long to fish with each. After the last rod it starts again from the first.</div>
+    <label for="rot-name">Rotation name</label><input id="rot-name" type="text" maxlength="50" autocomplete="off" placeholder="e.g. Mutation grind">
+    <div class="rot-steps" id="rot-steps"></div>
+    <div class="rot-add"><div id="rot-add"></div><span class="subtle" id="rot-total"></span></div>
+    <div class="config-preview" id="rot-preview"></div>
+    <div class="err" id="rot-error" role="status"></div>
+    <div class="actions"><button class="btn halt delete" id="rot-delete">Delete</button><button class="mini-button" id="rot-cancel">Cancel</button><button class="btn go" id="rot-save">Create rotation</button></div>
   </div>
 </div>
 <div id="tip"></div>
@@ -550,7 +572,7 @@ function paintSettings(){
   $("#s-rodname").textContent = "[" + S.rod + "]";
   $("#s-rodench").textContent = (S.rod_enchants[S.rod] || []).join(", ") || "No enchants";
   for (const k of ["max_fish","lookahead","deadband","bite"]) $("#s-"+k).value = S[k];
-  for (const k of ["debug","trace","keep","auto_equip","track_quests"]) $("#s-"+k).checked = !!S[k];
+  for (const k of ["debug","trace","keep","auto_equip","track_quests","fast_cast","default_skin"]) $("#s-"+k).checked = !!S[k];
   document.querySelectorAll("#s-focus button").forEach(b => b.classList.toggle("on", b.dataset.v === S.focus));
   $("#chip-focus").textContent = S.focus === "pin" ? "Keep Roblox in front" : "Pause when I switch";
   paintRods(); paintSub(); paintConfigurations();
@@ -560,7 +582,7 @@ for (const k of ["max_fish","lookahead","deadband","bite"]) $("#s-"+k).onchange 
   if (isFinite(v) && v >= +e.target.min && (!e.target.max || v <= +e.target.max)) { S[k] = k==="max_fish" ? Math.round(v) : v; saveSettings(); }
   e.target.value = S[k]; paintSub();
 };
-for (const k of ["debug","trace","keep","auto_equip","track_quests"]) $("#s-"+k).onchange = e => { S[k] = e.target.checked; saveSettings(); };
+for (const k of ["debug","trace","keep","auto_equip","track_quests","fast_cast","default_skin"]) $("#s-"+k).onchange = e => { S[k] = e.target.checked; saveSettings(); };
 document.querySelectorAll("#s-focus button").forEach(b => b.onclick = () => { S.focus = b.dataset.v; saveSettings(); paintSettings(); });
 $("#reset").onclick = e => {
   e.preventDefault();
@@ -626,7 +648,7 @@ function paintRods(){
   let list = META.rods.filter(r =>
     (rodFilter === "all" || (rodFilter === "owned" && S.owned.includes(r.name)) ||
      (rodFilter === "favs" && S.favs.includes(r.name)) || (rodFilter === "obtainable" && r.obtainable)) &&
-    (!q || (r.name + " " + r.location + " " + r.source + " " + (S.rod_enchants[r.name] || []).join(" ")).toLowerCase().includes(q)));
+    (!q || matchWords(r.name + " " + r.location + " " + r.source + " " + (S.rod_enchants[r.name] || []).join(" "), q)));
   list.sort((a, b) => rodSort === "name" ? a.name.localeCompare(b.name) : (b[rodSort] ?? -1e9) - (a[rodSort] ?? -1e9));
   // equipped first, then favourites, keeping the chosen order within each
   const rank = r => (r.name === S.rod ? 0 : S.favs.includes(r.name) ? 1 : 2);
@@ -738,7 +760,7 @@ function paintEnchants(){
     : '<span style="background:none;border-color:var(--line);color:var(--faint);cursor:default">No enchants</span>';
   const q = $("#ench-search").value.trim().toLowerCase(), groups = {};
   for (const [n, e] of Object.entries(META.enchants))
-    if (!q || (n + " " + e.effect).toLowerCase().includes(q)) (groups[e.group] = groups[e.group] || []).push([n, e]);
+    if (!q || matchWords(n + " " + e.effect + " " + e.group, q)) (groups[e.group] = groups[e.group] || []).push([n, e]);
   $("#ench-list").innerHTML = Object.keys(groups).sort().map(g => `<div class="egroup">${esc(g)}</div>` +
     groups[g].sort((a, b) => a[0].localeCompare(b[0])).map(([n, e]) => `
       <div class="eitem${editSel.includes(n) ? " on" : ""}" data-n="${esc(n)}"><b>${esc(n)}</b><span>${esc(e.effect)}</span>${e.affects_reel ? "<i>changes the reel</i>" : ""}</div>`).join("")).join("")
@@ -761,7 +783,8 @@ $("#ench-modal").onclick = e => { if (e.target.id === "ench-modal") closeEnchant
 document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#ench-modal").classList.contains("on")) closeEnchants(false); });
 function paintSub(){
   const goal = S.max_fish > 0 ? `${S.max_fish} casts` : "fishing until stopped";
-  if (!running) $("#subline").textContent = `${S.rod} · ${goal}`;
+  const rot = S.active_rotation && window.rotationName?.(S.active_rotation);
+  if (!running) $("#subline").textContent = rot ? `Rotation ${rot} · ${goal}` : `${S.rod} · ${goal}`;
 }
 
 /* ---------- start / stop ---------- */
@@ -797,7 +820,7 @@ function paint(st){
   $("#n-caught").textContent = st.caught; $("#n-lost").textContent = st.lost; $("#n-casts").textContent = st.casts;
   $("#n-rate").textContent = st.casts ? Math.round(100 * st.caught / st.casts) + "%" : "–";
   if (running) {
-    $("#subline").textContent = `${st.active_config?.settings.rod || S.rod} · run in progress`;
+    $("#subline").textContent = `${st.active_config?.settings.rod || S.rod}${st.rotation ? " · rotation " + st.rotation.name : ""} · run in progress`;
     $("#chip-focus").textContent = (st.active_config?.settings.focus || S.focus) === "pin" ? "Keep Roblox in front" : "Pause when I switch";
   } else paintSub();
 
@@ -857,13 +880,31 @@ function paint(st){
       const d = document.createElement("div"), low = line.toLowerCase();
       d.className = /escaped\?|error|focus lost|no bar within/.test(low) ? "bad"
                   : /\| caught|deleted/.test(low) ? "good" : /calibration|warning/.test(low) ? "note" : "";
-      d.textContent = line; box.appendChild(d); seq = s;
+      d.textContent = line; d.hidden = !!logQuery && !matchWords(line, logQuery); box.appendChild(d); seq = s;
       if (low.startsWith("error")) $("#err").textContent = line;
     }
     while (box.childElementCount > 1000) box.firstChild.remove();
+    if (logQuery) logCount();
     if (atEnd) box.scrollTop = box.scrollHeight;
   }
 }
+/* log filter: hides lines that don't contain every typed word */
+let logQuery = "";
+function logCount(){
+  const all = $("#logbox").children, n = [...all].filter(d => !d.hidden).length;
+  $("#log-count").textContent = logQuery ? `${n} of ${all.length} lines` : "";
+}
+$("#log-search").oninput = e => {
+  logQuery = e.target.value.trim();
+  for (const d of $("#logbox").children) d.hidden = !!logQuery && !matchWords(d.textContent, logQuery);
+  logCount(); $("#logbox").scrollTop = $("#logbox").scrollHeight;
+};
+/* Ctrl+F jumps to the search box of the page you're on */
+document.addEventListener("keydown", e => {
+  if (!(e.ctrlKey && e.key.toLowerCase() === "f")) return;
+  const box = document.querySelector(".modal-bg.on .search input, .view.on .search input, .view.on .pk-in");
+  if (box) { e.preventDefault(); box.focus(); box.select(); }
+});
 const fmt = s => s < 60 ? `${Math.round(s)}s` : s < 3600 ? `${Math.floor(s/60)}m ${Math.round(s%60)}s` : `${Math.floor(s/3600)}h ${Math.round(s%3600/60)}m`;
 const ago = s => s < 60 ? "now" : s < 3600 ? Math.floor(s/60) + "m" : Math.floor(s/3600) + "h";
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -874,7 +915,9 @@ window.addEventListener("pywebviewready", async () => {
   loadSettings(); paintSettings(); poll();
 });
 </script>
+<script src="picker.js"></script>
 <script src="configurations.js"></script>
+<script src="rotations.js"></script>
 <script src="extras.js"></script>
 <script src="useables.js"></script>
 <script src="hotkeys.js"></script>

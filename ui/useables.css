@@ -4,7 +4,7 @@
 #v-use .card{max-height:calc(100vh - 200px);overflow:auto}
 .u-master{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text)}
 .u-add{display:flex;gap:8px;align-items:center}
-.u-add select{min-width:180px;max-width:220px;padding:6px 8px;font-size:13px}
+.u-add .pk input.pk-in{width:220px}
 .u-item{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 2px;border-top:1px solid var(--line)}
 .u-item:first-child{border-top:0}
 .u-item.off{opacity:.55}

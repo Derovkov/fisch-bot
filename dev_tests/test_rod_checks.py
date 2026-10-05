@@ -85,6 +85,13 @@ class RecoveryTests(unittest.TestCase):
         self.assertEqual(outcome, "unknown")
         inp.tap.assert_not_called()
 
+    def test_unreadable_held_frame_after_a_press_never_presses_twice(self):
+        # Live 2026-10-05: "did not return to hand" every 5s toggled the rod
+        # in and out. No held frame anywhere after the press -> unverified.
+        outcome, inp, _ = self.run_check([None, None])
+        self.assertEqual(outcome, "unverified")
+        inp.tap.assert_called_once()
+
     def test_recovery_failure_and_focus_loss(self):
         outcome, inp, _ = self.run_check([2, 2])
         self.assertEqual(outcome, "failed")
@@ -126,6 +133,14 @@ class BoundaryTests(unittest.TestCase):
             clock.return_value = 125.
             check.return_value = "restored"
             self.assertTrue(b._check_rod())
+
+    def test_unverified_press_lets_the_bot_cast(self):
+        b = self.bot()
+        with patch("fischbot.time.monotonic", return_value=0.),                 patch("fischequip.ensure_rod_held", return_value="unverified") as check,                 patch("fischequip.WinInput"):
+            self.assertTrue(b._check_rod())          # cast; the reel decides
+            self.assertTrue(b._rod_unverified)
+            self.assertTrue(b._check_rod())          # and no second press in between
+            self.assertEqual(check.call_count, 1)
 
     def test_resize_updates_capture_bounds_and_invalidates_reel_geometry(self):
         b = self.bot()

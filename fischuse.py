@@ -303,6 +303,14 @@ class Useables:
     def active(self) -> bool:
         return self.cfg["enabled"] and (bool(self._totems()) or self.cfg["bait"]["manage"])
 
+    def wants_weather(self, bot) -> bool:
+        """A totem is due now, so it needs a fresh weather reading (fast cast
+        otherwise skips most weather reads)."""
+        if not self.cfg["enabled"]:
+            return False
+        now = self.clock()
+        return any(self.totem_due(t, getattr(bot, "quests", []), now) for t in self._totems())
+
     def _totems(self) -> list[dict]:
         return [t for t in self.cfg["totems"] if t["on"]]
 

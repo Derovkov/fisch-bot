@@ -50,6 +50,19 @@ SLIDER_MIN = 150
 SLIDER_B_MIN = 200
 SLIDER_MIN_WIDTH_FRAC = 0.20    # 252/777 = 0.32 normally; wider during a boost
 SLIDER_MAX_WIDTH_FRAC = 0.62    # widest boost measured 431/777 = 0.55
+_slider_max = SLIDER_MAX_WIDTH_FRAC
+
+
+def set_slider_max_frac(frac: Optional[float]) -> None:
+    """The widest slider to accept, x the track (None: the default). Set per rod
+    from its Control (fischrods.slider_frac_for): Lullaby + Herculean's slider
+    is ~81% of the track (2026-10-05) -- over the default, so it was never read."""
+    global _slider_max
+    _slider_max = SLIDER_MAX_WIDTH_FRAC if frac is None else max(SLIDER_MAX_WIDTH_FRAC, min(0.95, frac))
+
+
+def slider_max_frac() -> float:
+    return _slider_max
 
 # A bar row: one run of (track | slider) pixels, gaps <= BAR_MERGE bridged (VFX),
 # spanning this fraction of frame width (777/1920 = 0.405).
@@ -612,13 +625,17 @@ def _read_track_at(frame: np.ndarray, s: float, hint: Optional[TrackReading],
         # recording, 106-241 for Duskwire / Crew Rod live).
         if anchored:
             return None, 0.0
-        if _track_unevenness(frame, x0, x1, y0, y1, s, slider, marker) > GEO_TRACK_MAX_UNEVEN:
+        limit = GEO_TRACK_MAX_UNEVEN_CLEAR if _scene_clear else GEO_TRACK_MAX_UNEVEN
+        if _track_unevenness(frame, x0, x1, y0, y1, s, slider, marker) > limit:
             return None, 0.0
         # expect_top: on a light floor the box's end borders do not stand out
         # (saved_logs/20261003_115038: a whole Duskwire reel went unread, 4s,
         # because of this check alone -- fish, slider and track all passed).
-        if find_progress(frame, y1 + dy - px(6, s), y1 + dy + px(PROG_ROWS + 6, s),
-                         scale=s, expect_top=y1 + dy) is None:
+        # Lullaby's bar (2026-10-05): a taller track, its box ~10px closer
+        # under it than the usual PROG_TOP_DY -- also look a little higher.
+        if all(find_progress(frame, y1 + d - px(6, s), y1 + d + px(PROG_ROWS + 6, s),
+                             scale=s, expect_top=y1 + d) is None
+               for d in (dy, dy - px(6, s), dy - px(12, s))):
             return None, 0.0
     return TrackReading(x0, x1, y0, y1, slider[0], slider[1], marker, scale=s,
                         method=method, slider_rgb=slider_rgb), edge
@@ -654,7 +671,10 @@ def _slider_colour(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int,
         if hi - lo < SPLIT_MIN:
             continue
         g = row[:, 1]
-        bright = (sums > (lo + hi) / 2) & (g <= np.maximum(row[:, 0], row[:, 2]) + 8)
+        # Green rod VFX are strongly coloured; Lullaby's pale yellow-green
+        # slider (e.g. 232,241,220) is not -- it was cut in two by this rule.
+        sat = row.max(1) - row.min(1)
+        bright = (sums > (lo + hi) / 2) & ~((g > np.maximum(row[:, 0], row[:, 2]) + 8) & (sat > 60))
         runs = _runs(bright, px(BAR_MERGE, s), min_len=px(60, s))
         if runs:
             a, b = _trim_tails(bright, *max(runs, key=lambda r: r[1] - r[0]), s)
@@ -664,7 +684,7 @@ def _slider_colour(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int,
     sx0 = int(np.median([sp[0] for sp in spans]))
     sx1 = int(np.median([sp[1] for sp in spans]))
     if not (SLIDER_MIN_WIDTH_FRAC * (x1 - x0) <= sx1 - sx0 + 1
-            <= SLIDER_MAX_WIDTH_FRAC * (x1 - x0)):
+            <= _slider_max * (x1 - x0)):
         # Too wide: live (2026-10-02, 17:28) a "slider" of 667-764px was read --
         # most likely a bright background showing through the translucent
         # track, so the whole row split as bright. Widest real one: ~431px.
@@ -695,6 +715,19 @@ GEO_NEAR_WITHIN = 0.6           # candidates considered for continuity (x top sc
 GEO_RGB_PENALTY = 0.5           # score lost per unit of colour change vs last frame
 GEO_MARKER_MIN = 50             # marker column contrast, above AND below the track
 GEO_TRACK_MAX_UNEVEN = 45       # see _track_unevenness / the "geo" checks
+# ... while no catch message is on screen (set_scene_clear). Live (2026-10-05)
+# Noiseform's default bar has big claw art over its track: 58-120 on every frame
+# of a reel, so it was never read. The limit guards against the catch message
+# over the power bar (>= 63); with that confirmed gone, the art is allowed.
+# The 2026-10-01 recording: no false bar at 130 either.
+GEO_TRACK_MAX_UNEVEN_CLEAR = 130
+_scene_clear = False
+
+
+def set_scene_clear(clear: bool) -> None:
+    """The bot's catch-text reader saw no catch message: allow uneven tracks."""
+    global _scene_clear
+    _scene_clear = bool(clear)
 
 
 def _track_unevenness(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int,
@@ -762,7 +795,7 @@ def find_marker_geo(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int,
 
 def find_slider_geo(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int, s: float,
                     min_frac: float = GEO_SLIDER_MIN_FRAC,
-                    max_frac: float = SLIDER_MAX_WIDTH_FRAC,
+                    max_frac: Optional[float] = None,
                     marker_x: Optional[float] = None,
                     expect_w: Optional[float] = None,
                     expect_c: Optional[float] = None,
@@ -792,6 +825,8 @@ def find_slider_geo(frame: np.ndarray, x0: int, x1: int, y0: int, y1: int, s: fl
     one until this was added.
 
     Returns (x0, x1, contrast, outside spread, inside median colour)."""
+    if max_frac is None:
+        max_frac = _slider_max
     if expect_w:
         span = x1 - x0 + 1
         free = find_slider_geo(frame, x0, x1, y0, y1, s, min_frac, max_frac, marker_x,
@@ -1015,7 +1050,7 @@ class SkinTracker:
                 bh = expect_w / 2
             return int(round(c - bh)), int(round(c + bh))
         pairs = []
-        for h in range(int(GEO_SLIDER_MIN_FRAC / 2 * W), int(SLIDER_MAX_WIDTH_FRAC / 2 * W)):
+        for h in range(int(GEO_SLIDER_MIN_FRAC / 2 * W), int(_slider_max / 2 * W)):
             lo, hi = int(round(c - h)), int(round(c + h))
             if lo < 0 or hi > W:
                 break
@@ -1103,7 +1138,7 @@ class SkinTracker:
             a, b = bounds[ii], bounds[jj]
             width = b - a
             plausible = ((width >= max(GEO_SLIDER_MIN_FRAC * W, 0.9 * self.base_w))
-                         & (width <= SLIDER_MAX_WIDTH_FRAC * W))
+                         & (width <= _slider_max * W))
             a, b, width = a[plausible], b[plausible], width[plausible]
             if not len(a):
                 continue
@@ -1409,6 +1444,10 @@ def _border_rows(frame: np.ndarray, y_lo: int, y_hi: int, s: float) -> np.ndarra
 PROG_NEAR_MIN_CONTRAST = 40     # box rows vs the rows just outside it (see _box_near)
 
 
+PROG_NEAR_KEEP = 10             # last frame's box is kept while it scores this much over the minimum
+_box_near_last: dict = {}
+
+
 def _box_near(frame: np.ndarray, top0: int, s: float) -> Optional[tuple[int, int]]:
     """(top, rows) of the progress box within a few px of where it must be, by
     its INSIDE: rows that agree with each other and differ from the row just
@@ -1422,21 +1461,33 @@ def _box_near(frame: np.ndarray, top0: int, s: float) -> Optional[tuple[int, int
     if c0 < 0 or c1 > w or c1 - c0 < 10:
         return None
     rows_n, d = px(PROG_ROWS, s), px(3, s)
+
+    def score(top: int, n: int) -> float:
+        if top < 1 or top + n + 1 > h:
+            return -1e9
+        box = frame[top:top + n, c0:c1].astype(np.int16)
+        inside = np.median(box, axis=0)
+        above = frame[top - 1, c0:c1].astype(np.int16)
+        below = frame[top + n, c0:c1].astype(np.int16)
+        contrast = min(np.abs(inside - above).sum(1).mean(),
+                       np.abs(inside - below).sum(1).mean())
+        return contrast - np.abs(box - inside).sum(2).mean(1).max()
+
+    # Last frame's box first: it doesn't move, and the full search below (49
+    # candidates) cost ~16ms a frame live on skinned bars (2026-10-05 timing).
+    key = (top0, s, w)
+    last = _box_near_last.get(key)
+    if last is not None and score(*last) > PROG_NEAR_MIN_CONTRAST + PROG_NEAR_KEEP:
+        return last
     best, best_sc = None, PROG_NEAR_MIN_CONTRAST
     for top in range(top0 - d, top0 + d + 1):
         for n in range(max(2, min(rows_n - d, int(rows_n * 0.6))), rows_n + 2):
-            if top < 1 or top + n + 1 > h:
-                continue
-            box = frame[top:top + n, c0:c1].astype(np.int16)
-            inside = np.median(box, axis=0)
-            above = frame[top - 1, c0:c1].astype(np.int16)
-            below = frame[top + n, c0:c1].astype(np.int16)
-            contrast = min(np.abs(inside - above).sum(1).mean(),
-                           np.abs(inside - below).sum(1).mean())
-            spread = np.abs(box - inside).sum(2).mean(1).max()
-            sc = contrast - spread
+            sc = score(top, n)
             if sc > best_sc:
                 best, best_sc = (top, n), sc
+    _box_near_last.clear()
+    if best is not None:
+        _box_near_last[key] = best
     return best
 
 

@@ -98,6 +98,24 @@ def get_rod(name: str) -> RodProfile:
     return StandardRod(name or DEFAULT_ROD)
 
 
+def rod_control(name: str, enchants: list[str]) -> float:
+    """The rod's Control with its enchants (their first stated Control bonus)."""
+    import re
+    base = next((r.get("control") for r in ROD_DATA if r["name"] == name), None) or 0.0
+    for e in enchants:
+        m = re.search(r"([+-]\s?[\d.]+)\s*Control", ENCHANTS.get(e, {}).get("effect", ""))
+        if m:
+            base += float(m.group(1).replace(" ", ""))
+    return float(base)
+
+
+def slider_frac_for(name: str, enchants: list[str]) -> float:
+    """Expected slider width, x the track, from Control: measured Duskwire
+    (-0.15) 15%, Fabulous Rod (+0.08) ~35%, Lullaby + Herculean (+0.45) ~81%
+    -- about 30% + 1.1 x Control."""
+    return 0.30 + 1.1 * rod_control(name, enchants)
+
+
 def reel_enchants(names: list[str]) -> list[str]:
     """The given enchants that change the reel itself (slashes/stuns, fish
     movement, forced progress, control) -- logged at the start of a run."""

@@ -1,0 +1,17 @@
+/* Quick switch > Rotations (rotations.js) */
+.qs-kind{margin:-4px 0 10px}
+.qs-kind button{padding:5px 12px;font-size:12px}
+.rot-modal{max-width:620px}
+.rot-modal label[for]{display:block;font-size:12px;color:var(--muted);margin-bottom:7px}
+.rot-modal #rot-name{width:100%;padding:11px 12px}
+.rot-steps{display:flex;flex-direction:column;gap:6px;margin:14px 0 10px;max-height:300px;overflow:auto}
+.rot-step{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.018)}
+.rot-step .grow{flex:1;min-width:0}
+.rot-step b{display:block;color:#ffc53d;font-weight:600;font-size:13px}
+.rot-step small{display:block;color:var(--muted);font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rot-step label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.rot-step input[type=number]{width:70px;padding:5px 6px;font-size:12.5px}
+.rot-none{padding:10px 2px}
+.rot-add{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rot-modal .actions{flex-wrap:wrap;gap:8px}.rot-modal .actions .btn{padding:9px 14px;font-size:12px}
+.rot-modal .actions .delete{margin-right:auto}

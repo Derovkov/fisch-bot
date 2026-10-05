@@ -2,7 +2,7 @@
 let profiles = [], configState = {}, editingConfig = null, editingSnapshot = null;
 let configListKey = '', configBusy = false, configReturnFocus = null;
 let lastHotkeySetup = '';
-const configKeys = ['rod','max_fish','focus','debug','trace','keep','lookahead','deadband','bite'];
+const configKeys = ['rod','max_fish','focus','debug','trace','keep','lookahead','deadband','bite','fast_cast'];
 function configSnapshot(settings) {
   const value = {};
   for (const key of configKeys) value[key] = settings[key];
@@ -52,23 +52,27 @@ function paintConfigurations(state) {
   if (!META) return;
   if (state) configState=state;
   const active = running ? configState.active_config : null, pending = running ? configState.pending_config : null;
-  const hotkeySetup = pending?.origin==='hotkey' ? pending : active?.origin==='hotkey' ? active : null;
+  // F6 and rotation switches happen in Python: mirror them into the settings.
+  const hotkeySetup = pending?.origin==='hotkey' ? pending : ['hotkey','rotation'].includes(active?.origin) ? active : null;
   if (hotkeySetup) {
     const key=JSON.stringify(hotkeySetup);
     if(key!==lastHotkeySetup) {
       lastHotkeySetup=key;
-      S=Object.assign({},S,configSnapshot(hotkeySetup.settings),{active_profile:hotkeySetup.id,
-        rod_enchants:Object.assign({},S.rod_enchants,hotkeySetup.settings.rod_enchants)});
+      const rot=hotkeySetup.origin==='rotation' ? hotkeySetup.rotation.id : '';
+      S=Object.assign({},S,configSnapshot(hotkeySetup.settings),{active_profile:rot ? '' : hotkeySetup.id,
+        active_rotation:rot, rod_enchants:Object.assign({},S.rod_enchants,hotkeySetup.settings.rod_enchants)});
       paintSettings(); saveSettings();
     }
   } else lastHotkeySetup='';
-  $('#config-status').textContent = active ? 'Running setup' : 'Selected setup';
-  $('#config-name').textContent = active?.name || configLabel();
+  window.paintRotations?.();
+  const rotNow = window.rotationStatus?.(running ? configState.rotation : null);
+  $('#config-status').textContent = rotNow ? rotNow.status : active ? 'Running setup' : 'Selected setup';
+  $('#config-name').textContent = rotNow ? rotNow.name : active?.name || configLabel();
   const settings = active?.settings || S;
-  $('#config-detail').textContent = `${settings.rod} · ${settings.max_fish ? settings.max_fish+' casts' : 'Unlimited casts'}`;
+  $('#config-detail').textContent = rotNow ? rotNow.detail : `${settings.rod} · ${settings.max_fish ? settings.max_fish+' casts' : 'Unlimited casts'}`;
   $('#config-pending').hidden = !pending;
   if (pending) $('#config-pending span').textContent = `${pending.name} · switches after this cast`;
-  const dirty = active && !sameConfig(active.settings,S);
+  const dirty = active && !sameConfig(active.settings,S) && !(configState.rotation && S.active_rotation);
   $('#config-apply').textContent = running ? (dirty ? 'Apply changes' : 'Up to date') : 'Edit setup';
   $('#config-apply').disabled = running && (!dirty || configBusy);
   $('#config-hint').textContent = dirty ? 'Edited setup · apply after this cast' : running ? `${window.hotkeyLabel?.('switch') || 'F6'} · next saved setup` : 'Saved locally · ready for next Start';
@@ -86,7 +90,7 @@ function paintConfigurations(state) {
 async function useConfiguration(id) {
   if (configBusy) return;
   const row=profiles.find(p=>p.id===id); if (!row) return;
-  const next = Object.assign({},S,configSnapshot(row.settings),{active_profile:id,
+  const next = Object.assign({},S,configSnapshot(row.settings),{active_profile:id,active_rotation:'',
     rod_enchants:Object.assign({},S.rod_enchants,row.settings.rod_enchants)});
   configBusy=true; paintConfigurations();
   try {
@@ -104,6 +108,7 @@ async function applyDraft() {
   try {
     const result=await pywebview.api.queue_configuration(JSON.stringify(S));
     $('#err').textContent=result.ok ? '' : result.error;
+    if (result.ok && S.active_rotation) {S.active_rotation=''; saveSettings();}   // applying edits ends a rotation
   } finally {configBusy=false; paintConfigurations();}
 }
 function openConfiguration(id='') {
@@ -115,7 +120,7 @@ function openConfiguration(id='') {
   $('#config-delete').hidden=!editingConfig; $('#config-save-copy').hidden=!editingConfig;
   $('#config-delete').textContent='Delete'; $('#config-delete').dataset.confirm='';
   const s=editingSnapshot, ench=s.rod_enchants[s.rod];
-  $('#config-preview').textContent=`${s.rod}${ench.length?' · '+ench.join(', '):''}\n${s.max_fish?s.max_fish+' casts':'Unlimited casts'} · lookahead ${s.lookahead}s · deadband ${Math.round(s.deadband*100)}%\n${s.trace?'Measurements on':'Measurements off'} · ${s.keep?'Keep run logs':'Delete run data at Stop'}`;
+  $('#config-preview').textContent=`${s.rod}${ench.length?' · '+ench.join(', '):''}\n${s.max_fish?s.max_fish+' casts':'Unlimited casts'}${s.fast_cast?' · fast cast':''} · lookahead ${s.lookahead}s · deadband ${Math.round(s.deadband*100)}%\n${s.trace?'Measurements on':'Measurements off'} · ${s.keep?'Keep run logs':'Delete run data at Stop'}`;
   $('#config-preview').style.whiteSpace='pre-line';
   $('#config-error').textContent=''; configReturnFocus=document.activeElement;
   $('#config-modal').classList.add('on'); $('#config-input').focus();

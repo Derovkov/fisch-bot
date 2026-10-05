@@ -3,7 +3,7 @@
  *           "Read now" when it isn't running), the plan for mutation objectives,
  *           and this run's mutation tally.
  *   Index:  wiki indexes (fischwiki.py): mutations, weather, totems, quest givers,
- *           fish and other fishables.
+ *           fish and other fishables, baits.
  * Uses $, esc and S from index.html. */
 (function () {
   let lastQuests = null, lastMuts = {};
@@ -87,6 +87,7 @@
     totems: [["all", "All"], ["weather", "Weather"], ["event", "Events"]],
     quests: [["all", "All"], ["repeatable", "Repeatable"], ["withquests", "Has quests"]],
     fish: [["all", "All"], ["fish", "Fish"], ["nonfish", "Other fishables"], ["quest", "In my quests"]],
+    baits: [["all", "All"], ["mutation", "Gives a mutation"], ["regular", "Regular"], ["limited", "Limited"], ["mine", "In my Useables"]],
   };
   const LIMIT = 250;
 
@@ -99,7 +100,7 @@
 
   const owned = () => (S.owned || []);
   const chips = (arr, cls = "") => arr.map(x => `<span class="chip ${cls}">${esc(x)}</span>`).join("");
-  const match = txt => !query || txt.toLowerCase().includes(query);
+  const match = txt => !query || matchWords(txt, query);          // every typed word must appear
 
   function rowsMutations(d) {
     const mine = new Set(owned());
@@ -164,17 +165,41 @@
         ${f.season ? `<span class="chip">season: ${esc(f.season)}</span>` : ""}${f.bait ? `<span>bait: ${esc(f.bait)}</span>` : ""}</div></div>`);
   }
 
+  let myBaits = new Set();
+  function rowsBaits(d) {
+    const stat = (l, v) => v == null ? "" : `<span class="chip">${l} ${v > 0 ? "+" : ""}${v}</span>`;
+    return d.baits.filter(b => {
+      const muts = Object.keys(b.mutations || {});
+      if (filter === "mutation" && !muts.length) return false;
+      if (filter === "limited" && b.rarity !== "Limited") return false;
+      if (filter === "regular" && b.rarity === "Limited") return false;
+      if (filter === "mine" && !myBaits.has(b.name)) return false;
+      return match([b.name, b.rarity || "", b.ability || "", muts.join(" ")].join(" "));
+    }).sort((a, b) => a.name.localeCompare(b.name)).map(b => `<div class="ix-row">${b.icon ? `<img src="${esc(b.icon)}" alt="">` : "<span></span>"}
+      <div class="nm">${esc(b.name)}<small>${esc(b.rarity || "?")}${myBaits.has(b.name) ? " · in your Useables" : ""}</small></div>
+      <div class="dt">${Object.entries(b.mutations || {}).map(([m, c]) => `<span class="chip mut">${esc(m)}${c ? " " + c + "%" : ""}</span>`).join("")}
+        ${stat("Pref. luck", b.preferred_luck)}${stat("Luck", b.universal_luck)}${stat("Resilience", b.resilience)}${stat("Lure", b.lure_speed)}
+        ${b.ability && !Object.keys(b.mutations || {}).length ? `<span>${esc(b.ability)}</span>` : ""}</div></div>`);
+  }
+
+  let paintSeq = 0;
   async function paintIndex() {
+    const mine = ++paintSeq;                     // a slower earlier paint must not overwrite a newer one
     document.querySelectorAll("#ix-kind button").forEach(b => b.classList.toggle("on", b.dataset.v === kind));
     $("#ix-filter").innerHTML = FILTERS[kind].map(([v, l]) => `<button data-v="${v}" class="${v === filter ? "on" : ""}">${l}</button>`).join("");
-    const d = await load(kind); if (!d) return;
-    const rows = {mutations: rowsMutations, weather: rowsWeather, totems: rowsTotems, quests: rowsQuests, fish: rowsFish}[kind](d);
+    const d = await load(kind); if (!d || mine !== paintSeq) return;
+    if (kind === "baits") {
+      const g = await pywebview.api.get_general();
+      if (mine !== paintSeq) return;
+      myBaits = new Set(g.ok ? g.general.useables.bait.list.map(b => b.name) : []);
+    }
+    const rows = {mutations: rowsMutations, weather: rowsWeather, totems: rowsTotems, quests: rowsQuests, fish: rowsFish, baits: rowsBaits}[kind](d);
     $("#ix-count").textContent = `${rows.length} shown · fetched ${d.fetched || "?"}`;
     $("#ix-list").innerHTML = rows.slice(0, LIMIT).join("") + (rows.length > LIMIT ? `<div class="ix-more">… ${rows.length - LIMIT} more -- narrow the search</div>` : "");
   }
 
   $("#ix-kind").onclick = e => { const b = e.target.closest("button"); if (!b) return; kind = b.dataset.v; filter = "all"; paintIndex(); };
   $("#ix-filter").onclick = e => { const b = e.target.closest("button"); if (!b) return; filter = b.dataset.v; paintIndex(); };
-  $("#ix-search").oninput = e => { query = e.target.value.trim().toLowerCase(); paintIndex(); };
+  $("#ix-search").oninput = e => { query = e.target.value.trim(); paintIndex(); };
   document.querySelector('[data-view="index"]').addEventListener("click", () => paintIndex());
 })();

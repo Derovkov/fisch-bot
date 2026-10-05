@@ -23,6 +23,7 @@ import ctypes.wintypes as wintypes
 import re
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Callable, Optional
 
 import numpy as np
@@ -272,6 +273,94 @@ def read_screen(frame: np.ndarray) -> Screen:
     return Screen(lines, cards, find_search(lines, cards))
 
 
+# --- rod skins: the pen button on a rod card opens "<Rod> Skins" ---------------
+# From the user (2026-10-05): the pen button on the rod's card opens its skin
+# list (cards: skin name, then [Equip] / [Equipped]; "Default" first, [Back] top
+# right). The list does NOT close by itself -- left open it would break the next
+# rod switch -- so the bot always presses [Back]. A non-default skin changes the
+# reel bar (see fischtrack's skin tracker); the default bar reads far better.
+SKIN_EDIT_ICON = Path(__file__).with_name("ui") / "icons" / "game" / "skin_edit.png"
+SKIN_EDIT_MIN = 0.62            # template match score for the pen button
+SKIN_EDIT_SCALES = tuple(round(0.55 + 0.05 * i, 2) for i in range(26))   # 0.55-1.80
+SKIN_SETTLE_S = 0.6             # after clicking the pen / Equip / Back
+
+
+def _edit_icon():
+    import cv2
+    t = cv2.imread(str(SKIN_EDIT_ICON), cv2.IMREAD_GRAYSCALE)
+    if t is None:
+        raise MenuError(f"missing {SKIN_EDIT_ICON.name}")
+    # Only the icon's white strokes and the pixels right around them count: the
+    # square behind them takes the colour of each rod's card art.
+    strokes = (t > 110).astype(np.uint8)
+    mask = cv2.dilate(strokes, np.ones((3, 3), np.uint8))
+    return t, mask
+
+
+def find_skin_edit(frame: np.ndarray, region: Box) -> Optional[tuple[Box, float]]:
+    """The pen (skins) button inside `region` of an RGB client frame:
+    (box, score), or None. Searched over UI scales (window sizes)."""
+    import cv2
+    x0, y0, x1, y1 = (max(0, int(v)) for v in region)
+    crop = frame[y0:y1, x0:x1]
+    if crop.size == 0:
+        return None
+    gray = cv2.cvtColor(np.ascontiguousarray(crop), cv2.COLOR_RGB2GRAY)
+    t, m = _edit_icon()
+    best = None
+    for k in SKIN_EDIT_SCALES:
+        tw, th = max(8, round(t.shape[1] * k)), max(8, round(t.shape[0] * k))
+        if tw > gray.shape[1] or th > gray.shape[0]:
+            break
+        ts = cv2.resize(t, (tw, th), interpolation=cv2.INTER_AREA)
+        ms = cv2.resize(m, (tw, th), interpolation=cv2.INTER_NEAREST)
+        res = cv2.matchTemplate(gray, ts, cv2.TM_CCOEFF_NORMED, mask=ms)
+        res = np.nan_to_num(res, nan=-1, posinf=-1, neginf=-1)
+        _, score, _, (bx, by) = cv2.minMaxLoc(res)
+        if best is None or score > best[1]:
+            best = ((x0 + bx, y0 + by, x0 + bx + tw, y0 + by + th), float(score))
+    return best if best is not None and best[1] >= SKIN_EDIT_MIN else None
+
+
+def skin_screen(lines) -> Optional[dict]:
+    """The skin list, if it is what's on screen: {"default": box, "button":
+    ("equip" | "equipped", box) or None, "back": box}."""
+    title = any(_norm(t).endswith(" skins") for t, _ in lines)
+    back = next((b for t, b in lines if _ratio(_norm(t).strip("[] "), "back") >= .8
+                 and len(_norm(t)) <= 8), None)
+    default = next((b for t, b in lines if _ratio(_norm(t), "default") >= .85), None)
+    if not (title or back) or default is None:
+        return None
+    cx = (default[0] + default[2]) / 2
+    width = max(default[2] - default[0], 1)
+    below = [(button_kind(t), b) for t, b in lines
+             if button_kind(t) and b[1] > default[3]
+             and abs((b[0] + b[2]) / 2 - cx) < 2.5 * width]
+    button = min(below, key=lambda kb: kb[1][1] - default[3], default=None)
+    return {"default": default, "button": button, "back": back}
+
+
+def skin_button_closeup(frame: np.ndarray, default: Box) -> Optional[tuple[str, Box]]:
+    """The button under "Default", read at higher magnification: its small
+    green [Equip] text was missed by the whole-screen read (user screenshot,
+    2026-10-05), only the bright [Equipped] was read."""
+    h, w = frame.shape[:2]
+    cx, dw = (default[0] + default[2]) / 2, max(default[2] - default[0], 20)
+    x0, x1 = int(max(0, cx - 2.5 * dw)), int(min(w, cx + 2.5 * dw))
+    y0, y1 = int(default[3]), int(min(h, default[3] + max(8 * dw / 3, h * .2)))
+    crop = frame[y0:y1, x0:x1]
+    if not crop.size:
+        return None
+    for factor in (3., 5.):
+        scale = min(factor, 4000 / max(crop.shape[:2]))
+        lines = [(t, (b[0] + x0, b[1] + y0, b[2] + x0, b[3] + y0))
+                 for t, b in ocr_lines(crop, scale=scale)]
+        kinds = [(button_kind(t), b) for t, b in lines if button_kind(t)]
+        if kinds:
+            return min(kinds, key=lambda kb: kb[1][1])
+    return None
+
+
 def centre(b: Box) -> tuple[int, int]:
     return (b[0] + b[2]) // 2, (b[1] + b[3]) // 2
 
@@ -451,6 +540,67 @@ class EquipmentMenu:
         if card2 is not None and (card2["equipped"] or (btn2 and btn2[0] == "equipped")):
             return "equipped"
         raise MenuError(f"clicked Equip on [{rod}] but it does not read Equipped")
+
+    def default_skin(self, rod: str) -> str:
+        """Put `rod` on its Default skin: pen button on its card -> Default's
+        [Equip] -> [Back]. Returns "default" or "already"; raises MenuError.
+        [Back] is pressed whatever happens once the skin list is open."""
+        s = self.read()
+        if self.search_box is not None:
+            s = self.set_search(rod)
+        card = s.card(rod)
+        if card is None:
+            raise MenuError(f"no [{rod}] card was read on the rod screen")
+        frame = self.grab()
+        h = frame.shape[0]
+        x0, _, x1, _ = card["box"]
+        nb = card["name_box"]
+        region = (x0, max(0, nb[1] - int(h * .5)), x1,
+                  min(card.get("bottom", h), nb[3] + int(h * .2), h))
+        pen = find_skin_edit(frame, region)
+        if pen is None:
+            raise MenuError(f"no skins (pen) button found on the [{rod}] card")
+        self.click(pen[0])
+        self._pause(SKIN_SETTLE_S)
+        try:
+            sk = skin_screen(self.read().lines)
+            if sk is None:
+                self._pause(SKIN_SETTLE_S)
+                sk = skin_screen(self.read().lines)
+            if sk is None:
+                raise MenuError(f"the skin list did not open for [{rod}]")
+            if sk["button"] is None:
+                sk["button"] = skin_button_closeup(self.grab(), sk["default"])
+            if sk["button"] is None:
+                raise MenuError("no Equip button under the Default skin")
+            if sk["button"][0] == "equipped":
+                return "already"
+            self.click(sk["button"][1])
+            self._pause(SKIN_SETTLE_S)
+            after = skin_screen(self.read().lines)
+            if after is not None and after["button"] is None:
+                after["button"] = skin_button_closeup(self.grab(), after["default"])
+            if after is None or after["button"] is None or after["button"][0] != "equipped":
+                raise MenuError("clicked Equip on the Default skin but it does not read Equipped")
+            return "default"
+        finally:
+            self._skin_back()
+
+    def _skin_back(self) -> None:
+        """Leave the skin list with [Back] (it never closes by itself)."""
+        prev, self._closing = self._closing, True       # also when cancelled
+        try:
+            for _ in range(3):
+                sk = skin_screen(self.read().lines)
+                if sk is None:
+                    return
+                if sk["back"] is None:
+                    raise MenuError("the skin list is open but no [Back] button was read")
+                self.click(sk["back"])
+                self._pause(SKIN_SETTLE_S)
+            raise MenuError("the skin list did not close with [Back]")
+        finally:
+            self._closing = prev
 
     def _button(self, screen: Screen, card: dict):
         btn = screen.button(card)
@@ -830,10 +980,12 @@ def select_hotbar_rod(grab: Callable[[], np.ndarray], rod: str, others: list[str
     return True
 
 
-def ensure_rod_held(grab, rod, others, enchants, inp, ready, log):
+def ensure_rod_held(grab, rod, others, enchants, inp, ready, log, snap=None):
     """Verify the named rod AND held frame before using its number key.
-    Returns held/restored/unknown/failed/cancelled. Unknown sends no input.
-    The UI check never opens a bag or toggles an already-held rod."""
+    Returns held/restored/unverified/unknown/failed/cancelled. Unknown sends no
+    input. The UI check never opens a bag or toggles an already-held rod.
+    `snap(band)`: called with the hotbar strip when no held frame is seen
+    (Record measurements: hotbar_*.png, to work out why)."""
     from fischuse import read_hotbar
 
     if not ready():
@@ -861,6 +1013,16 @@ def ensure_rod_held(grab, rod, others, enchants, inp, ready, log):
     if after_slot == slot and after.held == slot:
         log(f"rod check: restored {rod} to hand (slot {slot})")
         return "restored"
+    if after.held is None:
+        if snap is not None and after.band is not None:
+            snap(after.band)
+        # No held frame anywhere: the key may have taken the rod OUT of hand
+        # (it toggles) or the frame just isn't readable. Live (2026-10-05) the
+        # old "failed" pressed again every 5s -- rod in, out, in -- and never
+        # cast. The caller casts instead; no reel then means press once more.
+        log(f"rod check: pressed {slot} for {rod} but can't see the held frame -- "
+            f"casting to find out (no key until then)")
+        return "unverified"
     log(f"rod check: {rod} did not return to hand; delaying the next cast")
     return "failed"
 

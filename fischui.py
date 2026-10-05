@@ -23,7 +23,7 @@ import webview
 
 from fischbot import FischBot, MacroConfig, NoRobloxWindow, create_bot
 from fischcontrol import ControlConfig
-from fischconfig import ConfigurationStore, configuration
+from fischconfig import ConfigurationStore, configuration, rotation_settings
 from fischrods import DEFAULT_ROD, ENCHANTS, ROD_DATA, SPECIAL, get_rod
 from fischsession import Session
 from fischuse import Useables, load_general, save_general
@@ -49,6 +49,23 @@ HELP = {
                 "different rod makes the bot open the Equipment Bag (N), search "
                 "for that rod, equip it and close the bag -- between casts, while "
                 "the rod is reeled in.",
+    "rotations": "A rotation fishes a set time with each rod, then switches to the "
+                 "next one, and starts over after the last. The switch waits for the "
+                 "current cast, then the bot equips the next rod through the Equipment "
+                 "Bag (N), so 'Equip rod in game' must be on. A rod that can't be "
+                 "equipped is skipped. Picking a setup, F6, or Stop rotating ends it. "
+                 "Time counts from when each rod is equipped, including waits.",
+    "fast_cast": "Shorter waits between reels. The bot casts again about a second "
+                 "after a catch instead of waiting for the catch message to fade, "
+                 "starts shaking sooner after the cast, and reads the quest tracker "
+                 "and weather every 3rd cast instead of every cast (the weather is "
+                 "still read whenever a totem is due). Catches are still confirmed. "
+                 "Turn it off if casts get cancelled or reels are missed at the start.",
+    "default_skin": "Rod skins change the reel bar, and skinned bars are much harder "
+                    "to read. With this on, the bot opens the Equipment Bag once per rod "
+                    "per run, presses the rod's skins (pen) button, equips its Default "
+                    "skin and presses Back. Your skin stays on Default afterwards -- "
+                    "pick it again in the bag when you're done.",
     "auto_equip": "When a switch changes the rod, the bot equips it in Roblox for "
                   "you (Equipment Bag, N). If it can't, it keeps the current setup "
                   "and says why in the log. Off: match the rod in Roblox yourself.",
@@ -76,8 +93,10 @@ HELP = {
              "position, the gap between them, and whether the button is held.",
     "trace": "Records what the bot sees, to troubleshoot an area or a rod where it "
              "struggles: numbers 10 times a second, plus small snapshots of just the "
-             "reel bar (never the whole screen) when the bar can't be read. Deleted "
-             "when the run stops unless Keep logs is on.",
+             "reel bar (never the whole screen) when the bar can't be read, and the "
+             "first 8 seconds of the first two reels as a short clip of just the bar "
+             "(a few MB) for working out rod skins. Deleted when the run stops unless "
+             "Keep logs is on.",
     "keep": "Copies this run's logs to the saved_logs folder before the temporary "
             "folder is deleted. Leave off to keep your storage clean.",
     "lookahead": "How many seconds ahead the bot predicts where the fish and slider "
@@ -115,11 +134,13 @@ HELP = {
 
 DEFAULTS = {"rod": DEFAULT_ROD, "max_fish": 20, "focus": "pin",
             "debug": False, "trace": False, "keep": False,
-            "lookahead": 0.5, "deadband": 0.06, "bite": 30,
+            "lookahead": 0.5, "deadband": 0.06, "bite": 30, "fast_cast": False,
             # Rods page: fill these in with "Scan from game", or with the ✓ / ✎
             # buttons on each rod card.
             "rod_enchants": {}, "owned": [], "favs": [], "rod_layout": "carousel",
-            "active_profile": "", "auto_equip": True, "track_quests": True}
+            "active_profile": "", "active_rotation": "", "auto_equip": True,
+            "default_skin": False,
+            "track_quests": True}
 
 
 class SearchCancelled(RuntimeError):
@@ -142,6 +163,7 @@ class Api:
                                              {r['name'] for r in ROD_DATA})
         self._pending_config = None
         self._active_config = None
+        self._rotation = None        # running rod rotation: steps, index, since
         self._stop_requested = threading.Event()
         self._scan: dict = {"busy": False}       # rod scan progress (scan_rods)
         self._search: dict = {"busy": False}
@@ -162,6 +184,7 @@ class Api:
                      for k, v in HELP.items()}
         return {"rods": rods, "enchants": ENCHANTS, "defaults": DEFAULTS,
                 "saved": saved, "help": help_text, "profiles": self._profiles.list(),
+                "rotations": self._profiles.list_rotations(),
                 "hotkeys": keys, "help_base": HELP,
                 "links": {"discord": DISCORD_URL, "repo": REPO_URL,
                           "issues": REPO_URL + "/issues", "releases": REPO_URL + "/releases"}}
@@ -180,6 +203,114 @@ class Api:
         except OSError as exc:
             return {"ok": False, "error": str(exc)}
 
+    # --- rod rotations ------------------------------------------------------------
+    def save_rotation(self, name: str, data_json: str, rotation_id: str = '') -> dict:
+        try:
+            row = self._profiles.save_rotation(name, json.loads(data_json), rotation_id)
+            return {"ok": True, "rotation": row, "rotations": self._profiles.list_rotations()}
+        except (OSError, ValueError, TypeError) as exc:
+            return {"ok": False, "error": str(exc)}
+
+    def delete_rotation(self, rotation_id: str) -> dict:
+        try:
+            self._profiles.delete_rotation(rotation_id)
+            return {"ok": True, "rotations": self._profiles.list_rotations()}
+        except OSError as exc:
+            return {"ok": False, "error": str(exc)}
+
+    def _rotation_request(self, rotation_id: str, extra: dict | None = None):
+        """(request for the rotation's first rod, fresh rotation state), or an
+        error string. Rotations switch rods in the game, so they need
+        'Equip rod in game'."""
+        rot = next((r for r in self._profiles.list_rotations() if r['id'] == rotation_id), None)
+        if rot is None:
+            return "That rotation no longer exists."
+        if not self._auto_equip():
+            return "Turn on 'Equip rod in game' to use a rotation -- it switches rods for you."
+        settings = [rotation_settings(rot, i) for i in range(len(rot['steps']))]
+        request = self._config_request(dict(extra or {}, **settings[0], active_profile=''))
+        fresh = dict(id=rot['id'], name=rot['name'], steps=rot['steps'], settings=settings,
+                     index=0, since=0.0, next=None)
+        request.update(id='', name=f"{rot['name']} · {rot['steps'][0]['rod']}",
+                       origin='rotation', rotation=dict(id=rot['id'], step=0))
+        return request, fresh
+
+    def queue_rotation(self, rotation_id: str) -> dict:
+        """Switch to a rotation during a run: its first rod after this cast."""
+        made = self._rotation_request(rotation_id)
+        if isinstance(made, str):
+            return {"ok": False, "error": made}
+        request, fresh = made
+        request['rotation_new'] = fresh
+        with self._lock:
+            if not (self._worker and self._worker.is_alive()):
+                return {"ok": False, "error": "The run has ended. This rotation is ready for your next Start."}
+            self._pending_config = request
+        self._note(f"rotation queued: {fresh['name']} -- starts with {fresh['steps'][0]['rod']} "
+                   f"after the current cast")
+        return {"ok": True}
+
+    def end_rotation(self) -> None:
+        """Stay on the current rod and stop rotating."""
+        with self._lock:
+            rot, self._rotation = self._rotation, None
+            if self._pending_config and self._pending_config.get('origin') == 'rotation':
+                self._pending_config = None
+        if rot is not None:
+            self._note(f"rotation {rot['name']} stopped -- staying on the current rod")
+
+    def _rotation_tick(self) -> None:
+        """Cast boundary: when the current rod's time is up, queue the next rod."""
+        with self._lock:
+            rot = self._rotation
+            if rot is None or self._pending_config is not None:
+                return
+            cur = rot['steps'][rot['index']]
+            retry = rot['next'] is not None
+            if not retry and time.time() - rot['since'] < cur['minutes'] * 60:
+                return
+            nxt = rot['next'] if retry else (rot['index'] + 1) % len(rot['steps'])
+            step = rot['steps'][nxt]
+            self._pending_config = dict(settings=rot['settings'][nxt], id='',
+                                        name=f"{rot['name']} · {step['rod']}", origin='rotation',
+                                        rotation=dict(id=rot['id'], step=nxt))
+        if not retry:
+            self._note(f"rotation {rot['name']}: {cur['minutes']:g} min with {cur['rod']} done "
+                       f"-- switching to {step['rod']}")
+
+    def _rotation_failed(self, step: int) -> None:
+        """A rotation rod could not be equipped: try the one after it at the next
+        cast; if none can be, stay on the current rod for another full turn."""
+        with self._lock:
+            rot = self._rotation
+            if rot is None:
+                return
+            nxt = (step + 1) % len(rot['steps'])
+            if nxt == rot['index']:
+                rot.update(next=None, since=time.time())
+                cur = rot['steps'][rot['index']]
+            else:
+                rot['next'] = nxt
+                cur = None
+        if cur is not None:
+            self._note(f"rotation {rot['name']}: no other rod could be equipped -- "
+                       f"staying on {cur['rod']} for another {cur['minutes']:g} min")
+
+    def _rotation_view(self):
+        rot = self._rotation
+        if rot is None:
+            return None
+        cur = rot['steps'][rot['index']]
+        nxt = rot['steps'][(rot['index'] + 1) % len(rot['steps'])]
+        return {"id": rot['id'], "name": rot['name'], "index": rot['index'],
+                "steps": [{"rod": st['rod'], "minutes": st['minutes']} for st in rot['steps']],
+                "left_s": max(0.0, cur['minutes'] * 60 - (time.time() - rot['since'])),
+                "next_rod": nxt['rod']}
+
+    def _on_cycle_boundary(self) -> None:
+        self._rotation_tick()
+        self._apply_pending()
+
     def _config_request(self, s):
         settings = configuration(s, DEFAULTS, self._profiles.rods)
         profile_id = s.get('active_profile', '')
@@ -192,7 +323,8 @@ class Api:
     @staticmethod
     def _configs(s):
         return (MacroConfig(max_fish=s['max_fish'], focus_mode=s['focus'],
-                            bite_timeout_s=s['bite'], debug=s['debug'], trace=s['trace']),
+                            bite_timeout_s=s['bite'], debug=s['debug'], trace=s['trace'],
+                            fast_cast=s['fast_cast']),
                 ControlConfig(lookahead_s=s['lookahead'], deadband_frac=s['deadband']))
 
     def queue_configuration(self, settings_json: str, origin: str = 'ui') -> dict:
@@ -249,14 +381,21 @@ class Api:
         if request is None or self._bot is None or not self._bot.running:
             return
         s = request['settings']
-        if s['rod'] != self._bot.rod.name and self._auto_equip():
+        step = (request.get('rotation') or {}).get('step')
+        if s['rod'] != self._bot.rod.name:
             # Between casts (the rod is reeled in): equip the setup's rod in the
             # game first. If that fails, stay on the current setup -- tuning for
             # a rod that is not in your hands would be worse than no switch.
-            if not self._bot.equip_rod(s['rod']):
+            # A rotation only makes sense with the rod really switched.
+            equip = self._auto_equip()
+            why = ("" if equip and self._bot.equip_rod(s['rod'])
+                   else "could not be equipped" if equip
+                   else "needs 'Equip rod in game' on" if step is not None else "")
+            if why:
                 self._note(f"configuration NOT applied: {request['name']} -- "
-                          f"{s['rod']} could not be equipped; staying on "
-                          f"{self._bot.rod.name}")
+                          f"{s['rod']} {why}; staying on {self._bot.rod.name}")
+                if step is not None and 'rotation_new' not in request:
+                    self._rotation_failed(step)
                 return
         try:
             cfg, ccfg = self._configs(s)
@@ -265,10 +404,19 @@ class Api:
         except Exception as exc:
             self._note(f"configuration switch failed: {exc}")
             return
+        ended = None
         with self._lock:
             self._active_config = request
+            if 'rotation_new' in request:
+                self._rotation = dict(request.pop('rotation_new'), since=time.time())
+            elif step is not None and self._rotation and self._rotation['id'] == request['rotation']['id']:
+                self._rotation.update(index=step, since=time.time(), next=None)
+            elif step is None:
+                ended, self._rotation = self._rotation, None   # a setup or F6 ends a rotation
         self._run.update(rod=s['rod'], max_fish=s['max_fish'])
         self._note(f"configuration applied: {request['name']} | rod: {s['rod']}")
+        if ended is not None:
+            self._note(f"rotation {ended['name']} ended by the switch")
 
     def save_settings(self, settings_json: str) -> None:
         """Settings persist on purpose (they are not run data): a few hundred
@@ -303,24 +451,33 @@ class Api:
         if self._scan.get("busy") or self._search.get("busy"):
             return {"ok": False, "error": "finish or cancel the rod scan / quest read first"}
         try:
-            request = self._config_request(json.loads(settings_json))
+            raw = json.loads(settings_json)
+            fresh = None
+            if raw.get('active_rotation'):
+                made = self._rotation_request(raw['active_rotation'], raw)
+                if isinstance(made, str):
+                    return {"ok": False, "error": made}
+                request, fresh = made
+            else:
+                request = self._config_request(raw)
             s = request['settings']
             cfg, ccfg = self._configs(s)
-        except (KeyError, TypeError, ValueError) as exc:
+        except (KeyError, TypeError, ValueError, AttributeError) as exc:
             return {"ok": False, "error": f"invalid setting: {exc}"}
         self._bot = None
         self._stop_requested.clear()
         with self._lock:
             self._active_config = request
             self._pending_config = None
+            self._rotation = dict(fresh, since=time.time()) if fresh else None
         self._calibrated = False
         self._run = {"n": len(self._runs) + 1, "rod": s["rod"], "started": time.time(),
                      "max_fish": cfg.max_fish, "caught": 0, "lost": 0, "casts": 0,
                      "ended": None}
         self._runs.append(self._run)
         enchants = list((s.get("rod_enchants") or {}).get(s["rod"], []))
-        raw = json.loads(settings_json)
         extras = {"track_quests": bool(raw.get("track_quests", DEFAULTS["track_quests"])),
+                  "default_skin": bool(raw.get("default_skin", DEFAULTS["default_skin"])),
                   "owned": [r for r in raw.get("owned", []) if isinstance(r, str)]}
         self._worker = threading.Thread(
             target=self._work,
@@ -619,6 +776,7 @@ class Api:
             "search": dict(self._search),
             "active_config": active,
             "pending_config": pending,
+            "rotation": self._rotation_view() if running else None,
             "state": (b.state if b is not None and running
                       else "starting" if running else "idle"),
             "caught": b.caught if b else 0,
@@ -666,9 +824,10 @@ class Api:
         try:
             self._bot = create_bot(cfg, ccfg, rod, session, on_log=self._log,
                                    enchants=enchants)
-            self._bot.on_cycle_boundary = self._apply_pending
+            self._bot.on_cycle_boundary = self._on_cycle_boundary
             extras = extras or {}
             self._bot.track_quests = extras.get("track_quests", True)
+            self._bot.default_skin = extras.get("default_skin", False)
             self._bot.owned_rods = extras.get("owned", [])
             # Useables come from the general config, never from the setup
             general = load_general()
@@ -684,6 +843,8 @@ class Api:
             self._log(f"error: {exc!r}")
         finally:
             self.cancel_configuration()
+            with self._lock:
+                self._rotation = None
             if self._bot is not None:
                 self._bot.close_log()
                 self._bot.mouse.release()

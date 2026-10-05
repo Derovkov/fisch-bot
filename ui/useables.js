@@ -3,7 +3,7 @@
  * the hot-swap setups. Live status comes from get_state().useables.
  * Uses $ and esc from index.html. */
 (function () {
-  let U = null, TOTEMS = [], BAITS = [], live = null, weather = null, saveTimer = null;
+  let U = null, TOTEMS = [], BAITS = [], live = null, weather = null, saveTimer = null, totemPick = null, baitPick = null;
   const WHEN = [["start", "At start"], ["every", "Every"], ["quest", "For quests"]];
   const TOTEM_DEFAULT = {on: true, when: "every", every_min: 15, max_uses: 0, keep: 0};
   const BAIT_DEFAULT = {on: true, max_uses: 0, keep: 0};
@@ -42,8 +42,7 @@
   }
 
   function paintTotems() {
-    $("#u-totem-add").innerHTML = TOTEMS.filter(t => !U.totems.some(x => x.name === t.name))
-      .map(t => `<option>${esc(t.name)}</option>`).join("");
+    totemPick?.refresh();
     $("#u-totems").innerHTML = U.totems.length ? U.totems.map((t, i) => {
       const info = totemInfo(t.name);
       return `<div class="u-item${t.on ? "" : " off"}" data-i="${i}">
@@ -74,8 +73,7 @@
   function paintBaits() {
     $("#u-bait-manage").checked = U.bait.manage;
     document.querySelectorAll("#u-bait-out button").forEach(b => b.classList.toggle("on", b.dataset.v === U.bait.when_out));
-    $("#u-bait-add").innerHTML = BAITS.filter(b => !U.bait.list.some(x => x.name === b.name))
-      .sort((a, b) => a.name.localeCompare(b.name)).map(b => `<option>${esc(b.name)}</option>`).join("");
+    baitPick?.refresh();
     const L = U.bait.list;
     $("#u-baits").innerHTML = L.length ? L.map((b, i) => {
       const info = baitInfo(b.name), cur = live && live.current_bait === b.name;
@@ -118,8 +116,27 @@
   $("#u-enabled").onchange = e => { U.enabled = e.target.checked; save(); };
   $("#u-bait-manage").onchange = e => { U.bait.manage = e.target.checked; save(); paintNow(); };
   $("#u-bait-out").onclick = e => { const b = e.target.closest("button"); if (!b) return; U.bait.when_out = b.dataset.v; paintBaits(); save(); };
-  $("#u-totem-addbtn").onclick = () => { const n = $("#u-totem-add").value; if (!n) return; U.totems.push({name: n, ...TOTEM_DEFAULT}); paintTotems(); save(); };
-  $("#u-bait-addbtn").onclick = () => { const n = $("#u-bait-add").value; if (!n) return; U.bait.list.push({name: n, ...BAIT_DEFAULT}); paintBaits(); save(); };
+
+  /* add pickers: searchable, grouped, with icons and what each item does */
+  const TOTEM_GROUPS = [[/weather/i, "Weather"], [/event/i, "Events"], [/limited|unobtain/i, "Limited / unobtainable"]];
+  const totemGroup = t => (TOTEM_GROUPS.find(([re]) => re.test(t.kind || "")) || [0, "Other"])[1];
+  const RARITY = ["Trash", "Common", "Uncommon", "Unusual", "Rare", "Legendary", "Mythical", "Exotic", "Secret", "Special", "Limited"];
+  const rarityAt = r => { const i = RARITY.indexOf(r); return i < 0 ? 99 : i; };
+  totemPick = makePicker($("#u-totem-add"), {
+    placeholder: "Add a totem…", empty: "Every totem is already in your list",
+    items: () => !U ? [] : TOTEMS.filter(t => !U.totems.some(x => x.name === t.name))
+      .map(t => ({name: t.name, icon: t.icon, group: totemGroup(t), sub: t.effect || "", tag: t.cooldown ? "cooldown" : ""}))
+      .sort((a, b) => TOTEM_GROUPS.findIndex(g => g[1] === a.group) - TOTEM_GROUPS.findIndex(g => g[1] === b.group) || a.name.localeCompare(b.name)),
+    onPick: n => { U.totems.push({name: n, ...TOTEM_DEFAULT}); paintTotems(); save(); },
+  });
+  baitPick = makePicker($("#u-bait-add"), {
+    placeholder: "Add a bait…", empty: "Every bait is already in your list",
+    items: () => !U ? [] : BAITS.filter(b => !U.bait.list.some(x => x.name === b.name))
+      .sort((a, b) => rarityAt(a.rarity) - rarityAt(b.rarity) || a.name.localeCompare(b.name))
+      .map(b => ({name: b.name, icon: b.icon, group: b.rarity || "Other", sub: [stats(b), b.ability].filter(Boolean).join(" · "),
+                  tag: Object.keys(b.mutations || {})[0] || "", keywords: Object.keys(b.mutations || {}).join(" ")})),
+    onPick: n => { U.bait.list.push({name: n, ...BAIT_DEFAULT}); paintBaits(); save(); },
+  });
 
   function wire(listSel, arr, repaint) {
     const root = $(listSel);
