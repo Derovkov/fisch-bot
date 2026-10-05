@@ -49,6 +49,12 @@ GOOD TO KNOW
     new icons for their names and defers totems for active effects, protected
     weather groups or unreadable icons. Local events whose rules are not
     verified are deferred too. Limits and reserves still apply.
+  * Misc > Lullaby buffs: pick which Lullaby buffs to grind and for how many
+    minutes each. Between casts the bot opens the Equipment Bag, presses the
+    matching mode button down the right side of the Lullaby's card, and
+    closes the bag; after each buff's time it switches to the next and starts
+    over after the last. One buff in the list: it stays on it. The Lullaby
+    must be your rod. Like Useables, this is kept apart from saved setups.
   * Screen size: the first fish learns the reel scale ("UI scale ... locked").
     The bot follows window movement/resize between casts and relearns reel
     geometry after a resize. Finish the current fish before changing size,

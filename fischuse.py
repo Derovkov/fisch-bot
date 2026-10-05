@@ -106,14 +106,19 @@ def load_general(path: Path = GENERAL_FILE) -> dict:
         data = {}
     data = data if isinstance(data, dict) else {}
     data["useables"] = clean_useables(data.get("useables"))
+    from fischlullaby import clean_lullaby          # Misc tab: Lullaby buffs
+    data["lullaby"] = clean_lullaby(data.get("lullaby"))
     return data
 
 
 def save_general(data: dict, path: Path = GENERAL_FILE) -> dict:
     current = load_general(path)
-    current.update({k: v for k, v in data.items() if k != "useables"})
+    current.update({k: v for k, v in data.items() if k not in ("useables", "lullaby")})
     if "useables" in data:
         current["useables"] = clean_useables(data["useables"])
+    if "lullaby" in data:
+        from fischlullaby import clean_lullaby
+        current["lullaby"] = clean_lullaby(data["lullaby"])
     path.write_text(json.dumps(current, indent=1), encoding="utf-8")
     return current
 

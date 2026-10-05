@@ -29,6 +29,7 @@ from fischsession import Session
 from fischuse import Useables, load_general, save_general
 from fischskins import SkinBook, clean_skins
 from fischkeys import Hotkeys, saved_hotkeys, clean_hotkeys
+from fischlullaby import MODES as LULLABY_MODES, LullabyBuffs
 
 UI_FILE = Path(__file__).with_name("ui") / "index.html"
 SETTINGS_FILE = Path(__file__).with_name("fischbot_settings.json")
@@ -80,6 +81,14 @@ HELP = {
             "minute, but a rod half off the screen can be missed. Both open and "
             "close the bag themselves. Don't touch the mouse or keyboard while it "
             "runs; Stop or F9 cancels.",
+    "lullaby": "Grinds the Lullaby's buffs while you fish with it. Each metronome "
+               "hit adds 2.5s of the current mode's buff (the bot already times its "
+               "clicks to the metronome). Between casts the bot opens the Equipment "
+               "Bag (N), finds the Lullaby's card and presses the mode button on its "
+               "right side for the buff you want, then closes the bag. With more than "
+               "one buff in the list it switches to the next when the time is up, and "
+               "starts over after the last. Only works while the Lullaby is your rod. "
+               "Kept in the general config: switching setups never changes it.",
     "rod": "The rod you have equipped -- pick it on the Rods page, where you can also "
            "set its enchants. Some rods run their own minigame during the reel; the "
            "bot plays those itself using that rod's profile.",
@@ -185,6 +194,7 @@ class Api:
         return {"rods": rods, "enchants": ENCHANTS, "defaults": DEFAULTS,
                 "saved": saved, "help": help_text, "profiles": self._profiles.list(),
                 "rotations": self._profiles.list_rotations(),
+                "lullaby_modes": LULLABY_MODES,
                 "hotkeys": keys, "help_base": HELP,
                 "links": {"discord": DISCORD_URL, "repo": REPO_URL,
                           "issues": REPO_URL + "/issues", "releases": REPO_URL + "/releases"}}
@@ -710,7 +720,7 @@ class Api:
 
     def get_general(self) -> dict:
         """The general config (fischbot_general.json): settings that are not
-        part of any saved setup -- for now the Useables tab."""
+        part of any saved setup: the Useables tab, the Misc tab, skins, hotkeys."""
         return {"ok": True, "general": load_general()}
 
     def get_hotkeys(self) -> dict:
@@ -741,9 +751,21 @@ class Api:
         except (OSError, ValueError, TypeError) as exc:
             return {"ok": False, "error": str(exc)}
         b = self._bot
-        if b is not None and b.useables is not None and self._worker and self._worker.is_alive():
-            b.useables.update(data["useables"])          # limits apply at once
+        if b is not None and self._worker and self._worker.is_alive():
+            if b.useables is not None:
+                b.useables.update(data["useables"])      # limits apply at once
+            if getattr(b, "lullaby", None) is not None:
+                b.lullaby.update(data["lullaby"])        # the schedule too
         return {"ok": True, "general": data}
+
+    def lullaby_next(self) -> dict:
+        """Misc tab: move on to the next buff at the next cast."""
+        b = self._bot
+        if b is None or getattr(b, "lullaby", None) is None or not (self._worker and self._worker.is_alive()):
+            return {"ok": False, "error": "Start a run first."}
+        b.lullaby.skip()
+        self._note("lullaby: switching to the next buff after this cast")
+        return {"ok": True}
 
     def scan_progress(self) -> dict:
         return dict(self._scan)
@@ -787,6 +809,8 @@ class Api:
             "quests": b.quest_view if b is not None else None,
             "mutations": dict(b.mutations) if b is not None else {},
             "useables": b.useables.view() if b is not None and b.useables is not None else None,
+            "lullaby": (b.lullaby.view() if running and getattr(b, "lullaby", None) is not None
+                        else None),
             "skin": (b.skins.current["name"] if b is not None and b.skins is not None
                      and b.skins.current else None),
             "weather": b.weather.state.view() if b is not None else None,
@@ -832,6 +856,7 @@ class Api:
             # Useables come from the general config, never from the setup
             general = load_general()
             self._bot.useables = Useables(general["useables"], self._bot.log)
+            self._bot.lullaby = LullabyBuffs(general["lullaby"], self._bot.log)
             self._bot.skins = SkinBook(general.get("skins", []), self._bot.log,
                                        save=lambda sk: save_general({"skins": sk}))
             if self._stop_requested.is_set():

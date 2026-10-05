@@ -361,6 +361,86 @@ def skin_button_closeup(frame: np.ndarray, default: Box) -> Optional[tuple[str, 
     return None
 
 
+def card_art_region(card: dict, h: int) -> Box:
+    """The part of a rod card around its art (above the name), where the pen
+    and the Lullaby's mode buttons sit. `h`: the client height."""
+    x0, _, x1, _ = card["box"]
+    nb = card["name_box"]
+    return (x0, max(0, nb[1] - int(h * .5)), x1,
+            min(card.get("bottom", h), nb[3] + int(h * .2), h))
+
+
+# --- Lullaby: its six mode buttons on the rod card -----------------------------
+# From the user (2026-10-05, screenshot of the bag): the Lullaby's card has a
+# column of six small coloured buttons down its right side -- gold, cyan,
+# orange, green, peach, pink from the top -- one per mode (fischlullaby.MODES,
+# same order). The whole column is matched as one picture: six icons at fixed
+# spacing are far more distinctive than any one of them, and the match gives
+# the UI scale too. The strip was cut from that screenshot.
+LULLABY_MODES_ICON = Path(__file__).with_name("ui") / "icons" / "game" / "lullaby_modes.png"
+LULLABY_MODE_Y = (11, 39, 66, 95, 122, 151)   # button centres in the strip (px)
+LULLABY_MODE_X = 12
+LULLABY_MODE_HALF = 8                         # half a button, strip px
+LULLABY_MODES_MIN = 0.55                      # template match score for the column
+LULLABY_SCALES = tuple(round(0.5 + 0.05 * i, 2) for i in range(31))   # 0.50-2.00
+LULLABY_SETTLE_S = 0.6                        # after clicking a mode button
+
+
+def _modes_strip():
+    import cv2
+    t = cv2.imread(str(LULLABY_MODES_ICON))
+    if t is None:
+        raise MenuError(f"missing {LULLABY_MODES_ICON.name}")
+    rgb = t[:, :, ::-1].astype(np.int16)
+    mx, mn = rgb.max(2), rgb.min(2)
+    # The coloured strokes (and the pale ones) and a pixel around them; the
+    # card art behind them differs with the skin.
+    strokes = (((mx >= 100) & (mx - mn >= 45)) | (mn >= 150)).astype(np.uint8)
+    mask = cv2.dilate(strokes, np.ones((3, 3), np.uint8))
+    return np.ascontiguousarray(t[:, :, ::-1]), mask
+
+
+def find_lullaby_modes(frame: np.ndarray, region: Box) -> Optional[tuple[list[Box], float]]:
+    """The six mode buttons inside `region` of an RGB client frame, top to
+    bottom: ([box, ...], score), or None. Searched over UI scales."""
+    import cv2
+    x0, y0, x1, y1 = (max(0, int(v)) for v in region)
+    crop = np.ascontiguousarray(frame[y0:y1, x0:x1, :3])
+    if crop.size == 0:
+        return None
+    t, m = _modes_strip()
+
+    def match(k):
+        tw, th = max(6, round(t.shape[1] * k)), max(30, round(t.shape[0] * k))
+        if tw > crop.shape[1] or th > crop.shape[0]:
+            return None
+        ts = cv2.resize(t, (tw, th), interpolation=cv2.INTER_AREA)
+        ms = cv2.resize(m, (tw, th), interpolation=cv2.INTER_NEAREST)
+        res = cv2.matchTemplate(crop, ts, cv2.TM_CCOEFF_NORMED,
+                                mask=np.repeat(ms[:, :, None], 3, 2))
+        res = np.nan_to_num(res, nan=-1, posinf=-1, neginf=-1)
+        _, score, _, (bx, by) = cv2.minMaxLoc(res)
+        return k, float(score), bx, by
+
+    # Every other scale first, then the neighbours of the best (half the time).
+    hits = [h for h in map(match, LULLABY_SCALES[::2]) if h]
+    if not hits:
+        return None
+    best = max(hits, key=lambda h: h[1])
+    i = LULLABY_SCALES.index(best[0])
+    for j in (i - 1, i + 1):
+        h = match(LULLABY_SCALES[j]) if 0 <= j < len(LULLABY_SCALES) else None
+        if h and h[1] > best[1]:
+            best = h
+    if best[1] < LULLABY_MODES_MIN:
+        return None
+    k, score, bx, by = best
+    cx, r = x0 + bx + LULLABY_MODE_X * k, LULLABY_MODE_HALF * k
+    boxes = [(int(cx - r), int(y0 + by + (y - LULLABY_MODE_HALF) * k),
+              int(cx + r), int(y0 + by + (y + LULLABY_MODE_HALF) * k)) for y in LULLABY_MODE_Y]
+    return boxes, score
+
+
 def centre(b: Box) -> tuple[int, int]:
     return (b[0] + b[2]) // 2, (b[1] + b[3]) // 2
 
@@ -552,12 +632,7 @@ class EquipmentMenu:
         if card is None:
             raise MenuError(f"no [{rod}] card was read on the rod screen")
         frame = self.grab()
-        h = frame.shape[0]
-        x0, _, x1, _ = card["box"]
-        nb = card["name_box"]
-        region = (x0, max(0, nb[1] - int(h * .5)), x1,
-                  min(card.get("bottom", h), nb[3] + int(h * .2), h))
-        pen = find_skin_edit(frame, region)
+        pen = find_skin_edit(frame, card_art_region(card, frame.shape[0]))
         if pen is None:
             raise MenuError(f"no skins (pen) button found on the [{rod}] card")
         self.click(pen[0])
@@ -585,6 +660,38 @@ class EquipmentMenu:
             return "default"
         finally:
             self._skin_back()
+
+    def lullaby_mode(self, index: int, rod: str = "Lullaby") -> str:
+        """Press mode button `index` (0 = top, fischlullaby.MODES order) on the
+        Lullaby's card. Returns "changed" when the buttons looked different
+        afterwards (the pressed one lit up), else "pressed": the game shows no
+        mode name in the bag to read back. Raises MenuError."""
+        s = self.read()
+        if self.search_box is not None:
+            s = self.set_search(rod)
+        card = s.card(rod)
+        if card is None:
+            raise MenuError(f"no [{rod}] card was read on the rod screen (do you own it?)")
+        frame = self.grab()
+        x0, _, x1, y1 = card_art_region(card, frame.shape[0])
+        # The right half of the card, top to just below the name: the buttons
+        # hug the right edge (a little past the column OCR gives), and how high
+        # they sit above the name is not measured yet.
+        region = (x0 + (x1 - x0) // 2, 0, min(frame.shape[1], x1 + (x1 - x0) // 20), y1)
+        found = find_lullaby_modes(frame, region)
+        if found is None:
+            raise MenuError(f"no mode buttons found on the [{rod}] card")
+        boxes, score = found
+        bx0, by0 = boxes[0][0], boxes[0][1]
+        bx1, by1 = boxes[-1][2], boxes[-1][3]
+        before = frame[by0:by1, bx0:bx1].astype(np.int16)
+        self.log(f"  {rod}: mode buttons found (match {score:.2f}); pressing #{index + 1}")
+        self.click(boxes[index])
+        self._pause(LULLABY_SETTLE_S)
+        after = self.grab()[by0:by1, bx0:bx1].astype(np.int16)
+        if before.size and before.shape == after.shape and np.abs(after - before).mean() > 2:
+            return "changed"
+        return "pressed"
 
     def _skin_back(self) -> None:
         """Leave the skin list with [Back] (it never closes by itself)."""

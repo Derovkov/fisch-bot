@@ -360,6 +360,8 @@ class FischBot:
         self.on_cycle_boundary: Optional[Callable[[], None]] = None
         # Useables tab (fischuse.Useables): set by the UI before run()
         self.useables = None
+        # Misc tab > Lullaby buffs (fischlullaby.LullabyBuffs): set by the UI
+        self.lullaby = None
         # Reel-bar skins (fischskins.SkinBook): set by the UI before run()
         self.skins = None
         from fischweather import WeatherReader
@@ -1436,6 +1438,17 @@ class FischBot:
         finally:
             self.state = prev
 
+    def _lullaby_buffs(self) -> None:
+        """Misc tab: keep the Lullaby on the buff its schedule wants (its mode
+        buttons in the Equipment Bag), between casts only. Never ends the run."""
+        lb = self.lullaby
+        if lb is None or not lb.active or not self.running or not self.focus.ready():
+            return
+        try:
+            lb.between_casts(self)
+        except Exception as exc:
+            self.log(f"lullaby: skipped this time ({exc!r})")
+
     # -- main -----------------------------------------------------------------------
     def apply_configuration(self, cfg: MacroConfig, ccfg: ControlConfig,
                             rod: RodProfile, enchants: list[str], keep: bool) -> None:
@@ -1482,6 +1495,7 @@ class FischBot:
         pre = precheck(self.grabber.grab, self.rect.width, self.rect.height, self.log)
         self._check_quests()
         self._use_items()
+        self._lullaby_buffs()
         if pre.busy_scene:
             self.start_confirm = START_CONFIRM_BUSY
         self.log(f"rod: {self.rod.name}"
@@ -1545,6 +1559,7 @@ class FischBot:
                     self.useables.cast_done()
                 self._check_quests()
                 self._use_items()
+                self._lullaby_buffs()
                 # Caption-clear detection already guards the next cast. Keep
                 # only a short breather instead of adding another 0.6s delay.
                 time.sleep(0.15)
